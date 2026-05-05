@@ -7,178 +7,227 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.milwar.kaosuarina.entities.pozoBala;
-import com.milwar.kaosuarina.entities.pozoEnemy;
-import com.milwar.kaosuarina.entities.Player;
+import com.milwar.kaosuarina.entities.*;
+import com.milwar.kaosuarina.Systems.Upgrade;
+import com.milwar.kaosuarina.Systems.UpgradeManager;
 import com.milwar.kaosuarina.ui.HUD;
-import com.milwar.kaosuarina.utils.ControlColision;
-
-import static com.milwar.kaosuarina.utils.Constants.*;
+import com.milwar.kaosuarina.utils.ColisionManager;
+import com.milwar.kaosuarina.utils.Constants;
 
 public class GameScreen implements Screen {
+
+    // ── Estado de juego ────────────────────────────────────────────────────
     private SpriteBatch batch;
     private OrthographicCamera camera;
+
     private Player player;
-    private pozoBala pozoBala;
-    private pozoEnemy pozoEnemy;
-    //private GridRenderer gridRenderer;
+    private PoolBalas poolBalas;
+    private PoolEnemigos poolEnemigos;
+    private PoolBalasEnemigas poolBalasEnemigas;
+
     private HUD hud;
+    private UpgradeManager upgradeManager;
+    private LevelUpScreen levelUpScreen;
 
-    private float enemySpawnTimer;
-    private static final float ENEMY_SPAWN_INTERVAL = 1f;
-
-    private int killCount;
+    private int nivelAnterior;
+    private float timerSpawn;
+    private float intervaloSpawnBase;
+    private float timerDificultad;
 
     @Override
     public void show() {
+        inicializar();
+    }
+
+    private void inicializar() {
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, SCREEN_WIDTH, SCREEN_HEIGHT);
-        player = new Player(0, 0);
-        pozoBala = new pozoBala();
-        pozoEnemy = new pozoEnemy();
-       //gridRenderer = new GridRenderer();
-        hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT); // ← CAMBIO: pasar dimensiones
+        camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
-        enemySpawnTimer = 0;
-        killCount = 0;
+        player = new Player(0, 0);
+        poolBalas = new PoolBalas();
+        poolEnemigos = new PoolEnemigos();
+        poolBalasEnemigas = new PoolBalasEnemigas();
+        hud = new HUD(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+
+        upgradeManager = new UpgradeManager();
+        player.setUpgradeManager(upgradeManager);
+
+        levelUpScreen = new LevelUpScreen(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+        nivelAnterior = 1;
+        timerSpawn = 0;
+        intervaloSpawnBase = 2f;
+        timerDificultad = 0;
     }
 
     @Override
     public void render(float delta) {
+        // ── Pantalla de level up (pausa el juego) ─────────────────────────
+        if (levelUpScreen.isActive()) {
+            procesarLevelUp();
+            ScreenUtils.clear(0, 0, 0, 1f);
+            levelUpScreen.render(batch);
+            return;
+        }
+
+        // ── Game over ─────────────────────────────────────────────────────
         if (!player.isAlive()) {
             renderGameOver();
             return;
         }
 
-        handleInput();
+        procesarInput();
+        actualizarJuego(delta);
+        actualizarDificultad(delta);
+        procesarColisiones();
+        detectarLevelUp();
+        renderizar();
+    }
 
-        player.update(delta, pozoBala);
-        pozoBala.update(delta);
-        pozoEnemy.update(delta, player.position);
+    private void procesarLevelUp() {
+        levelUpScreen.handleInput();
+        Upgrade seleccionado = levelUpScreen.getSelectedUpgrade();
+        if (seleccionado != null) {
+            upgradeManager.aplicarUpgrade(seleccionado);
+            if (seleccionado.tipo == Upgrade.Tipo.VIDA_MAXIMA_UP) {
+                player.aumentarVidaMaxima(20);
+            }
+            levelUpScreen.hide();
+        }
+    }
+
+    private void procesarInput() {
+        player.velocity.set(0, 0);
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) player.velocity.y = player.getVelocidadActual();
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) player.velocity.y = -player.getVelocidadActual();
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) player.velocity.x = -player.getVelocidadActual();
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) player.velocity.x = player.getVelocidadActual();
+
+        if (player.velocity.len2() > 0) {
+            player.velocity.nor().scl(player.getVelocidadActual());
+        }
+    }
+
+    private void actualizarJuego(float delta) {
+        player.update(delta, poolBalas);
+        poolBalas.update(delta);
+        poolBalasEnemigas.update(delta);
+        poolEnemigos.update(delta, player.position, poolBalasEnemigas);
         hud.update(delta);
 
-        // Spawn enemigos
-        enemySpawnTimer -= delta;
-        if (enemySpawnTimer <= 0) {
-            spawnEnemy();
-            enemySpawnTimer = ENEMY_SPAWN_INTERVAL;
+        // Spawn de enemigos
+        timerSpawn -= delta;
+        if (timerSpawn <= 0) {
+            spawnOleada();
+            timerSpawn = intervaloSpawnBase;
         }
 
-        // Colisiones balas-enemigos
-        int enemiesKilledThisFrame = ControlColision.checkBulletEnemyCollisions(pozoBala, pozoEnemy);
-        if (enemiesKilledThisFrame > 0) {
-            killCount += enemiesKilledThisFrame;
-            hud.addScore(enemiesKilledThisFrame * 10);
-            System.out.println("Score: " + hud.getScore() + " | Kills: " + killCount); // DEBUG
-        }
         hud.setHealth(player.getCurrentHealth(), player.getMaxHealth());
-        hud.setMana(player.getCurrentMana(), player.getMaxMana());
+    }
 
-        // Colisión player-enemigos
-        if (ControlColision.isPlayerCollidingWithEnemy(player.position, 32, pozoEnemy)) {
-            player.takeDamage(1);
+    private void actualizarDificultad(float delta) {
+        timerDificultad += delta;
+        if (timerDificultad >= 30f) {
+            timerDificultad = 0;
+            intervaloSpawnBase = Math.max(0.3f, intervaloSpawnBase * 0.85f);
         }
-        if (enemiesKilledThisFrame > 0) {
-            killCount += enemiesKilledThisFrame;
-            hud.addScore(enemiesKilledThisFrame * 10);
-            hud.addExperience(enemiesKilledThisFrame * 25f); // ← NUEVO: 25 exp por enemigo
+    }
+
+    private void procesarColisiones() {
+        int muertes = ColisionManager.comprobarBalasVsEnemigos(poolBalas, poolEnemigos);
+        if (muertes > 0) {
+            hud.addScore(muertes * 10);
+            hud.addExperience(muertes * 25f);
         }
 
-        // Actualizar HUD
-        hud.setLevel(hud.getLevel());
-        hud.setHealth(player.getCurrentHealth(), player.getMaxHealth());
+        if (ColisionManager.comprobarJugadorVsEnemigos(player.position, player.getRadio(), poolEnemigos)) {
+            player.recibirDanio(10);
+        }
 
+        ColisionManager.comprobarBalasEnemigas(poolBalasEnemigas, player);
+    }
+
+    private void detectarLevelUp() {
+        int nivelActual = hud.getLevel();
+        if (nivelActual > nivelAnterior) {
+            nivelAnterior = nivelActual;
+            levelUpScreen.show(upgradeManager.getUpgradesAleatorios(3));
+        }
+    }
+
+    private void spawnOleada() {
+        int cantidad = 1 + (hud.getLevel() / 3);
+        float distSpawn = 800f;
+
+        for (int i = 0; i < cantidad; i++) {
+            float angulo = MathUtils.random(MathUtils.PI2);
+            float x = player.position.x + MathUtils.cos(angulo) * distSpawn;
+            float y = player.position.y + MathUtils.sin(angulo) * distSpawn;
+            poolEnemigos.spawn(x, y);
+        }
+    }
+
+    private void renderizar() {
         camera.position.set(player.position.x, player.position.y, 0);
         camera.update();
 
         ScreenUtils.clear(0.1f, 0.05f, 0.15f, 1f);
-
-       // gridRenderer.render(camera);
-
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        pozoBala.render(batch);
-        pozoEnemy.render(batch);
+        poolBalas.render(batch);
+        poolBalasEnemigas.render(batch);
+        poolEnemigos.render(batch);
         player.render(batch);
         batch.end();
 
-        // Renderizar HUD (sin cámara del mundo)
         hud.render(batch);
     }
 
     private void renderGameOver() {
         ScreenUtils.clear(0, 0, 0, 1f);
-
-        // Renderizar HUD con stats finales
         hud.render(batch);
-
-        // Texto de Game Over
-        batch.begin();
-        // Por ahora usamos la font del HUD (después mejoraremos)
-        batch.end();
-
-        // ← ARREGLO: Presiona R para reiniciar
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            restart(); // ← Método nuevo
+            reiniciar();
         }
     }
 
-    // ← NUEVO: Método para reiniciar
-    private void restart() {
-        // Limpiar recursos viejos
+    private void reiniciar() {
+        // Liberar recursos del juego anterior
         player.dispose();
-        pozoBala.dispose();
-        pozoEnemy.dispose();
+        poolBalas.dispose();
+        poolEnemigos.dispose();
+        poolBalasEnemigas.dispose();
         hud.dispose();
+        levelUpScreen.dispose();
 
-        // Recrear todo
-        player = new Player(0, 0);
-        pozoBala = new pozoBala();
-        pozoEnemy = new pozoEnemy();
-        hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-        enemySpawnTimer = 0;
-        killCount = 0;
-
-        System.out.println("Game restarted!");
+        // Reinicializar todo desde cero
+        inicializar();
     }
 
-    private void spawnEnemy() {
-        float angle = MathUtils.random(0f, 360f) * MathUtils.degreesToRadians;
-        float distance = 800f;
-        float x = player.position.x + MathUtils.cos(angle) * distance;
-        float y = player.position.y + MathUtils.sin(angle) * distance;
-
-        pozoEnemy.spawn(x, y);
+    @Override
+    public void resize(int width, int height) {
     }
 
-    private void handleInput() {
-        player.velocity.set(0, 0);
-
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) player.velocity.y = player.getCurrentSpeed();
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) player.velocity.y = -player.getCurrentSpeed();
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) player.velocity.x = -player.getCurrentSpeed();
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) player.velocity.x = player.getCurrentSpeed();
-
-        if (player.velocity.len() > 0) {
-            player.velocity.nor().scl(player.getCurrentSpeed());
-        }
+    @Override
+    public void pause() {
     }
 
-    @Override public void resize(int width, int height) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {
         batch.dispose();
         player.dispose();
-        pozoBala.dispose();
-        pozoEnemy.dispose();
-       //
-        // gridRenderer.dispose();
+        poolBalas.dispose();
+        poolEnemigos.dispose();
+        poolBalasEnemigas.dispose();
         hud.dispose();
+        levelUpScreen.dispose();
     }
 }

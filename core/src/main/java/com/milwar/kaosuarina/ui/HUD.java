@@ -24,9 +24,8 @@ public class HUD implements Disposable {
     private int level;
     private float experience;
     private float expToNextLevel;
-
-    private int screenWidth;
-    private int screenHeight;
+    private final int screenWidth;
+    private final int screenHeight;
 
     public HUD(int screenWidth, int screenHeight) {
         this.screenWidth = screenWidth;
@@ -80,7 +79,6 @@ public class HUD implements Disposable {
 
         // Renderizar barras primero
         renderHealthBar();
-        renderManaBar();
         renderExperienceBar();
 
         batch.begin();
@@ -88,15 +86,12 @@ public class HUD implements Disposable {
         // HP (arriba izquierda)
         font.draw(batch, "HP", 25, screenHeight - 15);
 
-        // Mana (debajo de HP)
-        font.draw(batch, "MP", 25, screenHeight - 55);
-
         // Score (arriba derecha)
         String scoreText = "Score: " + score;
         font.draw(batch, scoreText, screenWidth - 250, screenHeight - 15);
 
-        // Nivel (arriba izquierda, debajo del mana)
-        font.draw(batch, "Lvl " + level, 25, screenHeight - 95);
+        // Nivel (arriba izquierda, debajo de HP)
+        font.draw(batch, "Lvl " + level, 25, screenHeight - 55);
 
         // Timer (CENTRO SUPERIOR, grande y sin texto)
         String timeText = String.format("%02d:%02d",
@@ -233,7 +228,6 @@ public class HUD implements Disposable {
             this.experience -= expToNextLevel;
             this.level++;
             this.expToNextLevel *= 1.2f;
-            System.out.println("LEVEL UP! Nivel " + level);
         }
     }
 

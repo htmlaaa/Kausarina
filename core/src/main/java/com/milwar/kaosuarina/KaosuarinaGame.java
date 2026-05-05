@@ -6,7 +6,6 @@ import com.milwar.kaosuarina.screens.GameScreen;
 public class KaosuarinaGame extends Game {
     @Override
     public void create() {
-
         setScreen(new GameScreen());
     }
 }

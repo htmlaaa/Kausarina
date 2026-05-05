@@ -11,8 +11,8 @@ public class Lwjgl3Launcher {
         createApplication();
     }
 
-    private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new KaosuarinaGame(), getDefaultConfiguration());
+    private static void createApplication() {
+        new Lwjgl3Application(new KaosuarinaGame(), getDefaultConfiguration());
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
