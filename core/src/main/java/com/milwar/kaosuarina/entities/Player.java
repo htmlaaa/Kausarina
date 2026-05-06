@@ -1,26 +1,24 @@
 package com.milwar.kaosuarina.entities;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.milwar.kaosuarina.Systems.Upgrade;
+import com.milwar.kaosuarina.Systems.PlayerStats;
 import com.milwar.kaosuarina.Systems.UpgradeManager;
 import com.milwar.kaosuarina.utils.Constants;
+import com.milwar.kaosuarina.utils.SharedTextures;
 
 public class Player {
-    private static final float BASE_SHOOT_COOLDOWN = 0.2f;
-    private static final float BASE_SPEED = 400f;
     private static final float INVULNERABILITY_TIME = 1f;
 
     public Vector2 position;
     public Vector2 velocity;
 
-    private Texture texture;
+    private final PlayerStats stats;
+    private final Vector2 arenaDir = new Vector2();
+
     private float shootTimer;
-    private float invulnerabilityTimer; // tiempo restante de invulnerabilidad tras recibir daño
+    private float invulnerabilityTimer;
 
     private int maxHealth;
     private int currentHealth;
@@ -29,19 +27,18 @@ public class Player {
     private UpgradeManager upgradeManager;
 
     public Player(float x, float y) {
-        position = new Vector2(x, y);
-        velocity = new Vector2();
+        this(x, y, new PlayerStats());
+    }
+
+    public Player(float x, float y, PlayerStats stats) {
+        this.stats = stats;
+        position   = new Vector2(x, y);
+        velocity   = new Vector2();
         shootTimer = 0;
         invulnerabilityTimer = 0;
-        maxHealth = 100;
+        maxHealth    = stats.maxHealth;
         currentHealth = maxHealth;
         alive = true;
-
-        Pixmap pixmap = new Pixmap(64, 64, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 0, 0, 1);
-        pixmap.fill();
-        texture = new Texture(pixmap);
-        pixmap.dispose();
     }
 
     public void setUpgradeManager(UpgradeManager manager) {
@@ -53,25 +50,24 @@ public class Player {
         currentHealth = Math.min(currentHealth + bonus, maxHealth);
     }
 
-    public void update(float delta, PoolBalas poolBalas) {
+    public void update(float delta, PoolBalas poolBalas, float aimAngle) {
         if (!alive) return;
 
         if (invulnerabilityTimer > 0) invulnerabilityTimer -= delta;
 
-        // Límite de arena: empujar suavemente hacia el centro
         if (position.len() > Constants.ARENA_RADIUS) {
-            Vector2 toCenter = new Vector2(position).nor().scl(-1);
-            velocity.add(toCenter.scl(BASE_SPEED * 2f));
+            arenaDir.set(position).nor().scl(-stats.baseSpeed * 2f);
+            velocity.add(arenaDir);
         }
 
         position.add(velocity.x * delta, velocity.y * delta);
 
-        float cooldown = BASE_SHOOT_COOLDOWN;
+        float cooldown = stats.baseShootCooldown;
         if (upgradeManager != null) cooldown /= upgradeManager.getMultiplicadorCadencia();
 
         shootTimer -= delta;
         if (shootTimer <= 0) {
-            disparar(poolBalas);
+            disparar(poolBalas, aimAngle);
             shootTimer = cooldown;
         }
     }
@@ -88,18 +84,9 @@ public class Player {
         }
     }
 
-    private void disparar(PoolBalas poolBalas) {
-        float mouseX = Gdx.input.getX();
-        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
-
-        float dirX = mouseX - Gdx.graphics.getWidth() / 2f;
-        float dirY = mouseY - Gdx.graphics.getHeight() / 2f;
-
-        float anguloBase = (float) Math.atan2(dirY, dirX);
-
-        int totalBalas = 3 + (upgradeManager != null ? upgradeManager.getBalasExtra() : 0);
-        float spread = 15f;
-        float inicio = -(totalBalas - 1) * spread / 2f;
+    private void disparar(PoolBalas poolBalas, float aimAngle) {
+        int totalBalas = stats.baseBulletCount + (upgradeManager != null ? upgradeManager.getBalasExtra() : 0);
+        float inicio = -(totalBalas - 1) * stats.bulletSpread / 2f;
 
         int damage = 1;
         int pierce = 0;
@@ -109,42 +96,29 @@ public class Player {
         }
 
         for (int i = 0; i < totalBalas; i++) {
-            float offset = inicio + (i * spread);
-            float angulo = anguloBase + offset * MathUtils.degreesToRadians;
+            float offset = inicio + (i * stats.bulletSpread);
+            float angulo = aimAngle + offset * MathUtils.degreesToRadians;
             poolBalas.spawn(position.x, position.y, MathUtils.cos(angulo), MathUtils.sin(angulo), damage, pierce);
         }
     }
 
     public void render(SpriteBatch batch) {
         if (!alive) return;
-        // Parpadeo durante invulnerabilidad
         if (invulnerabilityTimer > 0 && ((int) (invulnerabilityTimer * 10) % 2 == 0)) return;
-        batch.draw(texture, position.x - 32, position.y - 32, 64, 64);
+        batch.draw(SharedTextures.getPlayer(), position.x - 32, position.y - 32, 64, 64);
     }
 
-    public int getCurrentHealth() {
-        return currentHealth;
-    }
-
-    public int getMaxHealth() {
-        return maxHealth;
-    }
-
-    public boolean isAlive() {
-        return alive;
-    }
-
-    public float getRadio() {
-        return 32f;
-    }
+    public int getCurrentHealth()  { return currentHealth; }
+    public int getMaxHealth()      { return maxHealth; }
+    public boolean isAlive()       { return alive; }
+    public float getRadio()        { return 32f; }
 
     public float getVelocidadActual() {
         return upgradeManager != null
-            ? BASE_SPEED * upgradeManager.getMultiplicadorVelocidad()
-            : BASE_SPEED;
+            ? stats.baseSpeed * upgradeManager.getMultiplicadorVelocidad()
+            : stats.baseSpeed;
     }
 
     public void dispose() {
-        texture.dispose();
     }
 }

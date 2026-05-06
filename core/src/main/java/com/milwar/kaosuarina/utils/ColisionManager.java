@@ -14,7 +14,7 @@ public class ColisionManager {
             for (Enemy enemy : poolEnemigos.getEnemigos()) {
                 if (!enemy.active) continue;
 
-                if (colisionan(bala.position, 4f, enemy.position, enemy.getRadio())) {
+                if (colisionan(bala.position, Constants.BALA_RADIO, enemy.position, enemy.getRadio())) {
                     boolean estabaVivo = enemy.active;
                     enemy.recibirDanio(bala.damage);
                     if (estabaVivo && !enemy.active) muertes++;
@@ -42,7 +42,7 @@ public class ColisionManager {
 
         for (BalaEnemiga bala : poolBalasEnemigas.balas) {
             if (!bala.active) continue;
-            if (player.position.dst(bala.position) < player.getRadio() + 5f) {
+            if (player.position.dst(bala.position) < player.getRadio() + Constants.BALA_ENEMIGA_RADIO) {
                 player.recibirDanio(bala.getDamage());
                 bala.deactivate();
             }

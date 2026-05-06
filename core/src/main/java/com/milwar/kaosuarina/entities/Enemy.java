@@ -1,11 +1,10 @@
 package com.milwar.kaosuarina.entities;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milwar.kaosuarina.utils.SharedTextures;
 
 public class Enemy {
 
@@ -14,29 +13,24 @@ public class Enemy {
     private static final float SHOOTER_ACERCAR_DIST = 500f;
     private static final float SHOOTER_COOLDOWN = 2f;
     private final Color renderColor = new Color();
-    private final Color oldColor = new Color();
+    private final Color oldColor    = new Color();
+    private final Color color       = new Color();
+    private final Vector2 tmp       = new Vector2();
     public Vector2 position;
     public Vector2 velocity;
     public boolean active;
     public int health;
     public int maxHealth;
     public Tipo tipo;
-    private Texture texture;
     private float speed;
     private float size;
-    private Color color;
     private float shootTimer;
-    public Enemy() {
-        position = new Vector2();
-        velocity = new Vector2();
-        active = false;
-        shootTimer = 0;
 
-        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, 1);
-        pixmap.fill();
-        texture = new Texture(pixmap);
-        pixmap.dispose();
+    public Enemy() {
+        position   = new Vector2();
+        velocity   = new Vector2();
+        active     = false;
+        shootTimer = 0;
     }
 
     public void activate(float x, float y, Tipo tipo) {
@@ -48,32 +42,20 @@ public class Enemy {
 
         switch (tipo) {
             case BASICO:
-                speed = 150f;
-                size = 32f;
-                health = 3;
-                maxHealth = 3;
-                color = new Color(0.2f, 0.9f, 0.3f, 1f);
+                speed = 150f; size = 32f; health = 3;  maxHealth = 3;
+                color.set(0.2f, 0.9f,  0.3f,  1f);
                 break;
             case RAPIDO:
-                speed = 300f;
-                size = 24f;
-                health = 1;
-                maxHealth = 1;
-                color = new Color(0.3f, 0.6f, 1f, 1f);
+                speed = 300f; size = 24f; health = 1;  maxHealth = 1;
+                color.set(0.3f, 0.6f,  1f,    1f);
                 break;
             case TANQUE:
-                speed = 80f;
-                size = 48f;
-                health = 10;
-                maxHealth = 10;
-                color = new Color(0.9f, 0.2f, 0.2f, 1f);
+                speed = 80f;  size = 48f; health = 10; maxHealth = 10;
+                color.set(0.9f, 0.2f,  0.2f,  1f);
                 break;
             case SHOOTER:
-                speed = 100f;
-                size = 32f;
-                health = 5;
-                maxHealth = 5;
-                color = new Color(0.95f, 0.85f, 0.2f, 1f);
+                speed = 100f; size = 32f; health = 5;  maxHealth = 5;
+                color.set(0.95f, 0.85f, 0.2f, 1f);
                 break;
         }
     }
@@ -95,16 +77,15 @@ public class Enemy {
                 } else if (dist > SHOOTER_ACERCAR_DIST) {
                     velocity.set(playerPos).sub(position).nor().scl(speed * 0.5f);
                 } else {
-                    // orbitar
-                    Vector2 toPlayer = new Vector2(playerPos).sub(position);
-                    velocity.set(-toPlayer.y, toPlayer.x).nor().scl(speed);
+                    tmp.set(playerPos).sub(position);
+                    velocity.set(-tmp.y, tmp.x).nor().scl(speed);
                 }
 
                 shootTimer -= delta;
                 if (shootTimer <= 0 && bulletPool != null) {
                     shootTimer = SHOOTER_COOLDOWN;
-                    Vector2 dir = new Vector2(playerPos).sub(position).nor();
-                    bulletPool.spawn(position.x, position.y, dir.x, dir.y);
+                    tmp.set(playerPos).sub(position).nor();
+                    bulletPool.spawn(position.x, position.y, tmp.x, tmp.y);
                 }
                 break;
         }
@@ -126,7 +107,7 @@ public class Enemy {
 
         oldColor.set(batch.getColor());
         batch.setColor(renderColor);
-        batch.draw(texture, position.x - size / 2, position.y - size / 2, size, size);
+        batch.draw(SharedTextures.getEnemyWhite(), position.x - size / 2, position.y - size / 2, size, size);
         batch.setColor(oldColor);
     }
 
@@ -139,7 +120,6 @@ public class Enemy {
     }
 
     public void dispose() {
-        texture.dispose();
     }
 
     public enum Tipo {BASICO, RAPIDO, TANQUE, SHOOTER}

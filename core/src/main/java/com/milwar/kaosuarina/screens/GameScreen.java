@@ -33,6 +33,7 @@ public class GameScreen implements Screen {
     private float timerSpawn;
     private float intervaloSpawnBase;
     private float timerDificultad;
+    private float aimAngle;
 
     @Override
     public void show() {
@@ -88,10 +89,8 @@ public class GameScreen implements Screen {
         levelUpScreen.handleInput();
         Upgrade seleccionado = levelUpScreen.getSelectedUpgrade();
         if (seleccionado != null) {
-            upgradeManager.aplicarUpgrade(seleccionado);
-            if (seleccionado.tipo == Upgrade.Tipo.VIDA_MAXIMA_UP) {
-                player.aumentarVidaMaxima(20);
-            }
+            int hpBonus = upgradeManager.aplicarUpgrade(seleccionado);
+            if (hpBonus > 0) player.aumentarVidaMaxima(hpBonus);
             levelUpScreen.hide();
         }
     }
@@ -106,10 +105,17 @@ public class GameScreen implements Screen {
         if (player.velocity.len2() > 0) {
             player.velocity.nor().scl(player.getVelocidadActual());
         }
+
+        float mouseX = Gdx.input.getX();
+        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        aimAngle = (float) Math.atan2(
+            mouseY - Gdx.graphics.getHeight() / 2f,
+            mouseX - Gdx.graphics.getWidth()  / 2f
+        );
     }
 
     private void actualizarJuego(float delta) {
-        player.update(delta, poolBalas);
+        player.update(delta, poolBalas, aimAngle);
         poolBalas.update(delta);
         poolBalasEnemigas.update(delta);
         poolEnemigos.update(delta, player.position, poolBalasEnemigas);

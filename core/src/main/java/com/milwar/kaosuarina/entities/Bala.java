@@ -1,9 +1,8 @@
 package com.milwar.kaosuarina.entities;
 
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.milwar.kaosuarina.utils.SharedTextures;
 
 public class Bala {
     private static final float SPEED   = 600f;
@@ -17,7 +16,6 @@ public class Bala {
     public int pierceLeft;
 
     private Vector2 spawnPosition; // ← para medir distancia correctamente
-    private Texture texture;
 
     public Bala() {
         position      = new Vector2();
@@ -26,12 +24,6 @@ public class Bala {
         active        = false;
         damage        = 1;
         pierceLeft    = 0;
-
-        Pixmap pixmap = new Pixmap(8, 8, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 0, 1);
-        pixmap.fill();
-        texture = new Texture(pixmap);
-        pixmap.dispose();
     }
 
     public void activate(float x, float y, float dirX, float dirY, int damage, int pierce) {
@@ -65,10 +57,9 @@ public class Bala {
 
     public void render(SpriteBatch batch) {
         if (!active) return;
-        batch.draw(texture, position.x - SIZE / 2, position.y - SIZE / 2, SIZE, SIZE);
+        batch.draw(SharedTextures.getBala(), position.x - SIZE / 2, position.y - SIZE / 2, SIZE, SIZE);
     }
 
     public void dispose() {
-        texture.dispose();
     }
 }

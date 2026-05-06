@@ -43,11 +43,13 @@ public class UpgradeManager {
         return seleccionados;
     }
 
-    public void aplicarUpgrade(Upgrade upgrade) {
+    /** Returns HP bonus to apply to the player (20 for VIDA_MAXIMA_UP, 0 otherwise). */
+    public int aplicarUpgrade(Upgrade upgrade) {
         upgrade.mejorar();
         if (!upgradesActivos.contains(upgrade, true)) {
             upgradesActivos.add(upgrade);
         }
+        return upgrade.tipo == Upgrade.Tipo.VIDA_MAXIMA_UP ? 20 : 0;
     }
 
     // ── Getters de multiplicadores ──────────────────────────────────────────

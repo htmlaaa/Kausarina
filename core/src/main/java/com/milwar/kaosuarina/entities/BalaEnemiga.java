@@ -1,9 +1,8 @@
 package com.milwar.kaosuarina.entities;
 
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.milwar.kaosuarina.utils.SharedTextures;
 
 public class BalaEnemiga {
     private static final float SPEED = 450f;
@@ -16,19 +15,12 @@ public class BalaEnemiga {
     public boolean active;
 
     private Vector2 spawnPosition;
-    private Texture texture;
 
     public BalaEnemiga() {
         position = new Vector2();
         velocity = new Vector2();
         spawnPosition = new Vector2();
         active = false;
-
-        Pixmap pixmap = new Pixmap(10, 10, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.9f, 0.2f, 0.2f, 1f);
-        pixmap.fill();
-        texture = new Texture(pixmap);
-        pixmap.dispose();
     }
 
     public void activate(float x, float y, float dirX, float dirY) {
@@ -48,7 +40,7 @@ public class BalaEnemiga {
 
     public void render(SpriteBatch batch) {
         if (!active) return;
-        batch.draw(texture, position.x - SIZE / 2, position.y - SIZE / 2, SIZE, SIZE);
+        batch.draw(SharedTextures.getBalaEnemiga(), position.x - SIZE / 2, position.y - SIZE / 2, SIZE, SIZE);
     }
 
     public void deactivate() {
@@ -60,6 +52,5 @@ public class BalaEnemiga {
     }
 
     public void dispose() {
-        texture.dispose();
     }
 }
