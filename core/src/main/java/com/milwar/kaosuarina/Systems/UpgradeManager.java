@@ -17,7 +17,7 @@ public class UpgradeManager {
     }
 
     private void inicializarUpgrades() {
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.DANIO_UP, "Daño +20%", "Aumenta el daño de tus balas", 5));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.DANIO_UP, "Daño +40%", "Aumenta el daño de tus balas", 5));
         todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CADENCIA_UP, "Cadencia +15%", "Disparas más rápido", 5));
         todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VELOCIDAD_UP, "Velocidad +10%", "Te mueves más rápido", 5));
         todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VIDA_MAXIMA_UP, "Vida Máxima +20", "Aumenta tu vida máxima", 3));
@@ -57,7 +57,7 @@ public class UpgradeManager {
     public float getMultiplicadorDanio() {
         float m = 1f;
         for (Upgrade u : upgradesActivos)
-            if (u.tipo == Upgrade.Tipo.DANIO_UP) m += 0.2f * u.nivel;
+            if (u.tipo == Upgrade.Tipo.DANIO_UP) m += 0.4f * u.nivel;
         return m;
     }
 

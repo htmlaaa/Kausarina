@@ -15,10 +15,10 @@ public class HUD implements Disposable {
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera hudCamera;
 
-    private int currentHealth;
-    private int maxHealth;
-    private int currentMana;
-    private int maxMana;
+    private int   currentHealth;
+    private int   maxHealth;
+    private float currentMana;
+    private float maxMana;
     private int score;
     private float survivalTime;
     private int level;
@@ -58,9 +58,9 @@ public class HUD implements Disposable {
 
         // Valores iniciales
         currentHealth = 100;
-        maxHealth = 100;
-        currentMana = 10;
-        maxMana = 50;
+        maxHealth     = 100;
+        currentMana   = 0f;
+        maxMana       = 0f;
         score = 0;
         survivalTime = 0;
         level = 1;
@@ -79,6 +79,7 @@ public class HUD implements Disposable {
 
         // Renderizar barras primero
         renderHealthBar();
+        if (maxMana > 0) renderManaBar();
         renderExperienceBar();
 
         batch.begin();
@@ -144,9 +145,9 @@ public class HUD implements Disposable {
         Gdx.gl.glLineWidth(1);
     }
 
-    // Barra de MANA (debajo de HP)
+    // Barra de MANA (debajo de HP) — width escalado según maxMana
     private void renderManaBar() {
-        float barWidth = 100f;
+        float barWidth = Math.min(200f, 50f + maxMana);
         float barHeight = 20f;
         float barX = 100f;
         float barY = screenHeight - 80f;
@@ -158,7 +159,7 @@ public class HUD implements Disposable {
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
 
         // Mana actual (azul cian brillante)
-        float manaPercent = (float) currentMana / maxMana;
+        float manaPercent = currentMana / maxMana;
         shapeRenderer.setColor(0.2f, 0.6f, 1f, 1f);
         shapeRenderer.rect(barX + 3, barY + 3, (barWidth - 6) * manaPercent, barHeight - 6);
 
@@ -208,9 +209,9 @@ public class HUD implements Disposable {
         this.maxHealth = max;
     }
 
-    public void setMana(int current, int max) {
+    public void setMana(float current, float max) {
         this.currentMana = current;
-        this.maxMana = max;
+        this.maxMana     = max;
     }
 
     public void addScore(int points) {

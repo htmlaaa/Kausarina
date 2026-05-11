@@ -22,6 +22,8 @@ public class Enemy {
     public int health;
     public int maxHealth;
     public Tipo tipo;
+    public float defensa;           // reducción de daño físico (S2-07)
+    public float resistenciaMagica; // reducción de daño mágico (S2-07)
     private float speed;
     private float size;
     private float shootTimer;
@@ -40,21 +42,25 @@ public class Enemy {
         this.tipo = tipo;
         shootTimer = MathUtils.random(0f, SHOOTER_COOLDOWN);
 
+        defensa           = 0f;
+        resistenciaMagica = 0f;
+
         switch (tipo) {
             case BASICO:
-                speed = 150f; size = 32f; health = 3;  maxHealth = 3;
+                speed = 150f; size = 32f; health = 30;  maxHealth = 30;
                 color.set(0.2f, 0.9f,  0.3f,  1f);
                 break;
             case RAPIDO:
-                speed = 300f; size = 24f; health = 1;  maxHealth = 1;
+                speed = 300f; size = 24f; health = 12;  maxHealth = 12;
                 color.set(0.3f, 0.6f,  1f,    1f);
                 break;
             case TANQUE:
-                speed = 80f;  size = 48f; health = 10; maxHealth = 10;
+                speed = 80f;  size = 48f; health = 180; maxHealth = 180;
+                defensa = 20f;
                 color.set(0.9f, 0.2f,  0.2f,  1f);
                 break;
             case SHOOTER:
-                speed = 100f; size = 32f; health = 5;  maxHealth = 5;
+                speed = 100f; size = 32f; health = 50;  maxHealth = 50;
                 color.set(0.95f, 0.85f, 0.2f, 1f);
                 break;
         }

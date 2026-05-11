@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew.bat build *)",
+      "PowerShell(Out-File *)",
+      "PowerShell(Tee-Object *)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\juanj\\\\Desktop\\\\PROYECTO_TFG_KAUSARINA\\\\A_Game_Kaosuarina\"; $proc = Start-Process -FilePath \".\\\\gradlew.bat\" -ArgumentList \"clean :core:compileJava --console=plain\" -NoNewWindow -Wait -RedirectStandardOutput \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_out.txt\" -RedirectStandardError \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_err2.txt\" -PassThru; Write-Host \"Exit: $\\($proc.ExitCode\\)\")",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\juanj\\\\Desktop\\\\PROYECTO_TFG_KAUSARINA\\\\A_Game_Kaosuarina\"; $proc = Start-Process -FilePath \".\\\\gradlew.bat\" -ArgumentList \":core:compileJava --info --console=plain\" -NoNewWindow -Wait -RedirectStandardOutput \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_out.txt\" -RedirectStandardError \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_err2.txt\" -PassThru; Write-Host \"Exit: $\\($proc.ExitCode\\)\")",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\juanj\\\\Desktop\\\\PROYECTO_TFG_KAUSARINA\\\\A_Game_Kaosuarina\"; $proc = Start-Process -FilePath \".\\\\gradlew.bat\" -ArgumentList \"clean --console=plain\" -NoNewWindow -Wait -RedirectStandardOutput \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_clean.txt\" -RedirectStandardError \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_clean_err.txt\" -PassThru; Write-Host \"Clean exit: $\\($proc.ExitCode\\)\"; Start-Sleep -Seconds 2; $proc2 = Start-Process -FilePath \".\\\\gradlew.bat\" -ArgumentList \":core:compileJava --console=plain\" -NoNewWindow -Wait -RedirectStandardOutput \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile.txt\" -RedirectStandardError \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile_err.txt\" -PassThru; Write-Host \"Compile exit: $\\($proc2.ExitCode\\)\")",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\juanj\\\\Desktop\\\\PROYECTO_TFG_KAUSARINA\\\\A_Game_Kaosuarina\"; $proc = Start-Process -FilePath \".\\\\gradlew.bat\" -ArgumentList \":core:compileJava -Dorg.gradle.logging.level=lifecycle --console=plain\" -NoNewWindow -Wait -RedirectStandardOutput \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile.txt\" -RedirectStandardError \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile_err.txt\" -PassThru; Write-Host \"Exit: $\\($proc.ExitCode\\)\"; Get-Item \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile.txt\" | Select-Object Length)",
+      "PowerShell($f = Get-Item \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile.txt\" -ErrorAction SilentlyContinue; if \\($f\\) { \"$\\($f.Name\\) $\\($f.Length\\) bytes\" } else { \"not found\" }; $f2 = Get-Item \"C:\\\\Users\\\\juanj\\\\Desktop\\\\build_compile_err.txt\" -ErrorAction SilentlyContinue; if \\($f2\\) { \"$\\($f2.Name\\) $\\($f2.Length\\) bytes\" } else { \"not found\" })"
+    ]
+  }
+}
