@@ -11,16 +11,16 @@ import com.milwar.kaosuarina.roles.Role;
 public class SpriteSheets {
 
     public static final int DIR_SOUTH = 0;
-    public static final int DIR_EAST  = 1;
+    public static final int DIR_EAST = 1;
     public static final int DIR_NORTH = 2;
-    public static final int DIR_WEST  = 3;
+    public static final int DIR_WEST = 3;
 
     // sprites[roleTipo.ordinal()][dirección]
     private static Texture[][] sprites;
 
     public static void load() {
-        String[] roles = { "caballero", "mago", "shooter" };
-        String[] dirs  = { "south", "east", "north", "west" };
+        String[] roles = {"caballero", "mago", "shooter"};
+        String[] dirs = {"south", "east", "north", "west"};
 
         sprites = new Texture[roles.length][dirs.length];
         for (int r = 0; r < roles.length; r++) {
@@ -41,10 +41,14 @@ public class SpriteSheets {
 
     private static int roleIndex(Role.Tipo tipo) {
         switch (tipo) {
-            case CABALLERO: return 0;
-            case MAGO:      return 1;
-            case SHOOTER:   return 2;
-            default:        return -1;
+            case CABALLERO:
+                return 0;
+            case MAGO:
+                return 1;
+            case SHOOTER:
+                return 2;
+            default:
+                return -1;
         }
     }
 

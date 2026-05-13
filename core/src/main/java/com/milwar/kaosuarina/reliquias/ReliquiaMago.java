@@ -10,13 +10,16 @@ import com.milwar.kaosuarina.entities.Player;
 public class ReliquiaMago implements Reliquia {
 
     @Override
-    public void onDamageReceived(Player player, int damage) {}
+    public void onDamageReceived(Player player, int damage) {
+    }
 
     @Override
-    public void onKill(Player player) {}
+    public void onKill(Player player) {
+    }
 
     @Override
-    public void onUpdate(Player player, float delta) {}
+    public void onUpdate(Player player, float delta) {
+    }
 
     @Override
     public int getBounces() {

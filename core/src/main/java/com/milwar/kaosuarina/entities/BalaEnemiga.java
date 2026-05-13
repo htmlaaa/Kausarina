@@ -14,7 +14,7 @@ public class BalaEnemiga {
     public Vector2 velocity;
     public boolean active;
 
-    private Vector2 spawnPosition;
+    private final Vector2 spawnPosition;
 
     public BalaEnemiga() {
         position = new Vector2();

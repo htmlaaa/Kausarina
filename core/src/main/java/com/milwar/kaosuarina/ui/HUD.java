@@ -10,13 +10,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Disposable;
 
 public class HUD implements Disposable {
-    private BitmapFont font;
-    private BitmapFont timerFont;
-    private ShapeRenderer shapeRenderer;
-    private OrthographicCamera hudCamera;
+    private final BitmapFont font;
+    private final BitmapFont timerFont;
+    private final ShapeRenderer shapeRenderer;
+    private final OrthographicCamera hudCamera;
 
-    private int   currentHealth;
-    private int   maxHealth;
+    private int currentHealth;
+    private int maxHealth;
     private float currentMana;
     private float maxMana;
     private int score;
@@ -58,9 +58,9 @@ public class HUD implements Disposable {
 
         // Valores iniciales
         currentHealth = 100;
-        maxHealth     = 100;
-        currentMana   = 0f;
-        maxMana       = 0f;
+        maxHealth = 100;
+        currentMana = 0f;
+        maxMana = 0f;
         score = 0;
         survivalTime = 0;
         level = 1;
@@ -96,8 +96,8 @@ public class HUD implements Disposable {
 
         // Timer (CENTRO SUPERIOR, grande y sin texto)
         String timeText = String.format("%02d:%02d",
-            (int)(survivalTime / 60),
-            (int)(survivalTime % 60));
+            (int) (survivalTime / 60),
+            (int) (survivalTime % 60));
 
         // Centrar manualmente
         float timerX = (screenWidth / 2f) - 60; // Ajuste manual para centrar
@@ -211,7 +211,7 @@ public class HUD implements Disposable {
 
     public void setMana(float current, float max) {
         this.currentMana = current;
-        this.maxMana     = max;
+        this.maxMana = max;
     }
 
     public void addScore(int points) {

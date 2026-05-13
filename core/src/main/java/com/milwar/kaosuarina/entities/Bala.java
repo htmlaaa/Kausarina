@@ -12,22 +12,22 @@ public class Bala {
 
     public Vector2 position;
     public Vector2 velocity;
-    public boolean    active;
-    public int        damage;
+    public boolean active;
+    public int damage;
     public DamageType damageType;
-    public int        pierceLeft;
-    public int        rebotesRestantes;
+    public int pierceLeft;
+    public int rebotesRestantes;
 
-    private Vector2 spawnPosition;
+    private final Vector2 spawnPosition;
 
     public Bala() {
         position = new Vector2();
         velocity = new Vector2();
         spawnPosition = new Vector2();
-        active           = false;
-        damage           = 1;
-        damageType       = DamageType.FISICO;
-        pierceLeft       = 0;
+        active = false;
+        damage = 1;
+        damageType = DamageType.FISICO;
+        pierceLeft = 0;
         rebotesRestantes = 0;
     }
 
@@ -35,10 +35,10 @@ public class Bala {
         position.set(x, y);
         spawnPosition.set(x, y);
         velocity.set(dirX, dirY).nor().scl(SPEED);
-        active           = true;
-        this.damage      = damage;
-        this.damageType  = type;
-        this.pierceLeft  = pierce + 1;
+        active = true;
+        this.damage = damage;
+        this.damageType = type;
+        this.pierceLeft = pierce + 1;
         this.rebotesRestantes = rebotes;
     }
 

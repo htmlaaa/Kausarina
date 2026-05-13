@@ -15,33 +15,33 @@ import com.milwar.kaosuarina.utils.Constants;
 
 public class CharacterSelectScreen implements Screen {
 
-    private static final Color COLOR_CABALLERO = new Color(0f,    0.898f, 0.8f,  1f);
-    private static final Color COLOR_MAGO       = new Color(0.608f,0.188f, 1f,   1f);
-    private static final Color COLOR_SHOOTER    = new Color(1f,    0.722f, 0f,   1f);
+    private static final Color COLOR_CABALLERO = new Color(0f, 0.898f, 0.8f, 1f);
+    private static final Color COLOR_MAGO = new Color(0.608f, 0.188f, 1f, 1f);
+    private static final Color COLOR_SHOOTER = new Color(1f, 0.722f, 0f, 1f);
 
-    private static final Role[] ROLES = { Role.caballero(), Role.mago(), Role.shooter() };
+    private final Role[] ROLES = {Role.caballero(), Role.mago(), Role.shooter()};
 
     private static final String[][] CORE_LINES = {
-        { "Fortaleza Reactiva:", "Recibir dano acumula", "stacks de armadura", "(max 5, -8% dmg c/u)" },
-        { "Resonancia Caotica:", "Las balas rebotan al", "enemigo mas cercano", "(radio 200u, 1 rebote)" },
-        { "Momentum de Combate:", "Kills acumulan Combo", "(max 10, +3% cadencia)", "Sin kills: decay -1/s" }
+        {"Fortaleza Reactiva:", "Recibir dano acumula", "stacks de armadura", "(max 5, -8% dmg c/u)"},
+        {"Resonancia Caotica:", "Las balas rebotan al", "enemigo mas cercano", "(radio 200u, 1 rebote)"},
+        {"Momentum de Combate:", "Kills acumulan Combo", "(max 10, +3% cadencia)", "Sin kills: decay -1/s"}
     };
 
     private final KaosuarinaGame game;
-    private SpriteBatch       batch;
-    private ShapeRenderer     shapeRenderer;
-    private OrthographicCamera camera;
-    private BitmapFont        titleFont;
-    private BitmapFont        cardFont;
+    private final SpriteBatch batch;
+    private final ShapeRenderer shapeRenderer;
+    private final OrthographicCamera camera;
+    private final BitmapFont titleFont;
+    private final BitmapFont cardFont;
 
     private int selectedIndex = 0;
 
     public CharacterSelectScreen(KaosuarinaGame game) {
         this.game = game;
 
-        batch         = new SpriteBatch();
+        batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        camera        = new OrthographicCamera();
+        camera = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
         titleFont = new BitmapFont();
@@ -51,7 +51,8 @@ public class CharacterSelectScreen implements Screen {
     }
 
     @Override
-    public void show() {}
+    public void show() {
+    }
 
     @Override
     public void render(float delta) {
@@ -86,18 +87,18 @@ public class CharacterSelectScreen implements Screen {
     }
 
     private void renderCards() {
-        float cardW   = 310f;
-        float cardH   = 430f;
+        float cardW = 310f;
+        float cardH = 430f;
         float spacing = 45f;
-        float totalW  = cardW * ROLES.length + spacing * (ROLES.length - 1);
-        float startX  = (Constants.SCREEN_WIDTH - totalW) / 2f;
-        float cardY   = (Constants.SCREEN_HEIGHT - cardH) / 2f - 30f;
+        float totalW = cardW * ROLES.length + spacing * (ROLES.length - 1);
+        float startX = (Constants.SCREEN_WIDTH - totalW) / 2f;
+        float cardY = (Constants.SCREEN_HEIGHT - cardH) / 2f - 30f;
 
         for (int i = 0; i < ROLES.length; i++) {
-            float  cardX   = startX + i * (cardW + spacing);
-            Role   role    = ROLES[i];
-            boolean sel    = i == selectedIndex;
-            Color  accent  = accentColor(i);
+            float cardX = startX + i * (cardW + spacing);
+            Role role = ROLES[i];
+            boolean sel = i == selectedIndex;
+            Color accent = accentColor(i);
 
             // Fondo
             Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -133,15 +134,15 @@ public class CharacterSelectScreen implements Screen {
             cardFont.getData().setScale(1.45f);
             cardFont.setColor(Color.WHITE);
             float sy = cardY + cardH - 120;
-            cardFont.draw(batch, "HP:    " + role.stats.maxHealth,       cardX + 14, sy);
+            cardFont.draw(batch, "HP:    " + role.stats.maxHealth, cardX + 14, sy);
             cardFont.draw(batch, "VEL:   " + (int) role.stats.baseSpeed, cardX + 14, sy - 32);
-            cardFont.draw(batch, "DMG:   " + role.stats.baseDamage + "x",cardX + 14, sy - 64);
+            cardFont.draw(batch, "DMG:   " + role.stats.baseDamage + "x", cardX + 14, sy - 64);
             cardFont.draw(batch, "BALAS: " + role.stats.baseBulletCount, cardX + 14, sy - 96);
 
             // Core
             cardFont.getData().setScale(1.35f);
             cardFont.setColor(Color.CYAN);
-            cardFont.draw(batch, "CORE:", cardX + 14, sy - 145);
+            cardFont.draw(batch, "RELIQUIA:", cardX + 14, sy - 145);
 
             cardFont.getData().setScale(1.2f);
             cardFont.setColor(Color.LIGHT_GRAY);
@@ -174,17 +175,32 @@ public class CharacterSelectScreen implements Screen {
 
     private Color accentColor(int index) {
         switch (index) {
-            case 0: return COLOR_CABALLERO;
-            case 1: return COLOR_MAGO;
-            case 2: return COLOR_SHOOTER;
-            default: return Color.WHITE;
+            case 0:
+                return COLOR_CABALLERO;
+            case 1:
+                return COLOR_MAGO;
+            case 2:
+                return COLOR_SHOOTER;
+            default:
+                return Color.WHITE;
         }
     }
 
-    @Override public void resize(int w, int h) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resize(int w, int h) {
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {

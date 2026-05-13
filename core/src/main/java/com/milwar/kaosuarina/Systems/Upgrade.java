@@ -1,4 +1,4 @@
-package com.milwar.kaosuarina.Systems;
+package com.milwar.kaosuarina.systems;
 
 public class Upgrade {
 
@@ -8,23 +8,31 @@ public class Upgrade {
         VELOCIDAD_UP,
         VIDA_MAXIMA_UP,
         PERFORACION,
-        BALA_EXTRA
+        BALA_EXTRA,
+        FILO_IGNEO,
+        CUCHILLA_VENENO,
+        VAMPIRISMO
     }
 
-    public Tipo   tipo;
+    public Tipo tipo;
     public String nombre;
     public String descripcion;
-    public int    nivel;
-    public int    nivelMax;
+    public int nivel;
+    public int nivelMax;
 
     public Upgrade(Tipo tipo, String nombre, String descripcion, int nivelMax) {
-        this.tipo        = tipo;
-        this.nombre      = nombre;
+        this.tipo = tipo;
+        this.nombre = nombre;
         this.descripcion = descripcion;
-        this.nivel       = 0;
-        this.nivelMax    = nivelMax;
+        this.nivel = 0;
+        this.nivelMax = nivelMax;
     }
 
-    public boolean puedeMejorar()  { return nivel < nivelMax; }
-    public void    mejorar()       { if (puedeMejorar()) nivel++; }
+    public boolean puedeMejorar() {
+        return nivel < nivelMax;
+    }
+
+    public void mejorar() {
+        if (puedeMejorar()) nivel++;
+    }
 }

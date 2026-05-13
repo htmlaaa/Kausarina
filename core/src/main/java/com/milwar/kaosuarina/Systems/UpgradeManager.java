@@ -1,13 +1,17 @@
-package com.milwar.kaosuarina.Systems;
+package com.milwar.kaosuarina.systems;
 
 import com.badlogic.gdx.utils.Array;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 public class UpgradeManager {
-    private Array<Upgrade> todosLosUpgrades;
-    private Array<Upgrade> upgradesActivos;
-    private Random random;
+    private final Array<Upgrade> todosLosUpgrades;
+    private final Array<Upgrade> upgradesActivos;
+    private final List<Upgrade>  upgradesAplicados = new ArrayList<>();
+    private final Random random;
 
     public UpgradeManager() {
         todosLosUpgrades = new Array<>();
@@ -23,6 +27,9 @@ public class UpgradeManager {
         todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VIDA_MAXIMA_UP, "Vida Máxima +20", "Aumenta tu vida máxima", 3));
         todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.PERFORACION, "Perforación", "Balas atraviesan enemigos", 3));
         todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.BALA_EXTRA, "Bala Extra", "Dispara 1 bala adicional", 3));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.FILO_IGNEO, "Filo Ígneo", "Ataques aplican Quemadura", 1));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CUCHILLA_VENENO, "Cuchilla Venenosa", "Ataques aplican Veneno", 1));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VAMPIRISMO, "Vampirismo", "Roba 15% del daño como HP", 1));
     }
 
     public Array<Upgrade> getUpgradesAleatorios(int cantidad) {
@@ -43,12 +50,15 @@ public class UpgradeManager {
         return seleccionados;
     }
 
-    /** Returns HP bonus to apply to the player (20 for VIDA_MAXIMA_UP, 0 otherwise). */
+    /**
+     * Returns HP bonus to apply to the player (20 for VIDA_MAXIMA_UP, 0 otherwise).
+     */
     public int aplicarUpgrade(Upgrade upgrade) {
         upgrade.mejorar();
         if (!upgradesActivos.contains(upgrade, true)) {
             upgradesActivos.add(upgrade);
         }
+        upgradesAplicados.add(upgrade);
         return upgrade.tipo == Upgrade.Tipo.VIDA_MAXIMA_UP ? 20 : 0;
     }
 
@@ -91,7 +101,33 @@ public class UpgradeManager {
         return 0;
     }
 
+    public int getNivelDanio() {
+        for (Upgrade u : upgradesActivos)
+            if (u.tipo == Upgrade.Tipo.DANIO_UP) return u.nivel;
+        return 0;
+    }
+
+    public com.milwar.kaosuarina.utils.DamageType getElementalOnHit() {
+        for (Upgrade u : upgradesActivos) {
+            if (u.tipo == Upgrade.Tipo.FILO_IGNEO && u.nivel > 0) return com.milwar.kaosuarina.utils.DamageType.FUEGO;
+            if (u.tipo == Upgrade.Tipo.CUCHILLA_VENENO && u.nivel > 0)
+                return com.milwar.kaosuarina.utils.DamageType.VENENO;
+        }
+        return null;
+    }
+
+    public float getLifeStealPercent() {
+        for (Upgrade u : upgradesActivos)
+            if (u.tipo == Upgrade.Tipo.VAMPIRISMO && u.nivel > 0)
+                return com.milwar.kaosuarina.utils.Constants.LIFESTEAL_BASE_PERCENT;
+        return 0f;
+    }
+
     public Array<Upgrade> getUpgradesActivos() {
         return upgradesActivos;
+    }
+
+    public List<Upgrade> getUpgradesAplicados() {
+        return Collections.unmodifiableList(upgradesAplicados);
     }
 }

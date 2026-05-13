@@ -9,11 +9,11 @@ import com.milwar.kaosuarina.entities.Player;
  */
 public class ReliquiaCaballero implements Reliquia {
 
-    private static final int   MAX_STACKS         = 5;
-    private static final float DECAY_DELAY         = 4f;
+    private static final int MAX_STACKS = 5;
+    private static final float DECAY_DELAY = 4f;
     private static final float REDUCTION_PER_STACK = 0.08f;
 
-    private int   armorStacks      = 0;
+    private int armorStacks = 0;
     private float timeSinceLastHit = 0f;
     private float decayAccumulator = 0f;
 
@@ -38,7 +38,8 @@ public class ReliquiaCaballero implements Reliquia {
     }
 
     @Override
-    public void onKill(Player player) {}
+    public void onKill(Player player) {
+    }
 
     @Override
     public float getDamageReduction() {

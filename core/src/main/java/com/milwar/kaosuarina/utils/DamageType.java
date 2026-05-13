@@ -6,6 +6,8 @@ public enum DamageType {
     A_DISTANCIA,
     FUEGO,
     VENENO,
-    /** Ignora el 50% de defensa y resistencia mágica del objetivo. */
+    /**
+     * Ignora el 50% de defensa y resistencia mágica del objetivo.
+     */
     CAOS
 }

@@ -10,20 +10,20 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.milwar.kaosuarina.Systems.Upgrade;
+import com.milwar.kaosuarina.systems.Upgrade;
 
 public class LevelUpScreen implements Disposable {
-    private BitmapFont titleFont;
-    private BitmapFont cardFont;
-    private ShapeRenderer shapeRenderer;
-    private OrthographicCamera camera;
+    private final BitmapFont titleFont;
+    private final BitmapFont cardFont;
+    private final ShapeRenderer shapeRenderer;
+    private final OrthographicCamera camera;
 
     private Array<Upgrade> options;
     private int selectedIndex;
     private boolean isActive;
 
-    private int screenWidth;
-    private int screenHeight;
+    private final int screenWidth;
+    private final int screenHeight;
 
     public LevelUpScreen(int screenWidth, int screenHeight) {
         this.screenWidth = screenWidth;

@@ -10,41 +10,47 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.milwar.kaosuarina.KaosuarinaGame;
+import com.milwar.kaosuarina.db.DBManager;
 import com.milwar.kaosuarina.entities.*;
-import com.milwar.kaosuarina.Systems.Upgrade;
-import com.milwar.kaosuarina.Systems.UpgradeManager;
+import com.milwar.kaosuarina.systems.Upgrade;
+import com.milwar.kaosuarina.systems.UpgradeManager;
 import com.milwar.kaosuarina.roles.Role;
 import com.milwar.kaosuarina.ui.HUD;
 import com.milwar.kaosuarina.utils.ColisionManager;
 import com.milwar.kaosuarina.utils.Constants;
+import java.util.List;
 
 public class GameScreen implements Screen {
 
     private final KaosuarinaGame game;
-    private final Role           roleInicial;
+    private final Role roleInicial;
 
-    private SpriteBatch        batch;
-    private ShapeRenderer      shapeRenderer;
+    private SpriteBatch batch;
+    private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
 
-    private Player             player;
-    private PoolBalas          poolBalas;
-    private PoolEnemigos       poolEnemigos;
-    private PoolBalasEnemigas  poolBalasEnemigas;
+    private Player player;
+    private PoolBalas poolBalas;
+    private PoolEnemigos poolEnemigos;
+    private PoolBalasEnemigas poolBalasEnemigas;
 
-    private HUD            hud;
+    private HUD hud;
     private UpgradeManager upgradeManager;
-    private LevelUpScreen  levelUpScreen;
+    private LevelUpScreen levelUpScreen;
 
-    private int   nivelAnterior;
-    private int   pendingLevelUps;
+    private int nivelAnterior;
+    private int pendingLevelUps;
     private float timerSpawn;
     private float intervaloSpawnBase;
     private float timerDificultad;
     private float aimAngle;
+    private boolean leftClickJust;
+    private boolean rightClickJust;
+    private float   tiempoSupervivencia;
+    private boolean runGuardada;
 
     public GameScreen(KaosuarinaGame game, Role role) {
-        this.game        = game;
+        this.game = game;
         this.roleInicial = role;
     }
 
@@ -54,26 +60,28 @@ public class GameScreen implements Screen {
     }
 
     private void inicializar() {
-        batch         = new SpriteBatch();
+        batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        camera        = new OrthographicCamera();
+        camera = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
-        player            = new Player(0, 0, roleInicial);
-        poolBalas         = new PoolBalas();
-        poolEnemigos      = new PoolEnemigos();
+        player = new Player(0, 0, roleInicial);
+        poolBalas = new PoolBalas();
+        poolEnemigos = new PoolEnemigos();
         poolBalasEnemigas = new PoolBalasEnemigas();
-        hud               = new HUD(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+        hud = new HUD(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
         upgradeManager = new UpgradeManager();
         player.setUpgradeManager(upgradeManager);
 
-        levelUpScreen    = new LevelUpScreen(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
-        nivelAnterior    = 1;
-        pendingLevelUps  = 0;
-        timerSpawn       = 0;
+        levelUpScreen = new LevelUpScreen(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+        nivelAnterior = 1;
+        pendingLevelUps = 0;
+        timerSpawn = 0;
         intervaloSpawnBase = 2f;
-        timerDificultad  = 0;
+        timerDificultad = 0;
+        tiempoSupervivencia = 0f;
+        runGuardada = false;
     }
 
     @Override
@@ -110,10 +118,10 @@ public class GameScreen implements Screen {
 
     private void procesarInput() {
         player.velocity.set(0, 0);
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) player.velocity.y =  player.getVelocidadActual();
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) player.velocity.y = player.getVelocidadActual();
         if (Gdx.input.isKeyPressed(Input.Keys.S)) player.velocity.y = -player.getVelocidadActual();
         if (Gdx.input.isKeyPressed(Input.Keys.A)) player.velocity.x = -player.getVelocidadActual();
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) player.velocity.x =  player.getVelocidadActual();
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) player.velocity.x = player.getVelocidadActual();
 
         if (player.velocity.len2() > 0) player.velocity.nor().scl(player.getVelocidadActual());
 
@@ -121,12 +129,23 @@ public class GameScreen implements Screen {
         float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
         aimAngle = (float) Math.atan2(
             mouseY - Gdx.graphics.getHeight() / 2f,
-            mouseX - Gdx.graphics.getWidth()  / 2f
+            mouseX - Gdx.graphics.getWidth() / 2f
         );
+
+        leftClickJust = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        rightClickJust = Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT);
     }
 
     private void actualizarJuego(float delta) {
+        tiempoSupervivencia += delta;
         player.update(delta, poolBalas, aimAngle);
+
+        // Ataques manuales para Caballero y Mago
+        if (player.getRole().attackMode != com.milwar.kaosuarina.roles.Role.AttackMode.AUTO_SHOOT) {
+            if (leftClickJust) recompensarKills(player.triggerLightAttack(poolBalas, aimAngle, poolEnemigos));
+            if (rightClickJust) recompensarKills(player.triggerHeavyAttack(poolBalas, aimAngle, poolEnemigos));
+        }
+
         poolBalas.update(delta);
         poolBalasEnemigas.update(delta);
         poolEnemigos.update(delta, player.position, poolBalasEnemigas);
@@ -151,21 +170,23 @@ public class GameScreen implements Screen {
     }
 
     private void procesarColisiones() {
-        int muertes = ColisionManager.comprobarBalasVsEnemigos(poolBalas, poolEnemigos);
-        if (muertes > 0) {
-            hud.addScore(muertes * 10);
-            hud.addExperience(muertes * 25f);
-            for (int i = 0; i < muertes; i++) {
-                player.onKill();
-                player.getStats().añadirMana(5f); // Sed de Sangre: +5 maná por kill
-            }
-        }
+        recompensarKills(ColisionManager.comprobarBalasVsEnemigos(player, poolBalas, poolEnemigos));
+        recompensarKills(ColisionManager.comprobarExplosionesMALDITO(poolEnemigos));
 
-        if (ColisionManager.comprobarJugadorVsEnemigos(player.position, player.getRadio(), poolEnemigos)) {
-            player.recibirDanio(Constants.CONTACT_DAMAGE_DEFAULT);
-        }
+        int contactDmg = ColisionManager.comprobarJugadorVsEnemigos(player, poolEnemigos);
+        if (contactDmg > 0) player.recibirDanio(contactDmg);
 
         ColisionManager.comprobarBalasEnemigas(poolBalasEnemigas, player);
+    }
+
+    private void recompensarKills(int n) {
+        if (n <= 0) return;
+        hud.addScore(n * 10);
+        hud.addExperience(n * 25f);
+        for (int i = 0; i < n; i++) {
+            player.onKill();
+            player.getStats().añadirMana(5f);
+        }
     }
 
     private void detectarLevelUp() {
@@ -181,7 +202,7 @@ public class GameScreen implements Screen {
     }
 
     private void spawnOleada() {
-        int   cantidad  = 1 + (hud.getLevel() / 3);
+        int cantidad = 1 + (hud.getLevel() / 3);
         float distSpawn = 800f;
         for (int i = 0; i < cantidad; i++) {
             float angulo = MathUtils.random(MathUtils.PI2);
@@ -198,14 +219,21 @@ public class GameScreen implements Screen {
 
         ScreenUtils.clear(0.1f, 0.05f, 0.15f, 1f);
 
-        // Arena boundary
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.setProjectionMatrix(camera.combined);
+
+        // Arena boundary
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(0.4f, 0.25f, 0.6f, 0.7f);
         shapeRenderer.circle(0, 0, Constants.ARENA_RADIUS, 128);
         shapeRenderer.end();
+
+        // Efectos visuales de ataque (arco espada / explosión mágica)
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        player.renderAttackEffect(shapeRenderer);
+        shapeRenderer.end();
+
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         batch.setProjectionMatrix(camera.combined);
@@ -220,6 +248,11 @@ public class GameScreen implements Screen {
     }
 
     private void renderGameOver() {
+        if (!runGuardada) {
+            runGuardada = true;
+            int runId = DBManager.guardarRun(construirRunData());
+            if (runId < 0) Gdx.app.error("DBManager", "No se pudo guardar la run");
+        }
         ScreenUtils.clear(0, 0, 0, 1f);
         hud.render(batch);
         // R → reiniciar con el mismo rol; ESC → volver al selector
@@ -229,6 +262,35 @@ public class GameScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             liberarRecursos();
             game.setScreen(new CharacterSelectScreen(game));
+        }
+    }
+
+    private DBManager.RunData construirRunData() {
+        DBManager.RunData d = new DBManager.RunData();
+        d.personajeId    = personajeIdDe(player.getRole().tipo);
+        d.score          = hud.getScore();
+        d.tiempoSegundos = (int) tiempoSupervivencia;
+        d.nivelAlcanzado = hud.getLevel();
+        d.manaTotal      = (int) player.getStats().manaGastadoTotal;
+        d.killsPorTipo   = poolEnemigos.getKillsByType();
+        d.reliquiaId     = personajeIdDe(player.getRole().tipo);
+
+        List<Upgrade> aplicados = upgradeManager.getUpgradesAplicados();
+        d.upgradesTipos   = new String[aplicados.size()];
+        d.upgradesNiveles = new int[aplicados.size()];
+        for (int i = 0; i < aplicados.size(); i++) {
+            d.upgradesTipos[i]   = aplicados.get(i).tipo.name();
+            d.upgradesNiveles[i] = aplicados.get(i).nivel;
+        }
+        return d;
+    }
+
+    private static int personajeIdDe(Role.Tipo tipo) {
+        switch (tipo) {
+            case CABALLERO: return 1;
+            case MAGO:      return 2;
+            case SHOOTER:   return 3;
+            default:        return 0;
         }
     }
 
@@ -248,10 +310,21 @@ public class GameScreen implements Screen {
         batch.dispose();
     }
 
-    @Override public void resize(int w, int h) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resize(int w, int h) {
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {

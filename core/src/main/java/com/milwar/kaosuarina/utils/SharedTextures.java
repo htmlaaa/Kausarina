@@ -31,7 +31,9 @@ public class SharedTextures {
 
     // ── Helpers de Pixmap ─────────────────────────────────────────────────────
 
-    /** Círculo sólido con borde suave via alpha. */
+    /**
+     * Círculo sólido con borde suave via alpha.
+     */
     private static Texture circle(int size, float r, float g, float b) {
         Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         p.setColor(0, 0, 0, 0);
@@ -54,7 +56,9 @@ public class SharedTextures {
         return t;
     }
 
-    /** Círculo con anillo interior — para el jugador. */
+    /**
+     * Círculo con anillo interior — para el jugador.
+     */
     private static Texture circleWithRing(int size, float r, float g, float b) {
         Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         p.setColor(0, 0, 0, 0);
@@ -85,7 +89,9 @@ public class SharedTextures {
         return t;
     }
 
-    /** Círculo con halo suave — para balas. */
+    /**
+     * Círculo con halo suave — para balas.
+     */
     private static Texture circleGlow(int size, float r, float g, float b) {
         Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         p.setColor(0, 0, 0, 0);
@@ -116,15 +122,38 @@ public class SharedTextures {
 
     // ── Getters ───────────────────────────────────────────────────────────────
 
-    public static Texture getPlayer()       { return player; }
-    public static Texture getEnemyWhite()   { return enemyWhite; }
-    public static Texture getBala()         { return bala; }
-    public static Texture getBalaEnemiga()  { return balaEnemiga; }
+    public static Texture getPlayer() {
+        return player;
+    }
+
+    public static Texture getEnemyWhite() {
+        return enemyWhite;
+    }
+
+    public static Texture getBala() {
+        return bala;
+    }
+
+    public static Texture getBalaEnemiga() {
+        return balaEnemiga;
+    }
 
     public static void dispose() {
-        if (player      != null) { player.dispose();      player = null; }
-        if (enemyWhite  != null) { enemyWhite.dispose();  enemyWhite = null; }
-        if (bala        != null) { bala.dispose();        bala = null; }
-        if (balaEnemiga != null) { balaEnemiga.dispose(); balaEnemiga = null; }
+        if (player != null) {
+            player.dispose();
+            player = null;
+        }
+        if (enemyWhite != null) {
+            enemyWhite.dispose();
+            enemyWhite = null;
+        }
+        if (bala != null) {
+            bala.dispose();
+            bala = null;
+        }
+        if (balaEnemiga != null) {
+            balaEnemiga.dispose();
+            balaEnemiga = null;
+        }
     }
 }
