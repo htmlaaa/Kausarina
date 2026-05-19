@@ -1,0 +1,177 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "5b992f59-9506-4517-bfe5-0400f898f515",
+        "name": "Mage - Kaos",
+        "prompt": "Pixel art sprite, full body front view, dark sorceress. Silhouette: young woman, long messy black hair flowing past shoulders with high ponytail on top, bangs covering eyes, pale skin #E8C9B5, glowing cyan eyes. Robe: long flowing pitch black robe #0A0612 reaching floor, wide oversized hanging sleeves extending past hands like draped fabric, jagged torn ragged hem at bottom with sharp uneven spike-like points, fabric tatters at lower skirt, slight asymmetric layered cloth at waist, tight at waist with thin dark belt, flares outward at bottom like bell shape, subtle dark purple shading #1F1530. Staff: tall thin black wooden staff in right hand taller than character, simple small cyan glowing orb at top. Glow accents only: thin cyan glowing lines tracing sleeve and hem edges, single magenta crack on chest, glowing cyan eyes. No paint splatters, no blood, no chaotic effects. Pose: standing straight frontal, staff held vertically on her left side, free hand hanging down. Dark fantasy gothic pixel art, clean readable silhouette, high contrast black robe vs subtle neon glow, transparent background, selective outline.",
+        "size": {
+          "width": 180,
+          "height": 180
+        },
+        "template_id": "mannequin",
+        "directions": 4,
+        "view": "low top-down",
+        "created_at": "2026-05-18T18:22:20.491662+00:00"
+      },
+      "folder": "Mage_-_Kaos",
+      "frames": {
+        "rotations": {
+          "south": "Mage_-_Kaos/rotations/south.png",
+          "west": "Mage_-_Kaos/rotations/west.png",
+          "east": "Mage_-_Kaos/rotations/east.png",
+          "north": "Mage_-_Kaos/rotations/north.png"
+        },
+        "animations": {
+          "Breathing_Idle-44b0f03c": {
+            "south": [
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/south/frame_000.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/south/frame_001.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/south/frame_002.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/south/frame_003.png"
+            ],
+            "west": [
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/west/frame_000.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/west/frame_001.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/west/frame_002.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/west/frame_003.png"
+            ],
+            "north": [
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/north/frame_000.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/north/frame_001.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/north/frame_002.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/north/frame_003.png"
+            ],
+            "east": [
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/east/frame_000.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/east/frame_001.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/east/frame_002.png",
+              "Mage_-_Kaos/animations/Breathing_Idle-44b0f03c/east/frame_003.png"
+            ]
+          },
+          "walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336": {
+            "south": [
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/south/frame_000.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/south/frame_001.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/south/frame_002.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/south/frame_003.png"
+            ],
+            "north": [
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/north/frame_000.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/north/frame_001.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/north/frame_002.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/north/frame_003.png"
+            ],
+            "east": [
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/east/frame_000.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/east/frame_001.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/east/frame_002.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/east/frame_003.png"
+            ],
+            "west": [
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/west/frame_000.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/west/frame_001.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/west/frame_002.png",
+              "Mage_-_Kaos/animations/walking_the_weapon_is_always_seen_in_his_right_han-6bd4d336/west/frame_003.png"
+            ]
+          },
+          "LIGHT_ATACK-41689770": {
+            "east": [
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_000.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_001.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_002.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_003.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_004.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_005.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_006.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_007.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/east/frame_008.png"
+            ],
+            "south": [
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_000.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_001.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_002.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_003.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_004.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_005.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_006.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_007.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/south/frame_008.png"
+            ],
+            "north": [
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_000.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_001.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_002.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_003.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_004.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_005.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_006.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_007.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/north/frame_008.png"
+            ],
+            "west": [
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_000.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_001.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_002.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_003.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_004.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_005.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_006.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_007.png",
+              "Mage_-_Kaos/animations/LIGHT_ATACK-41689770/west/frame_008.png"
+            ]
+          },
+          "AREA_ATACK-09d60f92": {
+            "south": [
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_000.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_001.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_002.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_003.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_004.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_005.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_006.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_007.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/south/frame_008.png"
+            ],
+            "west": [
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_000.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_001.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_002.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_003.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_004.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_005.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_006.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_007.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/west/frame_008.png"
+            ],
+            "east": [
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_000.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_001.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_002.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_003.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_004.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_005.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_006.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_007.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/east/frame_008.png"
+            ],
+            "north": [
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_000.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_001.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_002.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_003.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_004.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_005.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_006.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_007.png",
+              "Mage_-_Kaos/animations/AREA_ATACK-09d60f92/north/frame_008.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.0",
+  "export_date": "2026-05-19T20:06:58.038884"
+}

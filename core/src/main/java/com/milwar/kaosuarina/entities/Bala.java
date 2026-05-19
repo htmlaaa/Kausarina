@@ -4,19 +4,26 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.milwar.kaosuarina.utils.DamageType;
 import com.milwar.kaosuarina.utils.SharedTextures;
+import com.milwar.kaosuarina.weapons.WeaponType;
 
 public class Bala {
-    private static final float SPEED = 600f;
+    private static final float DEFAULT_SPEED = 600f;
     private static final float SIZE = 14f;
-    private static final float MAX_DST = 1500f;
+    private static final float DEFAULT_MAX_DST = 1500f;
 
     public Vector2 position;
     public Vector2 velocity;
     public boolean active;
     public int damage;
     public DamageType damageType;
+    /** Which weapon spawned this bullet. Used by ColisionManager for affinity. */
+    public WeaponType sourceWeapon;
     public int pierceLeft;
     public int rebotesRestantes;
+    /** Maximum travel distance before the bullet deactivates. */
+    public float maxDst;
+    /** If true, ColisionManager skips enemy defense when calculating damage. */
+    public boolean ignoresDefense = false;
 
     private final Vector2 spawnPosition;
 
@@ -27,29 +34,40 @@ public class Bala {
         active = false;
         damage = 1;
         damageType = DamageType.FISICO;
+        sourceWeapon = null;
         pierceLeft = 0;
         rebotesRestantes = 0;
+        maxDst = DEFAULT_MAX_DST;
     }
 
     public void activate(float x, float y, float dirX, float dirY, int damage, int pierce, int rebotes, DamageType type) {
-        position.set(x, y);
-        spawnPosition.set(x, y);
-        velocity.set(dirX, dirY).nor().scl(SPEED);
-        active = true;
-        this.damage = damage;
-        this.damageType = type;
-        this.pierceLeft = pierce + 1;
-        this.rebotesRestantes = rebotes;
+        activate(x, y, dirX, dirY, damage, pierce, rebotes, type, DEFAULT_SPEED, DEFAULT_MAX_DST, null);
     }
 
     public void activate(float x, float y, float dirX, float dirY, int damage, int pierce, int rebotes) {
-        activate(x, y, dirX, dirY, damage, pierce, rebotes, DamageType.FISICO);
+        activate(x, y, dirX, dirY, damage, pierce, rebotes, DamageType.FISICO, DEFAULT_SPEED, DEFAULT_MAX_DST, null);
+    }
+
+    /** Full activate with custom speed, range, and weapon source. */
+    public void activate(float x, float y, float dirX, float dirY, int damage, int pierce, int rebotes,
+                         DamageType type, float speed, float maxDst, WeaponType source) {
+        position.set(x, y);
+        spawnPosition.set(x, y);
+        velocity.set(dirX, dirY).nor().scl(speed);
+        active = true;
+        this.damage = damage;
+        this.damageType = type;
+        this.sourceWeapon = source;
+        this.pierceLeft = pierce + 1;
+        this.rebotesRestantes = rebotes;
+        this.maxDst = maxDst;
+        this.ignoresDefense = false;
     }
 
     public void update(float delta) {
         if (!active) return;
         position.add(velocity.x * delta, velocity.y * delta);
-        if (position.dst(spawnPosition) > MAX_DST) active = false;
+        if (position.dst(spawnPosition) > maxDst) active = false;
     }
 
     /**
@@ -68,7 +86,7 @@ public class Bala {
      * Redirige la bala hacia un objetivo y descuenta un rebote. Reactiva la bala si estaba inactiva.
      */
     public void rebotar(float targetX, float targetY) {
-        velocity.set(targetX - position.x, targetY - position.y).nor().scl(SPEED);
+        velocity.set(targetX - position.x, targetY - position.y).nor().scl(DEFAULT_SPEED);
         spawnPosition.set(position);  // medir MAX_DST desde el punto de rebote
         rebotesRestantes--;
         active = true;

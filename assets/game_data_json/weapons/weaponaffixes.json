@@ -1,0 +1,134 @@
+[
+  {
+    "affix_id": "AF_SHARP",
+    "name": "Afilado",
+    "slot": "prefix",
+    "stat": "dmg_flat",
+    "value_min": 2,
+    "value_max": 8,
+    "min_tier": "T2",
+    "weight": 100,
+    "description": "+X daño plano"
+  },
+  {
+    "affix_id": "AF_CRUEL",
+    "name": "Cruel",
+    "slot": "prefix",
+    "stat": "dmg_pct",
+    "value_min": 5,
+    "value_max": 15,
+    "min_tier": "T3",
+    "weight": 60,
+    "description": "+X% daño"
+  },
+  {
+    "affix_id": "AF_SWIFT",
+    "name": "Veloz",
+    "slot": "prefix",
+    "stat": "atk_speed_pct",
+    "value_min": 5,
+    "value_max": 12,
+    "min_tier": "T2",
+    "weight": 80,
+    "description": "+X% velocidad de ataque"
+  },
+  {
+    "affix_id": "AF_DEADLY",
+    "name": "Letal",
+    "slot": "prefix",
+    "stat": "crit_chance",
+    "value_min": 3,
+    "value_max": 10,
+    "min_tier": "T3",
+    "weight": 60,
+    "description": "+X% prob crítico"
+  },
+  {
+    "affix_id": "AF_BRUTAL",
+    "name": "Brutal",
+    "slot": "prefix",
+    "stat": "crit_dmg",
+    "value_min": 10,
+    "value_max": 30,
+    "min_tier": "T3",
+    "weight": 50,
+    "description": "+X% daño crítico"
+  },
+  {
+    "affix_id": "AF_VAMPIRIC",
+    "name": "Vampírico",
+    "slot": "prefix",
+    "stat": "lifesteal_pct",
+    "value_min": 3,
+    "value_max": 8,
+    "min_tier": "T3",
+    "weight": 30,
+    "description": "+X% robo de vida"
+  },
+  {
+    "affix_id": "AF_OF_FIRE",
+    "name": "de Fuego",
+    "slot": "suffix",
+    "stat": "add_fire_dmg",
+    "value_min": 2,
+    "value_max": 10,
+    "min_tier": "T2",
+    "weight": 70,
+    "description": "Añade X daño de fuego"
+  },
+  {
+    "affix_id": "AF_OF_VENOM",
+    "name": "de Veneno",
+    "slot": "suffix",
+    "stat": "add_poison_dmg",
+    "value_min": 2,
+    "value_max": 10,
+    "min_tier": "T2",
+    "weight": 70,
+    "description": "Añade X daño de veneno"
+  },
+  {
+    "affix_id": "AF_OF_CHAOS",
+    "name": "de Caos",
+    "slot": "suffix",
+    "stat": "add_chaos_dmg",
+    "value_min": 1,
+    "value_max": 6,
+    "min_tier": "T4",
+    "weight": 20,
+    "description": "Añade X daño de caos"
+  },
+  {
+    "affix_id": "AF_OF_MANA",
+    "name": "de Maná",
+    "slot": "suffix",
+    "stat": "mp_regen",
+    "value_min": 1,
+    "value_max": 5,
+    "min_tier": "T2",
+    "weight": 50,
+    "description": "+X regen MP/s"
+  },
+  {
+    "affix_id": "AF_RESOLUTE",
+    "name": "Resoluto",
+    "slot": "prefix",
+    "stat": "reduced_cd_pct",
+    "value_min": 5,
+    "value_max": 15,
+    "min_tier": "T3",
+    "weight": 35,
+    "description": "-X% cooldowns"
+  },
+  {
+    "affix_id": "AF_LEGEND_BLOOD",
+    "name": "Sangre Legendaria",
+    "slot": "unique",
+    "stat": "custom",
+    "value_min": 0,
+    "value_max": 0,
+    "min_tier": "T5",
+    "weight": 1,
+    "description": "Bono legendario único (script aparte)"
+  }
+]

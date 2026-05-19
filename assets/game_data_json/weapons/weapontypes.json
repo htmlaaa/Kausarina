@@ -1,0 +1,83 @@
+[
+  {
+    "wtype_id": "WT_SWORD",
+    "name": "Espada",
+    "category": "Melee",
+    "allowed_chars": "CHAR_KNIGHT",
+    "hand": "one_hand",
+    "range_units": 1.5,
+    "description": "Equilibrada, ataques rápidos"
+  },
+  {
+    "wtype_id": "WT_GREATSWORD",
+    "name": "Mandoble",
+    "category": "Melee",
+    "allowed_chars": "CHAR_KNIGHT",
+    "hand": "two_hand",
+    "range_units": 2,
+    "description": "Lenta, mucho daño por golpe"
+  },
+  {
+    "wtype_id": "WT_DAGGER",
+    "name": "Daga",
+    "category": "Melee",
+    "allowed_chars": "CHAR_KNIGHT;CHAR_SHOOTER",
+    "hand": "one_hand",
+    "range_units": 1.2,
+    "description": "Rápida, alto crítico"
+  },
+  {
+    "wtype_id": "WT_BOW",
+    "name": "Arco",
+    "category": "Ranged",
+    "allowed_chars": "CHAR_SHOOTER",
+    "hand": "two_hand",
+    "range_units": 12,
+    "description": "Proyectil físico, daño a distancia"
+  },
+  {
+    "wtype_id": "WT_CROSSBOW",
+    "name": "Ballesta",
+    "category": "Ranged",
+    "allowed_chars": "CHAR_SHOOTER",
+    "hand": "two_hand",
+    "range_units": 10,
+    "description": "Cadencia baja, daño alto"
+  },
+  {
+    "wtype_id": "WT_PISTOL",
+    "name": "Pistola",
+    "category": "Ranged",
+    "allowed_chars": "CHAR_SHOOTER",
+    "hand": "one_hand",
+    "range_units": 8,
+    "description": "Cadencia alta, daño bajo"
+  },
+  {
+    "wtype_id": "WT_STAFF",
+    "name": "Báculo",
+    "category": "Magic",
+    "allowed_chars": "CHAR_MAGE",
+    "hand": "two_hand",
+    "range_units": 9,
+    "description": "Lanza hechizos a distancia"
+  },
+  {
+    "wtype_id": "WT_WAND",
+    "name": "Varita",
+    "category": "Magic",
+    "allowed_chars": "CHAR_MAGE",
+    "hand": "one_hand",
+    "range_units": 7,
+    "description": "Rápida, daño mágico bajo"
+  },
+  {
+    "wtype_id": "WT_GRIMOIRE",
+    "name": "Grimorio",
+    "category": "Magic",
+    "allowed_chars": "CHAR_MAGE",
+    "hand": "one_hand",
+    "range_units": 6,
+    "description": "Foco mágico, buffs y DoTs"
+  }
+]

@@ -1,0 +1,142 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "0732a028-bdf8-42ae-9362-e0bca72e67a3",
+        "name": "Shooter",
+        "prompt": "Full body post-apocalyptic gunslinger, pixel art Dead Cells style. TWO revolvers held pointing down at sides, bright orange fire flames from both barrels. Long dark brown tattered trench coat knee-length. Steampunk goggles on forehead with glowing amber/orange circular lenses #FFD27A. Young man, messy dark brown hair, serious face, skin tone #C9A487 lit by warm orange glow. Dark shirt underneath, brown leather belt, worn leather boots. Arms and face illuminated by warm orange light from goggles and flames. High contrast dark shadows vs warm orange highlights. Idle gunslinger stance, relaxed but alert. Palette: dark brown #3A2418, orange flame #FF8C1A, amber #FFD27A. Gothic dark atmosphere, transparent background, selective outline, no thick black outline.",
+        "size": {
+          "width": 180,
+          "height": 180
+        },
+        "template_id": "mannequin",
+        "directions": 4,
+        "view": "low top-down",
+        "created_at": "2026-05-17T16:26:09.539479+00:00"
+      },
+      "folder": "Shooter",
+      "frames": {
+        "rotations": {
+          "south": "Shooter/rotations/south.png",
+          "west": "Shooter/rotations/west.png",
+          "east": "Shooter/rotations/east.png",
+          "north": "Shooter/rotations/north.png"
+        },
+        "animations": {
+          "animating-296ef770": {
+            "north": [
+              "Shooter/animations/animating-296ef770/north/frame_000.png",
+              "Shooter/animations/animating-296ef770/north/frame_001.png",
+              "Shooter/animations/animating-296ef770/north/frame_002.png",
+              "Shooter/animations/animating-296ef770/north/frame_003.png"
+            ],
+            "east": [
+              "Shooter/animations/animating-296ef770/east/frame_000.png",
+              "Shooter/animations/animating-296ef770/east/frame_001.png",
+              "Shooter/animations/animating-296ef770/east/frame_002.png",
+              "Shooter/animations/animating-296ef770/east/frame_003.png"
+            ],
+            "west": [
+              "Shooter/animations/animating-296ef770/west/frame_000.png",
+              "Shooter/animations/animating-296ef770/west/frame_001.png",
+              "Shooter/animations/animating-296ef770/west/frame_002.png",
+              "Shooter/animations/animating-296ef770/west/frame_003.png"
+            ],
+            "south": [
+              "Shooter/animations/animating-296ef770/south/frame_000.png",
+              "Shooter/animations/animating-296ef770/south/frame_001.png",
+              "Shooter/animations/animating-296ef770/south/frame_002.png",
+              "Shooter/animations/animating-296ef770/south/frame_003.png"
+            ]
+          },
+          "animating-9ec01181": {
+            "east": [
+              "Shooter/animations/animating-9ec01181/east/frame_000.png",
+              "Shooter/animations/animating-9ec01181/east/frame_001.png",
+              "Shooter/animations/animating-9ec01181/east/frame_002.png",
+              "Shooter/animations/animating-9ec01181/east/frame_003.png"
+            ],
+            "south": [
+              "Shooter/animations/animating-9ec01181/south/frame_000.png",
+              "Shooter/animations/animating-9ec01181/south/frame_001.png",
+              "Shooter/animations/animating-9ec01181/south/frame_002.png",
+              "Shooter/animations/animating-9ec01181/south/frame_003.png"
+            ],
+            "north": [
+              "Shooter/animations/animating-9ec01181/north/frame_000.png",
+              "Shooter/animations/animating-9ec01181/north/frame_001.png",
+              "Shooter/animations/animating-9ec01181/north/frame_002.png",
+              "Shooter/animations/animating-9ec01181/north/frame_003.png"
+            ],
+            "west": [
+              "Shooter/animations/animating-9ec01181/west/frame_000.png",
+              "Shooter/animations/animating-9ec01181/west/frame_001.png",
+              "Shooter/animations/animating-9ec01181/west/frame_002.png",
+              "Shooter/animations/animating-9ec01181/west/frame_003.png"
+            ]
+          },
+          "LOOP_SHOOTING-00ae57c3": {
+            "south": [
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_000.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_001.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_002.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_003.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_004.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_005.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_006.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_007.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/south/frame_008.png"
+            ],
+            "north": [
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_000.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_001.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_002.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_003.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_004.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_005.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_006.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_007.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/north/frame_008.png"
+            ],
+            "east-7196db14": [
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_000.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_001.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_002.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_003.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_004.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_005.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_006.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_007.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-7196db14/frame_008.png"
+            ],
+            "west": [
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_000.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_001.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_002.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_003.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_004.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_005.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_006.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_007.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/west/frame_008.png"
+            ],
+            "east-f4369c4c": [
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_000.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_001.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_002.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_003.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_004.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_005.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_006.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_007.png",
+              "Shooter/animations/LOOP_SHOOTING-00ae57c3/east-f4369c4c/frame_008.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.0",
+  "export_date": "2026-05-19T18:23:58.476106"
+}

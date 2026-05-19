@@ -1,0 +1,67 @@
+[
+  {
+    "enemy_id": "EN_TANK",
+    "effect_id": "EFF_STUN",
+    "notes": "Demasiado masivo"
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "effect_id": "EFF_STUN",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "effect_id": "EFF_SLOW",
+    "notes": "Su masa lo impide"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "effect_id": "EFF_STUN",
+    "notes": "Inmune a CC en bosses"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "effect_id": "EFF_SLOW",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "effect_id": "EFF_STUN",
+    "notes": "CC reducido en bosses"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "effect_id": "EFF_SLOW",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "effect_id": "EFF_POISON",
+    "notes": "Aura purificadora"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "effect_id": "EFF_STUN",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "effect_id": "EFF_SLOW",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "effect_id": "EFF_POISON",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "effect_id": "EFF_BURN",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "effect_id": "EFF_BLEED",
+    "notes": "Inmune a todos los DoTs"
+  }
+]

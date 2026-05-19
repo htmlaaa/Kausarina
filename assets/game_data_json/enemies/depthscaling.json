@@ -1,0 +1,102 @@
+[
+  {
+    "depth": 1,
+    "hp_mult": 1,
+    "dmg_mult": 1,
+    "speed_mult": 1,
+    "xp_mult": 1,
+    "gold_mult": 1,
+    "elite_chance_pct": 5,
+    "notes": "Nivel inicial — multiplicadores neutros"
+  },
+  {
+    "depth": 2,
+    "hp_mult": 1.15,
+    "dmg_mult": 1.1,
+    "speed_mult": 1,
+    "xp_mult": 1.1,
+    "gold_mult": 1.1,
+    "elite_chance_pct": 8,
+    "notes": ""
+  },
+  {
+    "depth": 3,
+    "hp_mult": 1.35,
+    "dmg_mult": 1.2,
+    "speed_mult": 1.05,
+    "xp_mult": 1.25,
+    "gold_mult": 1.2,
+    "elite_chance_pct": 12,
+    "notes": ""
+  },
+  {
+    "depth": 4,
+    "hp_mult": 1.6,
+    "dmg_mult": 1.35,
+    "speed_mult": 1.05,
+    "xp_mult": 1.4,
+    "gold_mult": 1.35,
+    "elite_chance_pct": 16,
+    "notes": ""
+  },
+  {
+    "depth": 5,
+    "hp_mult": 1.9,
+    "dmg_mult": 1.5,
+    "speed_mult": 1.1,
+    "xp_mult": 1.6,
+    "gold_mult": 1.5,
+    "elite_chance_pct": 20,
+    "notes": ""
+  },
+  {
+    "depth": 6,
+    "hp_mult": "",
+    "dmg_mult": "",
+    "speed_mult": "",
+    "xp_mult": "",
+    "gold_mult": "",
+    "elite_chance_pct": "",
+    "notes": "Rellenar cuando defináis nivel 6"
+  },
+  {
+    "depth": 7,
+    "hp_mult": "",
+    "dmg_mult": "",
+    "speed_mult": "",
+    "xp_mult": "",
+    "gold_mult": "",
+    "elite_chance_pct": "",
+    "notes": ""
+  },
+  {
+    "depth": 8,
+    "hp_mult": "",
+    "dmg_mult": "",
+    "speed_mult": "",
+    "xp_mult": "",
+    "gold_mult": "",
+    "elite_chance_pct": "",
+    "notes": ""
+  },
+  {
+    "depth": 9,
+    "hp_mult": "",
+    "dmg_mult": "",
+    "speed_mult": "",
+    "xp_mult": "",
+    "gold_mult": "",
+    "elite_chance_pct": "",
+    "notes": ""
+  },
+  {
+    "depth": 10,
+    "hp_mult": "",
+    "dmg_mult": "",
+    "speed_mult": "",
+    "xp_mult": "",
+    "gold_mult": "",
+    "elite_chance_pct": "",
+    "notes": "Último piso antes del boss final?"
+  }
+]

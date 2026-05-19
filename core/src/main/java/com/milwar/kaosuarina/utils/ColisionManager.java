@@ -4,6 +4,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.milwar.kaosuarina.systems.UpgradeManager;
 import com.milwar.kaosuarina.entities.*;
+import com.milwar.kaosuarina.weapons.Inscription;
+import com.milwar.kaosuarina.utils.AudioManager;
 
 public class ColisionManager {
 
@@ -20,13 +22,26 @@ public class ColisionManager {
 
                 if (colisionan(bala.position, Constants.BALA_RADIO, enemy.position, enemy.getRadio())) {
                     boolean estabaVivo = enemy.active;
-                    int dmg = calcularDaño(bala.damage, bala.damageType, enemy);
+                    int dmg = calcularDaño(bala.damage, bala.damageType, enemy, bala.ignoresDefense);
                     enemy.recibirDanio(dmg);
                     aplicarStatusPorDanio(enemy, bala.damageType);
                     aplicarEfectosOnHit(player, enemy, dmg, bala.damageType);
+                    Inscription ins = player.getInscriptionForWeaponType(bala.sourceWeapon);
+                    if (ins != null) ins.onHit(player, enemy, dmg);
                     if (estabaVivo && !enemy.active) {
                         muertes++;
                         poolEnemigos.registrarKill(enemy.tipo);
+                        int overkillAmt = dmg - enemy.lastHpSnapshot;
+                        if (overkillAmt > 0) {
+                            player.getStats().addMana(overkillAmt / Constants.OVERKILL_DIVISOR);
+                        }
+                    }
+
+                    AudioManager.playHit();
+                    ParticlePool.spawnImpact(bala.position.x, bala.position.y);
+                    if (estabaVivo && !enemy.active) {
+                        AudioManager.playDeath();
+                        ParticlePool.spawnDeath(enemy.position.x, enemy.position.y, enemy.tipo);
                     }
 
                     boolean sigueActiva = bala.onHit();
@@ -111,13 +126,16 @@ public class ColisionManager {
             float diff = anguloAbsDiff(enemyAngle, aimAngle);
             if (diff <= arcRad * 0.5f) {
                 boolean wasAlive = e.active;
-                int dmgDealt = calcularDaño(damage, tipo, e);
+                int dmgDealt = calcularDaño(damage, tipo, e, false);
                 e.recibirDanio(dmgDealt);
                 aplicarStatusPorDanio(e, tipo);
                 aplicarEfectosOnHit(player, e, dmgDealt, tipo);
                 if (wasAlive && !e.active) {
                     kills++;
                     pool.registrarKill(e.tipo);
+                    ParticlePool.spawnDeath(e.position.x, e.position.y, e.tipo);
+                    int ok = dmgDealt - e.lastHpSnapshot;
+                    if (ok > 0) player.getStats().addMana(ok / Constants.OVERKILL_DIVISOR);
                 }
             }
         }
@@ -136,13 +154,16 @@ public class ColisionManager {
             if (!e.active) continue;
             if (center.dst(e.position) <= radius + e.getRadio()) {
                 boolean wasAlive = e.active;
-                int dmgDealt = calcularDaño(damage, tipo, e);
+                int dmgDealt = calcularDaño(damage, tipo, e, false);
                 e.recibirDanio(dmgDealt);
                 aplicarStatusPorDanio(e, tipo);
                 aplicarEfectosOnHit(player, e, dmgDealt, tipo);
                 if (wasAlive && !e.active) {
                     kills++;
                     pool.registrarKill(e.tipo);
+                    ParticlePool.spawnDeath(e.position.x, e.position.y, e.tipo);
+                    int ok = dmgDealt - e.lastHpSnapshot;
+                    if (ok > 0) player.getStats().addMana(ok / Constants.OVERKILL_DIVISOR);
                 }
             }
         }
@@ -162,6 +183,7 @@ public class ColisionManager {
      * Explosión del MALDITO al morir. Sin encadenamiento recursivo.
      */
     private static int explocionMaldito(PoolEnemigos pool, Vector2 center) {
+        ParticlePool.spawnExplosion(center.x, center.y);
         int kills = 0;
         com.badlogic.gdx.utils.Array<Enemy> lista = pool.getEnemigos();
         for (int i = 0; i < lista.size; i++) {
@@ -169,7 +191,7 @@ public class ColisionManager {
             if (!e.active) continue;
             if (center.dst(e.position) <= Constants.MALDITO_EXPLOSION_RADIUS + e.getRadio()) {
                 boolean wasAlive = e.active;
-                e.recibirDanio(calcularDaño(Constants.MALDITO_EXPLOSION_DAMAGE, DamageType.VENENO, e));
+                e.recibirDanio(calcularDaño(Constants.MALDITO_EXPLOSION_DAMAGE, DamageType.VENENO, e, false));
                 aplicarStatusPorDanio(e, DamageType.VENENO);
                 if (wasAlive && !e.active) {
                     kills++;
@@ -223,6 +245,12 @@ public class ColisionManager {
                 return Constants.CONTACT_DAMAGE_MALDITO;
             case ESPECTRAL:
                 return Constants.CONTACT_DAMAGE_ESPECTRAL;
+            case GUARDIAN:
+                return Constants.GUARDIAN_CONTACT_DMG;
+            case ARQUERO:
+                return Constants.ARQUERO_CONTACT_DMG;
+            case DEVASTADOR:
+                return Constants.DEVASTADOR_CONTACT_DMG;
             default:
                 return Constants.CONTACT_DAMAGE_DEFAULT;
         }
@@ -230,12 +258,17 @@ public class ColisionManager {
 
     /**
      * Aplica defensas/resistencias según tipo de daño. ESPECTRAL es inmune a FISICO.
+     * ignoresDefense=true (InscripcionDeVacio) bypasses all reduction.
      */
-    private static int calcularDaño(int raw, DamageType tipo, Enemy enemy) {
+    private static int calcularDaño(int raw, DamageType tipo, Enemy enemy, boolean ignoresDefense) {
         if (enemy.tipo == Enemy.Tipo.ESPECTRAL) {
-            if (tipo == DamageType.FISICO) return 0;
+            if (tipo == DamageType.FISICO && !ignoresDefense) return 0;
             if (tipo == DamageType.FUEGO) return Math.round(raw * 1.5f);
         }
+        if (enemy.tipo == Enemy.Tipo.GUARDIAN && tipo == DamageType.MAGICO) {
+            return Math.max(1, Math.round(raw * 1.5f - enemy.resistenciaMagica));
+        }
+        if (ignoresDefense) return Math.max(1, raw);
         float reduccion;
         switch (tipo) {
             case FISICO:
@@ -245,6 +278,7 @@ public class ColisionManager {
                 reduccion = enemy.resistenciaMagica;
                 break;
             case CAOS:
+            case CAOS_PRIMORDIAL:
                 reduccion = enemy.defensa * 0.5f + enemy.resistenciaMagica * 0.5f;
                 break;
             case A_DISTANCIA:

@@ -1,0 +1,101 @@
+[
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "phase": 1,
+    "hp_threshold_pct": 100,
+    "name": "Hierro Frío",
+    "behavior_change": "normal",
+    "unlocked_attacks": "EA_MELEE_BASIC;EA_HERALD_CHARGE;EA_HERALD_SLAM",
+    "speed_mult": 1,
+    "dmg_mult": 1,
+    "description": "Fase inicial, ataques cuerpo a cuerpo"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "phase": 2,
+    "hp_threshold_pct": 50,
+    "name": "Furia de Hierro",
+    "behavior_change": "enrage;summon",
+    "unlocked_attacks": "EA_MELEE_BASIC;EA_HERALD_CHARGE;EA_HERALD_SLAM;EA_HERALD_SUMMON",
+    "speed_mult": 1.2,
+    "dmg_mult": 1.25,
+    "description": "A 50% HP: invoca esbirros y acelera"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "phase": 1,
+    "hp_threshold_pct": 100,
+    "name": "Coronado",
+    "behavior_change": "normal",
+    "unlocked_attacks": "EA_KING_BOLT;EA_KING_NOVA",
+    "speed_mult": 1,
+    "dmg_mult": 1,
+    "description": "Lanza proyectiles y nova cercana"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "phase": 2,
+    "hp_threshold_pct": 66,
+    "name": "Iracundo",
+    "behavior_change": "aoe_phase",
+    "unlocked_attacks": "EA_KING_BOLT;EA_KING_NOVA;EA_KING_RAIN",
+    "speed_mult": 1.1,
+    "dmg_mult": 1.15,
+    "description": "A 66%: añade lluvia de fuego AoE"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "phase": 3,
+    "hp_threshold_pct": 33,
+    "name": "Desesperado",
+    "behavior_change": "summon;enrage",
+    "unlocked_attacks": "EA_KING_BOLT;EA_KING_NOVA;EA_KING_RAIN;EA_KING_SUMMON",
+    "speed_mult": 1.25,
+    "dmg_mult": 1.4,
+    "description": "A 33%: invoca elites y se vuelve frenético"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "phase": 1,
+    "hp_threshold_pct": 100,
+    "name": "Latente",
+    "behavior_change": "normal",
+    "unlocked_attacks": "EA_VOID_LANCE;EA_VOID_PULL",
+    "speed_mult": 1,
+    "dmg_mult": 1,
+    "description": "Probando al jugador"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "phase": 2,
+    "hp_threshold_pct": 75,
+    "name": "Despierto",
+    "behavior_change": "add_dot",
+    "unlocked_attacks": "EA_VOID_LANCE;EA_VOID_PULL;EA_VOID_TENDRILS",
+    "speed_mult": 1.05,
+    "dmg_mult": 1.1,
+    "description": "75% HP: añade tentáculos con DoT"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "phase": 3,
+    "hp_threshold_pct": 50,
+    "name": "Hambriento",
+    "behavior_change": "enrage",
+    "unlocked_attacks": "EA_VOID_LANCE;EA_VOID_PULL;EA_VOID_TENDRILS",
+    "speed_mult": 1.15,
+    "dmg_mult": 1.25,
+    "description": "50% HP: ataca más rápido"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "phase": 4,
+    "hp_threshold_pct": 25,
+    "name": "Devorando",
+    "behavior_change": "final_phase;enrage",
+    "unlocked_attacks": "EA_VOID_LANCE;EA_VOID_PULL;EA_VOID_TENDRILS;EA_VOID_BURST",
+    "speed_mult": 1.3,
+    "dmg_mult": 1.5,
+    "description": "25% HP: desbloquea Estallido Caótico"
+  }
+]

@@ -5,6 +5,7 @@ import com.milwar.kaosuarina.reliquias.Reliquia;
 import com.milwar.kaosuarina.reliquias.ReliquiaCaballero;
 import com.milwar.kaosuarina.reliquias.ReliquiaMago;
 import com.milwar.kaosuarina.reliquias.ReliquiaTirador;
+import com.milwar.kaosuarina.utils.Constants;
 
 public class Role {
 
@@ -28,13 +29,13 @@ public class Role {
     // ── Factory methods ────────────────────────────────────────────────────
 
     /**
-     * Caballero — Fortaleza Reactiva. HP 200, Def 20, Maná 50.
+     * Caballero — Fortaleza Reactiva. HP 200, Def 20, Maná 40.
      */
     public static Role caballero() {
         PlayerStats s = new PlayerStats(250f, 0.25f, 1.5f, 1, 15f, 200);
         s.defensa = 20f;
-        s.maxMana = 50f;
-        s.mana = 50f;
+        s.maxMana = Constants.MANA_MAX_CABALLERO_BASE;
+        s.mana    = Constants.MANA_MAX_CABALLERO_BASE;
         s.lightAttackCooldown = 0.35f;
         s.heavyAttackCooldown = 1.0f;
         s.meleeLightDamage = 22;
@@ -49,9 +50,9 @@ public class Role {
         PlayerStats s = new PlayerStats(270f, 0.22f, 1f, 1, 20f, 70);
         s.defensa = 5f;
         s.resistenciaMagica = 15f;
-        s.maxMana = 120f;
-        s.mana = 120f;
-        s.manaRegen = 2f;
+        s.maxMana   = Constants.MANA_MAX_MAGO_BASE;
+        s.mana      = Constants.MANA_MAX_MAGO_BASE;
+        s.manaRegen = Constants.MAGE_PASSIVE_REGEN;
         s.lightAttackCooldown = 0.28f;
         s.heavyAttackCooldown = 1.5f;
         s.magicLightDamage = 22;
@@ -67,8 +68,8 @@ public class Role {
     public static Role shooter() {
         PlayerStats s = new PlayerStats(340f, 0.16f, 1.2f, 2, 12f, 80);
         s.defensa = 5f;
-        s.maxMana = 30f;
-        s.mana = 30f;
+        s.maxMana = Constants.MANA_MAX_TIRADOR_BASE;
+        s.mana    = Constants.MANA_MAX_TIRADOR_BASE;
         return new Role(Tipo.SHOOTER, "Tirador", s, new ReliquiaTirador());
     }
 

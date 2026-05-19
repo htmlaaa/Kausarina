@@ -19,7 +19,6 @@ public class ReliquiaCaballero implements Reliquia {
 
     @Override
     public void onDamageReceived(Player player, int damage) {
-        if (armorStacks > 0) armorStacks--;
         armorStacks = Math.min(armorStacks + 1, MAX_STACKS);
         timeSinceLastHit = 0f;
         decayAccumulator = 0f;

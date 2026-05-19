@@ -7,17 +7,125 @@ import com.milwar.kaosuarina.db.vo.RunVO;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBManager {
+
+    private static boolean initialized = false;
+
+    private static void ensureInit() {
+        if (initialized) return;
+        try {
+            initDB();
+            initialized = true;
+        } catch (Exception e) {
+            Gdx.app.error("DBManager", "Error en initDB: " + e.getMessage());
+        }
+    }
+
+    private static void initDB() throws SQLException {
+        String[] ddl = {
+            // catalog: tipo_enemigo
+            "CREATE TABLE IF NOT EXISTS tipo_enemigo (" +
+            "  id     INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  nombre TEXT NOT NULL UNIQUE" +
+            ")",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('BASICO')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('RAPIDO')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('TANQUE')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('SHOOTER')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('MALDITO')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('ESPECTRAL')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('GUARDIAN')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('ARQUERO')",
+            "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('DEVASTADOR')",
+
+            // catalog: tipo_upgrade
+            "CREATE TABLE IF NOT EXISTS tipo_upgrade (" +
+            "  id     INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  nombre TEXT NOT NULL UNIQUE" +
+            ")",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('DANIO_UP')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('CADENCIA_UP')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('VELOCIDAD_UP')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('VIDA_MAXIMA_UP')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('PERFORACION')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('BALA_EXTRA')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('FILO_IGNEO')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('CUCHILLA_VENENO')",
+            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('VAMPIRISMO')",
+
+            // main run table
+            "CREATE TABLE IF NOT EXISTS run (" +
+            "  id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  personaje_id       INTEGER NOT NULL," +
+            "  score              INTEGER NOT NULL DEFAULT 0," +
+            "  tiempo_segundos    INTEGER NOT NULL DEFAULT 0," +
+            "  nivel_alcanzado    INTEGER NOT NULL DEFAULT 1," +
+            "  mana_total_gastado INTEGER NOT NULL DEFAULT 0," +
+            "  completada         INTEGER NOT NULL DEFAULT 0," +
+            "  fecha_fin          TEXT    DEFAULT CURRENT_TIMESTAMP" +
+            ")",
+            "CREATE INDEX IF NOT EXISTS idx_run_score ON run (score DESC)",
+
+            // kills per enemy type
+            "CREATE TABLE IF NOT EXISTS run_kill (" +
+            "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  run_id          INTEGER NOT NULL," +
+            "  tipo_enemigo_id INTEGER NOT NULL," +
+            "  cantidad        INTEGER NOT NULL DEFAULT 0," +
+            "  UNIQUE (run_id, tipo_enemigo_id)" +
+            ")",
+            "CREATE INDEX IF NOT EXISTS idx_run_kill ON run_kill (run_id)",
+
+            // upgrades chosen
+            "CREATE TABLE IF NOT EXISTS run_upgrade (" +
+            "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  run_id          INTEGER NOT NULL," +
+            "  tipo_upgrade_id INTEGER NOT NULL," +
+            "  nivel_tomado    INTEGER NOT NULL DEFAULT 1," +
+            "  orden           INTEGER NOT NULL" +
+            ")",
+            "CREATE INDEX IF NOT EXISTS idx_run_upg ON run_upgrade (run_id)",
+
+            // active relic
+            "CREATE TABLE IF NOT EXISTS run_reliquia (" +
+            "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  run_id      INTEGER NOT NULL," +
+            "  reliquia_id INTEGER NOT NULL" +
+            ")",
+            "CREATE INDEX IF NOT EXISTS idx_run_rel ON run_reliquia (run_id)",
+
+            // equipped weapons + inscriptions
+            "CREATE TABLE IF NOT EXISTS run_arma (" +
+            "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  run_id      INTEGER NOT NULL," +
+            "  slot        INTEGER NOT NULL," +
+            "  arma_tipo   TEXT    NOT NULL," +
+            "  inscripcion TEXT" +
+            ")",
+            "CREATE INDEX IF NOT EXISTS idx_run_arma ON run_arma (run_id)"
+        };
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement()) {
+            for (String sql : ddl) {
+                st.execute(sql);
+            }
+        }
+    }
 
     /**
      * Guarda todos los datos de la run en la BD usando el patrón DAO.
      * Envuelve la operación en una transacción: si algo falla, hace rollback.
-     * Si MySQL no está disponible, el juego continúa — solo se loguea el error.
+     * Si la BD no está disponible, el juego continúa — solo se loguea el error.
      *
      * @return ID de la run insertada, o -1 si falló.
      */
     public static int guardarRun(RunData data) {
+        ensureInit();
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
@@ -33,8 +141,11 @@ public class DBManager {
                 return -1;
             }
 
-            // kills por tipo (Enemy.Tipo.values() en orden)
-            String[] tiposEnemigo = {"BASICO", "RAPIDO", "TANQUE", "SHOOTER", "MALDITO", "ESPECTRAL"};
+            // kills por tipo (mismo orden que Enemy.Tipo.values())
+            String[] tiposEnemigo = {
+                "BASICO", "RAPIDO", "TANQUE", "SHOOTER",
+                "MALDITO", "ESPECTRAL", "GUARDIAN", "ARQUERO", "DEVASTADOR"
+            };
             dao.guardarKills(runId, tiposEnemigo, data.killsPorTipo);
 
             // upgrades elegidos
@@ -45,6 +156,11 @@ public class DBManager {
             // reliquia activa
             dao.guardarReliquia(runId, data.reliquiaId);
 
+            // armas equipadas + inscripciones
+            if (data.armasEquipadas != null && data.armasEquipadas.length > 0) {
+                dao.guardarArmas(runId, data.armasEquipadas, data.inscripcionesEquipadas);
+            }
+
             conn.commit();
             return runId;
 
@@ -54,6 +170,27 @@ public class DBManager {
             }
             Gdx.app.error("DBManager", "Error al guardar run: " + e.getMessage());
             return -1;
+        } catch (Exception e) {
+            Gdx.app.error("DBManager", "Error inesperado al guardar run: " + e.getMessage());
+            return -1;
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ignored) {}
+            }
+        }
+    }
+
+    /** Top 10 runs por score. Devuelve lista vacía si la BD no está disponible. */
+    public static List<RunVO> getTop10() {
+        ensureInit();
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            RunDAO dao = new RunDAOImpl(conn);
+            return dao.obtenerTop10();
+        } catch (Exception e) {
+            Gdx.app.error("DBManager", "Error al obtener top10: " + e.getMessage());
+            return new ArrayList<>();
         } finally {
             if (conn != null) {
                 try { conn.close(); } catch (SQLException ignored) {}
@@ -64,14 +201,16 @@ public class DBManager {
     // ── DTO (transfer object entre el juego y la BD) ──────────────────────────
 
     public static class RunData {
-        public int      personajeId;       // 1=Caballero, 2=Mago, 3=Tirador
+        public int      personajeId;            // 1=Caballero, 2=Mago, 3=Tirador
         public int      score;
         public int      tiempoSegundos;
         public int      nivelAlcanzado;
         public int      manaTotal;
-        public int[]    killsPorTipo;       // indexado por Enemy.Tipo.ordinal()
-        public String[] upgradesTipos;     // nombres del enum Upgrade.Tipo
-        public int[]    upgradesNiveles;   // nivel_tomado de cada upgrade
-        public int      reliquiaId;        // FK a tabla reliquia (1=Caballero,2=Mago,3=Tirador)
+        public int[]    killsPorTipo;            // indexado por Enemy.Tipo.ordinal()
+        public String[] upgradesTipos;          // nombres del enum Upgrade.Tipo
+        public int[]    upgradesNiveles;         // nivel_tomado de cada upgrade
+        public int      reliquiaId;             // 1=Caballero, 2=Mago, 3=Tirador
+        public String[] armasEquipadas;         // WeaponType.name() por slot; null = slot vacío
+        public String[] inscripcionesEquipadas; // Inscription.getName() por slot; null = sin inscripción
     }
 }

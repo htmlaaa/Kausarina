@@ -1,0 +1,74 @@
+[
+  {
+    "enemy_id": "EN_NORMAL",
+    "loot_table_id": "LT_COMMON",
+    "rolls": 1,
+    "guaranteed_item_id": "",
+    "guaranteed_qty": 0,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_TANK",
+    "loot_table_id": "LT_COMMON",
+    "rolls": 2,
+    "guaranteed_item_id": "",
+    "guaranteed_qty": 0,
+    "notes": "Suelta el doble de la tabla común"
+  },
+  {
+    "enemy_id": "EN_ORBITER",
+    "loot_table_id": "LT_COMMON",
+    "rolls": 1,
+    "guaranteed_item_id": "",
+    "guaranteed_qty": 0,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_KAMIKAZE",
+    "loot_table_id": "LT_COMMON",
+    "rolls": 1,
+    "guaranteed_item_id": "",
+    "guaranteed_qty": 0,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_ELITE_TP",
+    "loot_table_id": "LT_ELITE",
+    "rolls": 2,
+    "guaranteed_item_id": "",
+    "guaranteed_qty": 0,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "loot_table_id": "LT_ELITE",
+    "rolls": 2,
+    "guaranteed_item_id": "gold_medium",
+    "guaranteed_qty": 30,
+    "notes": "Garantiza algo de oro siempre"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "loot_table_id": "LT_MINIBOSS",
+    "rolls": 3,
+    "guaranteed_item_id": "key_zone",
+    "guaranteed_qty": 1,
+    "notes": "Llave garantizada"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "loot_table_id": "LT_BOSS",
+    "rolls": 3,
+    "guaranteed_item_id": "boss_token",
+    "guaranteed_qty": 1,
+    "notes": "Token garantizado para meta"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "loot_table_id": "LT_SECRET",
+    "rolls": 3,
+    "guaranteed_item_id": "secret_token",
+    "guaranteed_qty": 1,
+    "notes": "Token único garantizado"
+  }
+]

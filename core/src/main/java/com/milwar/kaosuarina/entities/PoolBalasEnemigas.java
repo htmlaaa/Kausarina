@@ -23,6 +23,15 @@ public class PoolBalasEnemigas {
         }
     }
 
+    public void spawnWithDamage(float x, float y, float dirX, float dirY, int damage) {
+        for (BalaEnemiga bala : balas) {
+            if (!bala.active) {
+                bala.activate(x, y, dirX, dirY, damage);
+                return;
+            }
+        }
+    }
+
     public void update(float delta) {
         for (BalaEnemiga bala : balas) bala.update(delta);
     }

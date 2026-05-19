@@ -1,0 +1,116 @@
+[
+  {
+    "enemy_id": "EN_TANK",
+    "dmg_id": "DMG_PHYSICAL",
+    "resist_pct": 40,
+    "notes": "Armadura pesada"
+  },
+  {
+    "enemy_id": "EN_TANK",
+    "dmg_id": "DMG_RANGED",
+    "resist_pct": 25,
+    "notes": "Cuesta atravesar la coraza"
+  },
+  {
+    "enemy_id": "EN_TANK",
+    "dmg_id": "DMG_MAGIC",
+    "resist_pct": -15,
+    "notes": "Vulnerable a magia"
+  },
+  {
+    "enemy_id": "EN_ORBITER",
+    "dmg_id": "DMG_PHYSICAL",
+    "resist_pct": -10,
+    "notes": "Sin armadura"
+  },
+  {
+    "enemy_id": "EN_ELITE_TP",
+    "dmg_id": "DMG_MAGIC",
+    "resist_pct": 30,
+    "notes": "Naturaleza arcana"
+  },
+  {
+    "enemy_id": "EN_ELITE_TP",
+    "dmg_id": "DMG_RANGED",
+    "resist_pct": 15,
+    "notes": "Difícil de acertar (se teleporta)"
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "dmg_id": "DMG_PHYSICAL",
+    "resist_pct": 50,
+    "notes": "Coraza reforzada"
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "dmg_id": "DMG_FIRE",
+    "resist_pct": 30,
+    "notes": "Forjado en lava"
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "dmg_id": "DMG_MAGIC",
+    "resist_pct": -20,
+    "notes": "Vulnerable a magia pura"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "dmg_id": "DMG_PHYSICAL",
+    "resist_pct": 35,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "dmg_id": "DMG_POISON",
+    "resist_pct": 60,
+    "notes": "Inmune a venenos comunes"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "dmg_id": "DMG_MAGIC",
+    "resist_pct": 45,
+    "notes": "Maestro arcano"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "dmg_id": "DMG_FIRE",
+    "resist_pct": 30,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "dmg_id": "DMG_PHYSICAL",
+    "resist_pct": 20,
+    "notes": "Aura protectora"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "dmg_id": "DMG_MAGIC",
+    "resist_pct": 50,
+    "notes": "Ser del Caos"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "dmg_id": "DMG_POISON",
+    "resist_pct": 75,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "dmg_id": "DMG_FIRE",
+    "resist_pct": 40,
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "dmg_id": "DMG_CHAOS",
+    "resist_pct": 90,
+    "notes": "Casi inmune a su propio elemento"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "dmg_id": "DMG_RANGED",
+    "resist_pct": 25,
+    "notes": ""
+  }
+]

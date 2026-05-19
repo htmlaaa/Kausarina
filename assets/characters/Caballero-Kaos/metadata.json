@@ -1,0 +1,177 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "dcc99c26-0117-4c1c-8558-abb53010bf42",
+        "name": "Caballero-Kaos",
+        "prompt": "Full body dark fantasy armored knight, pixel art. MASSIVE spiked pauldrons with 3-4 curved demonic spikes per shoulder. Long silver greatsword held vertically with both hands, blade pointing down, idle guard pose symmetrical. Closed great-helm with narrow horizontal eye slit emitting intense cyan glow #3FE5E5, faceted crystal spike on top. Heavy plate armor deep purple #3D2D5C with lila highlights #A87FD1. Glowing cyan energy cracks #3FE5E5 across breastplate, thighs, shins and shoulders. Long dark black-purple cape flowing behind shoulders to ankles. Pointed metal boots with plate greaves. Gothic dark fantasy, transparent background, no thick black outline, soft dithering shading.",
+        "size": {
+          "width": 180,
+          "height": 180
+        },
+        "template_id": "mannequin",
+        "directions": 4,
+        "view": "low top-down",
+        "created_at": "2026-05-17T15:53:00.889105+00:00"
+      },
+      "folder": "Caballero-Kaos",
+      "frames": {
+        "rotations": {
+          "south": "Caballero-Kaos/rotations/south.png",
+          "west": "Caballero-Kaos/rotations/west.png",
+          "east": "Caballero-Kaos/rotations/east.png",
+          "north": "Caballero-Kaos/rotations/north.png"
+        },
+        "animations": {
+          "animating-48cac107": {
+            "north": [
+              "Caballero-Kaos/animations/animating-48cac107/north/frame_000.png",
+              "Caballero-Kaos/animations/animating-48cac107/north/frame_001.png",
+              "Caballero-Kaos/animations/animating-48cac107/north/frame_002.png",
+              "Caballero-Kaos/animations/animating-48cac107/north/frame_003.png"
+            ],
+            "west": [
+              "Caballero-Kaos/animations/animating-48cac107/west/frame_000.png",
+              "Caballero-Kaos/animations/animating-48cac107/west/frame_001.png",
+              "Caballero-Kaos/animations/animating-48cac107/west/frame_002.png",
+              "Caballero-Kaos/animations/animating-48cac107/west/frame_003.png"
+            ],
+            "east": [
+              "Caballero-Kaos/animations/animating-48cac107/east/frame_000.png",
+              "Caballero-Kaos/animations/animating-48cac107/east/frame_001.png",
+              "Caballero-Kaos/animations/animating-48cac107/east/frame_002.png",
+              "Caballero-Kaos/animations/animating-48cac107/east/frame_003.png"
+            ],
+            "south": [
+              "Caballero-Kaos/animations/animating-48cac107/south/frame_000.png",
+              "Caballero-Kaos/animations/animating-48cac107/south/frame_001.png",
+              "Caballero-Kaos/animations/animating-48cac107/south/frame_002.png",
+              "Caballero-Kaos/animations/animating-48cac107/south/frame_003.png"
+            ]
+          },
+          "Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84": {
+            "south": [
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/south/frame_000.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/south/frame_001.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/south/frame_002.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/south/frame_003.png"
+            ],
+            "north": [
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/north/frame_000.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/north/frame_001.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/north/frame_002.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/north/frame_003.png"
+            ],
+            "east": [
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/east/frame_000.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/east/frame_001.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/east/frame_002.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/east/frame_003.png"
+            ],
+            "west": [
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/west/frame_000.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/west/frame_001.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/west/frame_002.png",
+              "Caballero-Kaos/animations/Walking_dont_forget_the_weapon_in_your_right_hand-837e8e84/west/frame_003.png"
+            ]
+          },
+          "LIGHT_ATACK-1c0f9c4e": {
+            "east": [
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_000.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_001.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_002.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_003.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_004.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_005.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_006.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_007.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/east/frame_008.png"
+            ],
+            "west": [
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_000.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_001.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_002.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_003.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_004.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_005.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_006.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_007.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/west/frame_008.png"
+            ],
+            "south": [
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_000.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_001.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_002.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_003.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_004.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_005.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_006.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_007.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/south/frame_008.png"
+            ],
+            "north": [
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_000.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_001.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_002.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_003.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_004.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_005.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_006.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_007.png",
+              "Caballero-Kaos/animations/LIGHT_ATACK-1c0f9c4e/north/frame_008.png"
+            ]
+          },
+          "HEAVY_ATACK-70a59991": {
+            "south": [
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_000.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_001.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_002.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_003.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_004.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_005.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_006.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_007.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/south/frame_008.png"
+            ],
+            "west": [
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_000.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_001.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_002.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_003.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_004.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_005.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_006.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_007.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/west/frame_008.png"
+            ],
+            "north": [
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_000.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_001.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_002.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_003.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_004.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_005.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_006.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_007.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/north/frame_008.png"
+            ],
+            "east": [
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_000.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_001.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_002.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_003.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_004.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_005.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_006.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_007.png",
+              "Caballero-Kaos/animations/HEAVY_ATACK-70a59991/east/frame_008.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.0",
+  "export_date": "2026-05-19T18:24:00.900327"
+}

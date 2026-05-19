@@ -1,10 +1,14 @@
 package com.milwar.kaosuarina;
 
 import com.badlogic.gdx.Game;
-import com.milwar.kaosuarina.screens.CharacterSelectScreen;
+import com.milwar.kaosuarina.screens.MainMenuScreen;
 import com.milwar.kaosuarina.utils.AnimationSheets;
+import com.milwar.kaosuarina.utils.AudioManager;
 import com.milwar.kaosuarina.utils.SharedTextures;
 import com.milwar.kaosuarina.utils.SpriteSheets;
+import com.milwar.kaosuarina.data.DataManager;
+import com.milwar.kaosuarina.weapons.InscriptionPool;
+import com.milwar.kaosuarina.weapons.WeaponPool;
 
 public class KaosuarinaGame extends Game {
     @Override
@@ -12,7 +16,11 @@ public class KaosuarinaGame extends Game {
         SharedTextures.load();
         SpriteSheets.load();
         AnimationSheets.load();
-        setScreen(new CharacterSelectScreen(this));
+        WeaponPool.init();
+        InscriptionPool.init();
+        AudioManager.load();
+        DataManager.getInstance();
+        setScreen(new MainMenuScreen(this));
     }
 
     @Override
@@ -21,5 +29,7 @@ public class KaosuarinaGame extends Game {
         SharedTextures.dispose();
         SpriteSheets.dispose();
         AnimationSheets.dispose();
+        WeaponPool.dispose();
+        AudioManager.dispose();
     }
 }

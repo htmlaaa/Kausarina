@@ -1,0 +1,67 @@
+[
+  {
+    "tier_id": "T1",
+    "name": "Común",
+    "order": 1,
+    "color_hex": "BDBDBD",
+    "dmg_mult": 1,
+    "speed_mult": 1,
+    "crit_mult": 1,
+    "effect_chance_mult": 1,
+    "affix_slots": 0,
+    "drop_weight": 100,
+    "description": "Sin afijos"
+  },
+  {
+    "tier_id": "T2",
+    "name": "Inusual",
+    "order": 2,
+    "color_hex": "4CAF50",
+    "dmg_mult": 1.25,
+    "speed_mult": 1.05,
+    "crit_mult": 1.1,
+    "effect_chance_mult": 1.1,
+    "affix_slots": 1,
+    "drop_weight": 55,
+    "description": "1 afijo menor"
+  },
+  {
+    "tier_id": "T3",
+    "name": "Raro",
+    "order": 3,
+    "color_hex": "2196F3",
+    "dmg_mult": 1.55,
+    "speed_mult": 1.1,
+    "crit_mult": 1.2,
+    "effect_chance_mult": 1.25,
+    "affix_slots": 2,
+    "drop_weight": 25,
+    "description": "2 afijos"
+  },
+  {
+    "tier_id": "T4",
+    "name": "Épico",
+    "order": 4,
+    "color_hex": "9C27B0",
+    "dmg_mult": 1.95,
+    "speed_mult": 1.15,
+    "crit_mult": 1.35,
+    "effect_chance_mult": 1.4,
+    "affix_slots": 3,
+    "drop_weight": 8,
+    "description": "3 afijos, habilidad activa siempre presente"
+  },
+  {
+    "tier_id": "T5",
+    "name": "Legendario",
+    "order": 5,
+    "color_hex": "FF9800",
+    "dmg_mult": 2.5,
+    "speed_mult": 1.25,
+    "crit_mult": 1.55,
+    "effect_chance_mult": 1.65,
+    "affix_slots": 4,
+    "drop_weight": 2,
+    "description": "4 afijos + bono único legendario"
+  }
+]

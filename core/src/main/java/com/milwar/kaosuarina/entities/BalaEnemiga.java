@@ -8,11 +8,12 @@ public class BalaEnemiga {
     private static final float SPEED = 450f;
     private static final float SIZE = 10f;
     private static final float MAX_DST = 1500f;
-    private static final int DAMAGE = 8;
+    private static final int DEFAULT_DAMAGE = 8;
 
     public Vector2 position;
     public Vector2 velocity;
     public boolean active;
+    private int damage;
 
     private final Vector2 spawnPosition;
 
@@ -21,9 +22,15 @@ public class BalaEnemiga {
         velocity = new Vector2();
         spawnPosition = new Vector2();
         active = false;
+        damage = DEFAULT_DAMAGE;
     }
 
     public void activate(float x, float y, float dirX, float dirY) {
+        activate(x, y, dirX, dirY, DEFAULT_DAMAGE);
+    }
+
+    public void activate(float x, float y, float dirX, float dirY, int dmg) {
+        this.damage = dmg;
         position.set(x, y);
         spawnPosition.set(x, y);
         velocity.set(dirX, dirY).nor().scl(SPEED);
@@ -48,7 +55,7 @@ public class BalaEnemiga {
     }
 
     public int getDamage() {
-        return DAMAGE;
+        return damage;
     }
 
     public void dispose() {

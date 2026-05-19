@@ -80,6 +80,10 @@ public class CharacterSelectScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) selectedIndex = 2;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
             confirmar();
+        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
+            dispose();
+            game.setScreen(new CreditsScreen(game));
+        }
     }
 
     private void confirmar() {
@@ -168,8 +172,8 @@ public class CharacterSelectScreen implements Screen {
         cardFont.getData().setScale(1.35f);
         cardFont.setColor(Color.GRAY);
         cardFont.draw(batch,
-            "A/D o Flechas para navegar  |  1/2/3 elegir directo  |  ENTER/SPACE confirmar",
-            55, 34);
+            "A/D o Flechas para navegar  |  1/2/3 elegir directo  |  ENTER/SPACE confirmar  |  C creditos",
+            30, 34);
         batch.end();
     }
 

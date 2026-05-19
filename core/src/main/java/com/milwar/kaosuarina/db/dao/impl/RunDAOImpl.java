@@ -19,7 +19,7 @@ public class RunDAOImpl implements RunDAO {
     public int guardar(RunVO run) throws SQLException {
         String sql = "INSERT INTO run (personaje_id, score, tiempo_segundos, " +
                      "nivel_alcanzado, mana_total_gastado, completada, fecha_fin) " +
-                     "VALUES (?,?,?,?,?,?,NOW())";
+                     "VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)";
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, run.personajeId);
             ps.setInt(2, run.score);
@@ -82,7 +82,7 @@ public class RunDAOImpl implements RunDAO {
     @Override
     public List<RunVO> obtenerTop10() throws SQLException {
         String sql = "SELECT id, personaje_id, score, tiempo_segundos, nivel_alcanzado, " +
-                     "mana_total_gastado FROM run WHERE completada = TRUE " +
+                     "mana_total_gastado FROM run WHERE completada = 1 " +
                      "ORDER BY score DESC LIMIT 10";
         List<RunVO> lista = new ArrayList<>();
         try (Statement st = connection.createStatement();
@@ -100,6 +100,23 @@ public class RunDAOImpl implements RunDAO {
             }
         }
         return lista;
+    }
+
+    @Override
+    public void guardarArmas(int runId, String[] armas, String[] inscripciones) throws SQLException {
+        String sql = "INSERT INTO run_arma (run_id, slot, arma_tipo, inscripcion) VALUES (?,?,?,?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            for (int i = 0; i < armas.length; i++) {
+                if (armas[i] == null) continue;
+                ps.setInt(1, runId);
+                ps.setInt(2, i);
+                ps.setString(3, armas[i]);
+                String ins = (inscripciones != null && i < inscripciones.length) ? inscripciones[i] : null;
+                if (ins != null) ps.setString(4, ins); else ps.setNull(4, Types.VARCHAR);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
     }
 
     /** Resuelve el ID de un catálogo (tipo_enemigo o tipo_upgrade) por nombre. */

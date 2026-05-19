@@ -1,0 +1,189 @@
+[
+  {
+    "loot_table_id": "LT_COMMON",
+    "item_id": "nothing",
+    "item_type": "none",
+    "weight": 50,
+    "min_qty": 0,
+    "max_qty": 0,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Mitad de las veces no suelta nada"
+  },
+  {
+    "loot_table_id": "LT_COMMON",
+    "item_id": "gold_small",
+    "item_type": "currency",
+    "weight": 35,
+    "min_qty": 5,
+    "max_qty": 15,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Oro menor"
+  },
+  {
+    "loot_table_id": "LT_COMMON",
+    "item_id": "potion_minor",
+    "item_type": "consumable",
+    "weight": 10,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Poción menor"
+  },
+  {
+    "loot_table_id": "LT_COMMON",
+    "item_id": "weapon_random",
+    "item_type": "weapon",
+    "weight": 5,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "T1",
+    "max_tier": "T2",
+    "notes": "Arma común-inusual aleatoria"
+  },
+  {
+    "loot_table_id": "LT_ELITE",
+    "item_id": "gold_medium",
+    "item_type": "currency",
+    "weight": 50,
+    "min_qty": 25,
+    "max_qty": 60,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_ELITE",
+    "item_id": "weapon_random",
+    "item_type": "weapon",
+    "weight": 30,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "T2",
+    "max_tier": "T3",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_ELITE",
+    "item_id": "potion_major",
+    "item_type": "consumable",
+    "weight": 15,
+    "min_qty": 1,
+    "max_qty": 2,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_ELITE",
+    "item_id": "affix_scroll",
+    "item_type": "material",
+    "weight": 5,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Material para rerollear afijos"
+  },
+  {
+    "loot_table_id": "LT_MINIBOSS",
+    "item_id": "gold_large",
+    "item_type": "currency",
+    "weight": 40,
+    "min_qty": 80,
+    "max_qty": 150,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_MINIBOSS",
+    "item_id": "weapon_random",
+    "item_type": "weapon",
+    "weight": 50,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "T3",
+    "max_tier": "T4",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_MINIBOSS",
+    "item_id": "key_zone",
+    "item_type": "key",
+    "weight": 10,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Llave para zona siguiente"
+  },
+  {
+    "loot_table_id": "LT_BOSS",
+    "item_id": "gold_huge",
+    "item_type": "currency",
+    "weight": 100,
+    "min_qty": 250,
+    "max_qty": 500,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Siempre suelta oro"
+  },
+  {
+    "loot_table_id": "LT_BOSS",
+    "item_id": "weapon_random",
+    "item_type": "weapon",
+    "weight": 60,
+    "min_qty": 1,
+    "max_qty": 2,
+    "min_tier": "T4",
+    "max_tier": "T5",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_BOSS",
+    "item_id": "boss_token",
+    "item_type": "material",
+    "weight": 40,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Token de metaprogresión"
+  },
+  {
+    "loot_table_id": "LT_SECRET",
+    "item_id": "gold_huge",
+    "item_type": "currency",
+    "weight": 100,
+    "min_qty": 500,
+    "max_qty": 1000,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": ""
+  },
+  {
+    "loot_table_id": "LT_SECRET",
+    "item_id": "weapon_unique",
+    "item_type": "weapon",
+    "weight": 100,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "T5",
+    "max_tier": "T5",
+    "notes": "Arma legendaria única garantizada"
+  },
+  {
+    "loot_table_id": "LT_SECRET",
+    "item_id": "secret_token",
+    "item_type": "material",
+    "weight": 100,
+    "min_qty": 1,
+    "max_qty": 1,
+    "min_tier": "",
+    "max_tier": "",
+    "notes": "Token único"
+  }
+]

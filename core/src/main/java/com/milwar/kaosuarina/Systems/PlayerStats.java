@@ -24,6 +24,13 @@ public class PlayerStats {
     public float mana = 0f;  // maná actual
     public float manaRegen = 0f; // maná por segundo (pasivo; solo Mago lo tiene)
 
+    // ── Stats base inmutables del rol (S5-02) ─────────────────────────────────
+    // Snapshotted by Player constructor. Used by recalcStats() to restore from 0.
+    public int   hpBase      = 0;
+    public float defBase     = 0f;
+    public float resMagBase  = 0f;
+    public float manaMaxBase = 0f;
+
     public PlayerStats() {
         baseSpeed = 400f;
         baseShootCooldown = 0.2f;
@@ -49,7 +56,7 @@ public class PlayerStats {
     /**
      * Añade maná al personaje sin superar el máximo.
      */
-    public void añadirMana(float cantidad) {
+    public void addMana(float cantidad) {
         mana = Math.min(maxMana, mana + cantidad);
     }
 
@@ -69,6 +76,10 @@ public class PlayerStats {
     // ── Robo de vida (Sprint 3 — hook para Sprint 4 armas/reliquias) ──────────
     // 0.0 = deshabilitado; 0.1 = roba 10% del daño causado como HP
     public float lifeStealPercent = 0f;
+
+    // ── Amuletos recogidos en la run (S6-03) ─────────────────────────────────
+    public boolean hasSedDeSangre   = false;
+    public boolean hasGuardianArena = false;
 
     // ── Estadísticas de run (S4-05) ───────────────────────────────────────────
     public float manaGastadoTotal = 0f;

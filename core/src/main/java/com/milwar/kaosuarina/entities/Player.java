@@ -15,6 +15,7 @@ import com.milwar.kaosuarina.utils.Constants;
 import com.milwar.kaosuarina.utils.DamageType;
 import com.milwar.kaosuarina.utils.SharedTextures;
 import com.milwar.kaosuarina.utils.SpriteSheets;
+import com.milwar.kaosuarina.weapons.Weapon;
 
 public class Player {
     private static final float INVULNERABILITY_TIME = 1f;
@@ -26,7 +27,6 @@ public class Player {
     private int lastDir = SpriteSheets.DIR_SOUTH;
     public Vector2 position;
     public Vector2 velocity;
-    private float shootTimer;
     private float invulnerabilityTimer;
 
     private int maxHealth;
@@ -51,6 +51,9 @@ public class Player {
     private static final float VISUAL_DUR_LIGHT = 0.15f;
     private static final float VISUAL_DUR_HEAVY = 0.25f;
 
+    // Cicatriz de Combate (S6-04): maná al expirar el i-frame (solo Caballero)
+    private int lastDamageReceived = 0;
+
     // Veneno de contacto (aplicado por MALDITO)
     private float poisonTimer = 0f;
     private float poisonTickTimer = 0f;
@@ -58,12 +61,20 @@ public class Player {
     private static final float POISON_TICK_INTERVAL = 1f;
     private static final Color POISON_PLAYER_TINT = new Color(0.5f, 1f, 0.5f, 1f);
 
+    // ── Weapon slots (S5-02, ADR-006) ────────────────────────────────────────
+    private final Weapon[] equippedWeapons = new Weapon[Constants.WEAPON_SLOTS];
+
     private UpgradeManager upgradeManager;
 
     public Player(float x, float y, Role role) {
         this.role = role;
         this.stats = role.stats;
         this.reliquia = role.reliquia;
+        // Snapshot immutable base stats so recalcStats() can always derive from zero
+        stats.hpBase      = stats.maxHealth;
+        stats.defBase     = stats.defensa;
+        stats.resMagBase  = stats.resistenciaMagica;
+        stats.manaMaxBase = stats.maxMana;
         switch (role.tipo) {
             case CABALLERO:
                 roleAccent = new Color(0f, 0.898f, 0.8f, 1f);
@@ -80,7 +91,6 @@ public class Player {
         }
         position = new Vector2(x, y);
         velocity = new Vector2();
-        shootTimer = 0;
         invulnerabilityTimer = 0;
         maxHealth = stats.maxHealth;
         currentHealth = maxHealth;
@@ -90,6 +100,17 @@ public class Player {
 
     public void setUpgradeManager(UpgradeManager manager) {
         this.upgradeManager = manager;
+    }
+
+    /** Returns the inscription on the weapon matching type t, or null. */
+    public com.milwar.kaosuarina.weapons.Inscription getInscriptionForWeaponType(
+            com.milwar.kaosuarina.weapons.WeaponType t) {
+        if (t == null) return null;
+        for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
+            Weapon w = equippedWeapons[i];
+            if (w != null && w.type == t && w.inscription != null) return w.inscription;
+        }
+        return null;
     }
 
     public UpgradeManager getUpgradeManager() {
@@ -104,10 +125,15 @@ public class Player {
     public void update(float delta, PoolBalas poolBalas, float aimAngle) {
         if (!alive) return;
 
+        boolean wasInvul = invulnerabilityTimer > 0;
         if (invulnerabilityTimer > 0) invulnerabilityTimer -= delta;
+        if (wasInvul && invulnerabilityTimer <= 0 && role.tipo == Role.Tipo.CABALLERO && lastDamageReceived > 0) {
+            stats.addMana(lastDamageReceived / Constants.CICATRIZ_DIVISOR);
+            lastDamageReceived = 0;
+        }
 
         // Regen pasiva de maná (exclusiva del Mago; los demás tienen manaRegen=0)
-        if (stats.manaRegen > 0) stats.añadirMana(stats.manaRegen * delta);
+        if (stats.manaRegen > 0) stats.addMana(stats.manaRegen * delta);
 
         reliquia.onUpdate(this, delta);
 
@@ -139,16 +165,6 @@ public class Player {
         if (heavyCooldownTimer > 0) heavyCooldownTimer -= delta;
         if (attackVisualTimer > 0) attackVisualTimer -= delta;
 
-        // Auto-shoot exclusivo del Tirador
-        if (role.attackMode == Role.AttackMode.AUTO_SHOOT) {
-            float cooldown = stats.baseShootCooldown * reliquia.getCooldownMultiplier();
-            if (upgradeManager != null) cooldown /= upgradeManager.getMultiplicadorCadencia();
-            shootTimer -= delta;
-            if (shootTimer <= 0) {
-                disparar(poolBalas, aimAngle);
-                shootTimer = cooldown;
-            }
-        }
     }
 
     public void recibirDanio(int damage) {
@@ -162,6 +178,7 @@ public class Player {
         reliquia.onDamageReceived(this, damage);
 
         currentHealth -= actualDamage;
+        lastDamageReceived = actualDamage;
         invulnerabilityTimer = INVULNERABILITY_TIME;
 
         if (currentHealth <= 0) {
@@ -257,7 +274,7 @@ public class Player {
         attackVisualAngle = aimAngle;
         attackVisualHeavy = heavy;
         attackVisualTimer = heavy ? VISUAL_DUR_HEAVY : VISUAL_DUR_LIGHT;
-        animState = AnimationSheets.Anim.ATTACK;
+        animState = heavy ? AnimationSheets.Anim.HEAVY_ATTACK : AnimationSheets.Anim.ATTACK;
         animFrame = 0;
         animTimer = ATTACK_FRAME_DUR;
     }
@@ -295,60 +312,49 @@ public class Player {
     }
 
     private void updateAnimation(float delta) {
-        float frameDur = (animState == AnimationSheets.Anim.ATTACK) ? ATTACK_FRAME_DUR : WALK_FRAME_DUR;
+        boolean isAttacking = animState == AnimationSheets.Anim.ATTACK || animState == AnimationSheets.Anim.HEAVY_ATTACK;
+        float frameDur = isAttacking ? ATTACK_FRAME_DUR : WALK_FRAME_DUR;
         animTimer -= delta;
         if (animTimer <= 0) {
             animTimer += frameDur;
             animFrame++;
             int total = AnimationSheets.frameCount(role.tipo, animState);
             if (animFrame >= total) {
-                // ATTACK plays once; WALK loops
-                if (animState == AnimationSheets.Anim.ATTACK) {
-                    animState = AnimationSheets.Anim.WALK;
+                if (isAttacking) {
+                    boolean hasIdle = AnimationSheets.frameCount(role.tipo, AnimationSheets.Anim.IDLE) > 1;
+                    animState = (velocity.len2() == 0 && hasIdle)
+                        ? AnimationSheets.Anim.IDLE : AnimationSheets.Anim.WALK;
                 }
                 animFrame = 0;
             }
         }
-        // Hold walk at frame 0 while idle
+        // WALK <-> IDLE transitions based on movement
         if (animState == AnimationSheets.Anim.WALK && velocity.len2() == 0) {
+            boolean hasIdle = AnimationSheets.frameCount(role.tipo, AnimationSheets.Anim.IDLE) > 1;
+            if (hasIdle) {
+                animState = AnimationSheets.Anim.IDLE;
+                animFrame = 0;
+                animTimer = WALK_FRAME_DUR;
+            } else {
+                animFrame = 0;
+                animTimer = WALK_FRAME_DUR;
+            }
+        } else if (animState == AnimationSheets.Anim.IDLE && velocity.len2() > 0) {
+            animState = AnimationSheets.Anim.WALK;
             animFrame = 0;
             animTimer = WALK_FRAME_DUR;
         }
     }
 
-    private void disparar(PoolBalas poolBalas, float aimAngle) {
-        // Solo inicia la animación si no está ya reproduciéndose (evita reset en cadencia rápida)
-        if (animState != AnimationSheets.Anim.ATTACK
-            && AnimationSheets.frameCount(role.tipo, AnimationSheets.Anim.ATTACK) > 1) {
-            animState = AnimationSheets.Anim.ATTACK;
-            animFrame = 0;
-            animTimer = ATTACK_FRAME_DUR;
-        }
-
-        int totalBalas = stats.baseBulletCount + (upgradeManager != null ? upgradeManager.getBalasExtra() : 0);
-        float inicio = -(totalBalas - 1) * stats.bulletSpread / 2f;
-
-        float damageMultiplier = upgradeManager != null ? upgradeManager.getMultiplicadorDanio() : 1f;
-        int damage = Math.max(1, Math.round(stats.baseDamage * damageMultiplier));
-        int pierce = upgradeManager != null ? upgradeManager.getNivelPerforation() : 0;
-        int rebotes = reliquia.getBounces();
-        DamageType tipo = tipoDanio();
-
-        for (int i = 0; i < totalBalas; i++) {
-            float offset = inicio + (i * stats.bulletSpread);
-            float angulo = aimAngle + offset * MathUtils.degreesToRadians;
-            poolBalas.spawn(position.x, position.y, MathUtils.cos(angulo), MathUtils.sin(angulo), damage, pierce, rebotes, tipo);
-        }
-    }
-
-    private DamageType tipoDanio() {
-        switch (role.tipo) {
-            case MAGO:
-                return DamageType.MAGICO;
-            case SHOOTER:
-                return DamageType.A_DISTANCIA;
-            default:
-                return DamageType.FISICO;
+    /**
+     * Decrements cooldownTimer for each equipped weapon. Called by GameScreen each frame.
+     * GameScreen then triggers shoot() when cooldownTimer reaches 0.
+     */
+    public void updateWeaponCooldowns(float delta) {
+        for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
+            if (equippedWeapons[i] != null && equippedWeapons[i].cooldownTimer > 0) {
+                equippedWeapons[i].cooldownTimer -= delta;
+            }
         }
     }
 
@@ -391,6 +397,24 @@ public class Player {
         return maxHealth;
     }
 
+    public float getMana() {
+        return stats.mana;
+    }
+
+    public float getManaMax() {
+        return stats.maxMana;
+    }
+
+    /** Adds mana without exceeding the current maximum. */
+    public void gainMana(float amount) {
+        stats.addMana(amount);
+    }
+
+    /** Consumes mana. Returns true if there was enough; false if mana was insufficient. */
+    public boolean consumeMana(float cost) {
+        return stats.consumirMana(cost);
+    }
+
     public boolean isAlive() {
         return alive;
     }
@@ -408,9 +432,76 @@ public class Player {
     }
 
     public float getVelocidadActual() {
-        return upgradeManager != null
+        float speed = upgradeManager != null
             ? stats.baseSpeed * upgradeManager.getMultiplicadorVelocidad()
             : stats.baseSpeed;
+        for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
+            if (equippedWeapons[i] != null) speed *= equippedWeapons[i].moveSpeedMult;
+        }
+        return speed;
+    }
+
+    // ── Weapon slot API (S5-02, ADR-006) ─────────────────────────────────────
+
+    /**
+     * Equips a weapon into the given slot. If the slot was occupied, the old weapon's
+     * bonuses are removed first. Calls recalcStats() to apply bonuses cleanly.
+     */
+    public void equipWeapon(int slot, Weapon w) {
+        equippedWeapons[slot] = w;
+        recalcStats();
+    }
+
+    /**
+     * Removes the weapon from the given slot and reverts its stat bonuses.
+     */
+    public void unequipWeapon(int slot) {
+        equippedWeapons[slot] = null;
+        recalcStats();
+    }
+
+    /** Returns the weapon in the given slot, or null if empty. */
+    public Weapon getWeaponAtSlot(int slot) {
+        return equippedWeapons[slot];
+    }
+
+    /**
+     * Recalculates all weapon-affected stats from base values.
+     * Called after any equip/unequip to keep stats ghost-free.
+     */
+    public void recalcStats() {
+        int hpSum = 0, defSum = 0, resMagSum = 0, manaMaxSum = 0;
+        for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
+            if (equippedWeapons[i] != null) {
+                hpSum      += equippedWeapons[i].hpBonus;
+                defSum     += equippedWeapons[i].defBonus;
+                resMagSum  += equippedWeapons[i].resMagBonus;
+                manaMaxSum += equippedWeapons[i].manaMaxBonus;
+            }
+        }
+        maxHealth             = stats.hpBase      + hpSum;
+        stats.defensa         = stats.defBase     + (float) defSum;
+        stats.resistenciaMagica = stats.resMagBase + (float) resMagSum;
+        stats.maxMana         = stats.manaMaxBase + (float) manaMaxSum;
+        // Clamp current values so they never exceed the new maxima
+        currentHealth         = Math.min(currentHealth, maxHealth);
+        stats.mana            = Math.min(stats.mana, stats.maxMana);
+    }
+
+    /** Returns the armor stack count for CABALLERO's Fortaleza Reactiva, or 0 for other roles. */
+    public int getReliquiaStacks() {
+        if (reliquia instanceof com.milwar.kaosuarina.reliquias.ReliquiaCaballero) {
+            return ((com.milwar.kaosuarina.reliquias.ReliquiaCaballero) reliquia).getArmorStacks();
+        }
+        return 0;
+    }
+
+    /** Returns the combo count for TIRADOR's Momentum de Combate, or 0 for other roles. */
+    public int getComboCount() {
+        if (reliquia instanceof com.milwar.kaosuarina.reliquias.ReliquiaTirador) {
+            return ((com.milwar.kaosuarina.reliquias.ReliquiaTirador) reliquia).getComboCount();
+        }
+        return 0;
     }
 
     public void dispose() {

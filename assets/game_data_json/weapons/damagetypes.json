@@ -1,0 +1,50 @@
+[
+  {
+    "dmg_id": "DMG_PHYSICAL",
+    "name": "Físico",
+    "family": "physical",
+    "scaling_stat": "STR",
+    "resist_stat": "DEF",
+    "description": "Daño cuerpo a cuerpo común"
+  },
+  {
+    "dmg_id": "DMG_RANGED",
+    "name": "Rango",
+    "family": "physical",
+    "scaling_stat": "DEX",
+    "resist_stat": "DEF",
+    "description": "Daño de proyectiles físicos"
+  },
+  {
+    "dmg_id": "DMG_MAGIC",
+    "name": "Mágico",
+    "family": "magic",
+    "scaling_stat": "INT",
+    "resist_stat": "MDEF",
+    "description": "Daño arcano genérico"
+  },
+  {
+    "dmg_id": "DMG_POISON",
+    "name": "Veneno",
+    "family": "magic",
+    "scaling_stat": "INT",
+    "resist_stat": "MDEF",
+    "description": "Daño en el tiempo (DoT)"
+  },
+  {
+    "dmg_id": "DMG_FIRE",
+    "name": "Fuego",
+    "family": "magic",
+    "scaling_stat": "INT",
+    "resist_stat": "MDEF",
+    "description": "Puede aplicar quemadura (DoT)"
+  },
+  {
+    "dmg_id": "DMG_CHAOS",
+    "name": "Caos",
+    "family": "true",
+    "scaling_stat": "INT",
+    "resist_stat": "",
+    "description": "Ignora resistencias (true damage)"
+  }
+]

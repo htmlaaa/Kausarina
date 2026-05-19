@@ -27,6 +27,13 @@ public interface RunDAO {
     /** Registra la reliquia activa en la run. */
     void guardarReliquia(int runId, int reliquiaId) throws SQLException;
 
+    /**
+     * Inserta las armas equipadas al final de la run.
+     * armas:        WeaponType.name() por slot; null = slot vacío (se omite).
+     * inscripciones: Inscription.getName() por slot; null = sin inscripción.
+     */
+    void guardarArmas(int runId, String[] armas, String[] inscripciones) throws SQLException;
+
     /** Top 10 runs por score. */
     List<RunVO> obtenerTop10() throws SQLException;
 }

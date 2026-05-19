@@ -9,5 +9,10 @@ public enum DamageType {
     /**
      * Ignora el 50% de defensa y resistencia mágica del objetivo.
      */
-    CAOS
+    CAOS,
+    /**
+     * Variante primordial del caos. Igual que CAOS: ignora el 50% de defensa y resMag.
+     * Usado por TOMO_CAOS (WeaponSkill).
+     */
+    CAOS_PRIMORDIAL
 }

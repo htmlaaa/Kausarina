@@ -1,0 +1,83 @@
+[
+  {
+    "effect_id": "EFF_BURN",
+    "name": "Quemadura",
+    "type": "dot",
+    "magnitude_meaning": "% del daño base/seg",
+    "stackable": "yes",
+    "tick_interval_s": 1,
+    "description": "DoT de fuego"
+  },
+  {
+    "effect_id": "EFF_POISON",
+    "name": "Veneno",
+    "type": "dot",
+    "magnitude_meaning": "% del daño base/seg",
+    "stackable": "yes",
+    "tick_interval_s": 1,
+    "description": "DoT de veneno (ignora armadura física)"
+  },
+  {
+    "effect_id": "EFF_BLEED",
+    "name": "Sangrado",
+    "type": "dot",
+    "magnitude_meaning": "% del daño base/seg",
+    "stackable": "yes",
+    "tick_interval_s": 1,
+    "description": "DoT físico"
+  },
+  {
+    "effect_id": "EFF_DEF_DOWN",
+    "name": "Defensa Reducida",
+    "type": "debuff",
+    "magnitude_meaning": "% reducción DEF",
+    "stackable": "no",
+    "tick_interval_s": 0,
+    "description": "Debuff defensivo temporal"
+  },
+  {
+    "effect_id": "EFF_LIFESTEAL",
+    "name": "Robo de Vida",
+    "type": "on_hit",
+    "magnitude_meaning": "% del daño curado",
+    "stackable": "yes",
+    "tick_interval_s": 0,
+    "description": "Curación al golpear"
+  },
+  {
+    "effect_id": "EFF_CHAOS_PROC",
+    "name": "Proc de Caos",
+    "type": "on_hit",
+    "magnitude_meaning": "% prob de daño extra",
+    "stackable": "no",
+    "tick_interval_s": 0,
+    "description": "Daño Caos adicional al golpear"
+  },
+  {
+    "effect_id": "EFF_CRIT_UP",
+    "name": "Crítico Aumentado",
+    "type": "buff",
+    "magnitude_meaning": "% crit_chance extra",
+    "stackable": "no",
+    "tick_interval_s": 0,
+    "description": "Aumenta % de crítico"
+  },
+  {
+    "effect_id": "EFF_SLOW",
+    "name": "Ralentizar",
+    "type": "debuff",
+    "magnitude_meaning": "% reducción velocidad",
+    "stackable": "no",
+    "tick_interval_s": 0,
+    "description": "Movimiento reducido"
+  },
+  {
+    "effect_id": "EFF_STUN",
+    "name": "Aturdir",
+    "type": "cc",
+    "magnitude_meaning": "desactiva al objetivo",
+    "stackable": "no",
+    "tick_interval_s": 0,
+    "description": "Control de masas"
+  }
+]

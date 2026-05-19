@@ -44,6 +44,57 @@ public class PoolEnemigos {
         return Enemy.Tipo.ESPECTRAL;
     }
 
+    public void spawnGuardian(float x, float y) {
+        for (Enemy e : enemigos) {
+            if (!e.active) {
+                e.activate(x, y, Enemy.Tipo.GUARDIAN);
+                return;
+            }
+        }
+    }
+
+    /** Returns the active GUARDIAN enemy, or null if none is alive. */
+    public Enemy getActiveGuardian() {
+        for (Enemy e : enemigos) {
+            if (e.active && e.tipo == Enemy.Tipo.GUARDIAN) return e;
+        }
+        return null;
+    }
+
+    public void spawnArquero(float x, float y) {
+        for (Enemy e : enemigos) {
+            if (!e.active) {
+                e.activate(x, y, Enemy.Tipo.ARQUERO);
+                return;
+            }
+        }
+    }
+
+    /** Returns the active ARQUERO enemy, or null if none is alive. */
+    public Enemy getActiveArquero() {
+        for (Enemy e : enemigos) {
+            if (e.active && e.tipo == Enemy.Tipo.ARQUERO) return e;
+        }
+        return null;
+    }
+
+    public void spawnDevastador(float x, float y) {
+        for (Enemy e : enemigos) {
+            if (!e.active) {
+                e.activate(x, y, Enemy.Tipo.DEVASTADOR);
+                return;
+            }
+        }
+    }
+
+    /** Returns the active DEVASTADOR, or null if none is alive. */
+    public Enemy getActiveDevastador() {
+        for (Enemy e : enemigos) {
+            if (e.active && e.tipo == Enemy.Tipo.DEVASTADOR) return e;
+        }
+        return null;
+    }
+
     public void update(float delta, Vector2 playerPos, PoolBalasEnemigas bulletPool) {
         for (Enemy e : enemigos) e.update(delta, playerPos, bulletPool);
     }

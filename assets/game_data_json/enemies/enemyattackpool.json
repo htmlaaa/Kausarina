@@ -1,0 +1,170 @@
+[
+  {
+    "enemy_id": "EN_NORMAL",
+    "attack_id": "EA_MELEE_BASIC",
+    "weight": 100,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_TANK",
+    "attack_id": "EA_MELEE_BASIC",
+    "weight": 70,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_TANK",
+    "attack_id": "EA_HEAVY_SWING",
+    "weight": 30,
+    "min_phase": 1,
+    "condition": "cooldown",
+    "notes": "Usa el pesado cuando esté listo"
+  },
+  {
+    "enemy_id": "EN_ORBITER",
+    "attack_id": "EA_SHOT_BASIC",
+    "weight": 100,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_KAMIKAZE",
+    "attack_id": "EA_EXPLODE",
+    "weight": 100,
+    "min_phase": 1,
+    "condition": "on_contact",
+    "notes": "Solo en contacto con el jugador"
+  },
+  {
+    "enemy_id": "EN_ELITE_TP",
+    "attack_id": "EA_HEX_SHOT",
+    "weight": 70,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_ELITE_TP",
+    "attack_id": "EA_TELEPORT",
+    "weight": 30,
+    "min_phase": 1,
+    "condition": "player_near<4",
+    "notes": "Se teleporta si el jugador entra a <4 unidades"
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "attack_id": "EA_MELEE_BASIC",
+    "weight": 60,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_ELITE_AOE",
+    "attack_id": "EA_QUAKE",
+    "weight": 40,
+    "min_phase": 1,
+    "condition": "cooldown>=6",
+    "notes": "Cada ~6s mínimo"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "attack_id": "EA_MELEE_BASIC",
+    "weight": 40,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "attack_id": "EA_HERALD_CHARGE",
+    "weight": 30,
+    "min_phase": 1,
+    "condition": "player_far>6",
+    "notes": "Si el jugador está lejos"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "attack_id": "EA_HERALD_SLAM",
+    "weight": 30,
+    "min_phase": 1,
+    "condition": "player_near<3",
+    "notes": "Si el jugador está cerca"
+  },
+  {
+    "enemy_id": "EN_MINIBOSS",
+    "attack_id": "EA_HERALD_SUMMON",
+    "weight": 100,
+    "min_phase": 2,
+    "condition": "cooldown>=15",
+    "notes": "Solo fase 2, cada 15s"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "attack_id": "EA_KING_BOLT",
+    "weight": 50,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "attack_id": "EA_KING_NOVA",
+    "weight": 50,
+    "min_phase": 1,
+    "condition": "player_near<5",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "attack_id": "EA_KING_RAIN",
+    "weight": 80,
+    "min_phase": 2,
+    "condition": "cooldown>=8",
+    "notes": "Solo fase 2+"
+  },
+  {
+    "enemy_id": "EN_BOSS_FINAL",
+    "attack_id": "EA_KING_SUMMON",
+    "weight": 100,
+    "min_phase": 3,
+    "condition": "cooldown>=20",
+    "notes": "Solo fase 3"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "attack_id": "EA_VOID_LANCE",
+    "weight": 60,
+    "min_phase": 1,
+    "condition": "",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "attack_id": "EA_VOID_PULL",
+    "weight": 40,
+    "min_phase": 1,
+    "condition": "cooldown>=10",
+    "notes": ""
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "attack_id": "EA_VOID_TENDRILS",
+    "weight": 60,
+    "min_phase": 2,
+    "condition": "cooldown>=6",
+    "notes": "Fase 2+"
+  },
+  {
+    "enemy_id": "EN_BOSS_SECRET",
+    "attack_id": "EA_VOID_BURST",
+    "weight": 100,
+    "min_phase": 4,
+    "condition": "cooldown>=12",
+    "notes": "Fase final, devastador"
+  }
+]

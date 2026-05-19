@@ -1,0 +1,79 @@
+[
+  {
+    "attr_id": "ATR_HP",
+    "name": "Puntos de Vida",
+    "short": "HP",
+    "governs": "Supervivencia",
+    "description": "Cuando llega a 0 mueres"
+  },
+  {
+    "attr_id": "ATR_MP",
+    "name": "Maná",
+    "short": "MP",
+    "governs": "Coste de habilidades",
+    "description": "Recurso para skills activas"
+  },
+  {
+    "attr_id": "ATR_STR",
+    "name": "Fuerza",
+    "short": "STR",
+    "governs": "Daño físico melee",
+    "description": "Escala DMG_PHYSICAL"
+  },
+  {
+    "attr_id": "ATR_DEX",
+    "name": "Destreza",
+    "short": "DEX",
+    "governs": "Daño rango, crit",
+    "description": "Escala DMG_RANGED y crit_chance"
+  },
+  {
+    "attr_id": "ATR_INT",
+    "name": "Inteligencia",
+    "short": "INT",
+    "governs": "Daño mágico, MP máx",
+    "description": "Escala daños mágicos"
+  },
+  {
+    "attr_id": "ATR_DEF",
+    "name": "Defensa",
+    "short": "DEF",
+    "governs": "Reducción daño físico",
+    "description": "Resta daño físico/rango"
+  },
+  {
+    "attr_id": "ATR_MDEF",
+    "name": "Defensa Mágica",
+    "short": "MDEF",
+    "governs": "Reducción daño mágico",
+    "description": "Resta daño mágico"
+  },
+  {
+    "attr_id": "ATR_CRIT",
+    "name": "Prob. Crítico",
+    "short": "CRIT%",
+    "governs": "Frecuencia de crítico",
+    "description": "Probabilidad de golpe crítico"
+  },
+  {
+    "attr_id": "ATR_CDMG",
+    "name": "Daño Crítico",
+    "short": "CDMG",
+    "governs": "Multiplicador de crítico",
+    "description": "Multiplicador al critear (1.5 = 150%)"
+  },
+  {
+    "attr_id": "ATR_SPD",
+    "name": "Velocidad Mov.",
+    "short": "SPD",
+    "governs": "Movimiento del personaje",
+    "description": "Unidades por segundo"
+  },
+  {
+    "attr_id": "ATR_ASPD",
+    "name": "Vel. Ataque",
+    "short": "ASPD",
+    "governs": "Ataques por segundo",
+    "description": "Cadencia de ataque"
+  }
+]

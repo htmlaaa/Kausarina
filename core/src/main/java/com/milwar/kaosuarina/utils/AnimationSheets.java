@@ -13,11 +13,12 @@ public class AnimationSheets {
 
     private static final String[] ROLES = {"caballero", "mago", "shooter"};
     private static final String[] DIRS = {"south", "east", "north", "west"};
-    // Nombre de carpeta para la animación de ataque según rol
-    private static final String[] ATTACK_DIR_NAME = {"swing", "cast", "shoot"};
-    // Número máximo esperado de fotogramas por animación
-    private static final int WALK_FRAMES = 4;
-    private static final int ATTACK_FRAMES = 6;
+    private static final String[] ATTACK_DIR_NAME       = {"swing",  "cast",  "shoot"};
+    private static final String[] HEAVY_ATTACK_DIR_NAME = {"swing2", "cast2", "shoot2"};
+    private static final int WALK_FRAMES         = 4;
+    private static final int IDLE_FRAMES         = 5;
+    private static final int ATTACK_FRAMES       = 6;
+    private static final int HEAVY_ATTACK_FRAMES = 9;
     // frames[rol][anim][dir][frame] — puede ser null si el fichero no existe
     private static Texture[][][][] frames;
 
@@ -25,8 +26,10 @@ public class AnimationSheets {
         frames = new Texture[ROLES.length][Anim.values().length][DIRS.length][];
         for (int r = 0; r < ROLES.length; r++) {
             for (int d = 0; d < DIRS.length; d++) {
-                frames[r][Anim.WALK.ordinal()][d] = loadFrames(ROLES[r], "walk", DIRS[d], WALK_FRAMES);
-                frames[r][Anim.ATTACK.ordinal()][d] = loadFrames(ROLES[r], ATTACK_DIR_NAME[r], DIRS[d], ATTACK_FRAMES);
+                frames[r][Anim.WALK.ordinal()][d]         = loadFrames(ROLES[r], "walk",                   DIRS[d], WALK_FRAMES);
+                frames[r][Anim.IDLE.ordinal()][d]         = loadFrames(ROLES[r], "idle",                   DIRS[d], IDLE_FRAMES);
+                frames[r][Anim.ATTACK.ordinal()][d]       = loadFrames(ROLES[r], ATTACK_DIR_NAME[r],       DIRS[d], ATTACK_FRAMES);
+                frames[r][Anim.HEAVY_ATTACK.ordinal()][d] = loadFrames(ROLES[r], HEAVY_ATTACK_DIR_NAME[r], DIRS[d], HEAVY_ATTACK_FRAMES);
             }
         }
     }
@@ -99,5 +102,5 @@ public class AnimationSheets {
         frames = null;
     }
 
-    public enum Anim {WALK, ATTACK}
+    public enum Anim {WALK, IDLE, ATTACK, HEAVY_ATTACK}
 }

@@ -1,0 +1,47 @@
+[
+  {
+    "char_id": "CHAR_KNIGHT",
+    "name": "Caballero",
+    "role": "Tank/Melee",
+    "base_hp": 120,
+    "base_mp": 30,
+    "base_str": 14,
+    "base_dex": 8,
+    "base_int": 6,
+    "base_def": 12,
+    "base_mdef": 8,
+    "base_crit_pct": 5,
+    "base_move_speed": 4.5,
+    "description": "Cuerpo a cuerpo, alta defensa y HP"
+  },
+  {
+    "char_id": "CHAR_SHOOTER",
+    "name": "Shooter",
+    "role": "Ranged DPS",
+    "base_hp": 85,
+    "base_mp": 40,
+    "base_str": 9,
+    "base_dex": 14,
+    "base_int": 8,
+    "base_def": 6,
+    "base_mdef": 6,
+    "base_crit_pct": 10,
+    "base_move_speed": 5.2,
+    "description": "Distancia, alta destreza y crítico"
+  },
+  {
+    "char_id": "CHAR_MAGE",
+    "name": "Mago",
+    "role": "Magic DPS",
+    "base_hp": 70,
+    "base_mp": 90,
+    "base_str": 6,
+    "base_dex": 9,
+    "base_int": 16,
+    "base_def": 4,
+    "base_mdef": 12,
+    "base_crit_pct": 7,
+    "base_move_speed": 4.8,
+    "description": "Daño mágico, alta MP e inteligencia"
+  }
+]
