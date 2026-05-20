@@ -30,6 +30,7 @@ import com.milwar.kaosuarina.weapons.WeaponSkill;
 import com.milwar.kaosuarina.weapons.WeaponType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import java.util.List;
 
 public class GameScreen implements Screen {
@@ -40,6 +41,7 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
+    private FitViewport gameViewport;
 
     private Player player;
     private PoolBalas poolBalas;
@@ -65,6 +67,7 @@ public class GameScreen implements Screen {
     private int     nextChestWave;
     private float   chestX, chestY;
     private boolean chestActive;
+    private Weapon  chestWeapon;
     private Weapon  pendingPickupWeapon;
     private boolean swapMenuActive;
     private float   swapMenuTimer;
@@ -99,6 +102,7 @@ public class GameScreen implements Screen {
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+        gameViewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
 
         player = new Player(0, 0, roleInicial);
         if (roleInicial.tipo == Role.Tipo.SHOOTER) {
@@ -124,6 +128,7 @@ public class GameScreen implements Screen {
 
         nextChestWave = MathUtils.random(Constants.CHEST_SPAWN_INTERVAL_MIN, Constants.CHEST_SPAWN_INTERVAL_MAX);
         chestActive = false;
+        chestWeapon = null;
         pendingPickupWeapon = null;
         swapMenuActive = false;
         swapMenuTimer = 0f;
@@ -246,7 +251,7 @@ public class GameScreen implements Screen {
         hud.setHealth(player.getCurrentHealth(), player.getMaxHealth());
         hud.setMana(player.getStats().mana, player.getStats().maxMana);
 
-        checkPlayerChestCollision();
+        checkChestProximity();
         updateSwapMenu(delta);
         checkPlayerScrollCollision();
         updateScrollMenu(delta);
@@ -264,6 +269,7 @@ public class GameScreen implements Screen {
 
         // Core display HUD (S6-07)
         hud.setCoreDisplay(getCoreDisplayText());
+        hud.setWave(spawnManager.getWaveCount());
 
         // Weapon slots HUD con inscripción (S6-07)
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
@@ -348,6 +354,7 @@ public class GameScreen implements Screen {
     }
 
     private void renderizar() {
+        gameViewport.apply(true);
         camera.position.set(player.position.x, player.position.y, 0);
         camera.update();
 
@@ -535,6 +542,7 @@ public class GameScreen implements Screen {
         float dist = 300f + MathUtils.random(200f);
         chestX = player.position.x + MathUtils.cos(angulo) * dist;
         chestY = player.position.y + MathUtils.sin(angulo) * dist;
+        chestWeapon = WeaponPool.getRandom();
         chestActive = true;
     }
 
@@ -542,18 +550,31 @@ public class GameScreen implements Screen {
         if (chestActive) return;
         chestX = x;
         chestY = y;
+        chestWeapon = WeaponPool.getRandom();
         chestActive = true;
         nextChestWave = spawnManager.getWaveCount() +
             MathUtils.random(Constants.CHEST_SPAWN_INTERVAL_MIN, Constants.CHEST_SPAWN_INTERVAL_MAX);
     }
 
-    private void checkPlayerChestCollision() {
-        if (!chestActive) return;
+    private void checkChestProximity() {
+        if (!chestActive) {
+            hud.clearChestPickupPrompt();
+            return;
+        }
         float dx = player.position.x - chestX;
         float dy = player.position.y - chestY;
-        if (dx * dx + dy * dy < Constants.WEAPON_PICKUP_RADIUS * Constants.WEAPON_PICKUP_RADIUS) {
-            chestActive = false;
-            triggerWeaponPickup(WeaponPool.getRandom());
+        float proximityR = Constants.WEAPON_PICKUP_RADIUS * 2f;
+        if (dx * dx + dy * dy < proximityR * proximityR) {
+            hud.setChestPickupPrompt(chestWeapon != null ? chestWeapon.type.name() : "ARMA");
+            if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+                chestActive = false;
+                hud.clearChestPickupPrompt();
+                Weapon toPickup = chestWeapon;
+                chestWeapon = null;
+                triggerWeaponPickup(toPickup);
+            }
+        } else {
+            hud.clearChestPickupPrompt();
         }
     }
 
@@ -717,6 +738,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int w, int h) {
+        gameViewport.update(w, h, true);
+        hud.resize(w, h);
     }
 
     @Override

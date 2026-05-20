@@ -5,11 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.milwar.kaosuarina.KaosuarinaGame;
+import com.milwar.kaosuarina.ui.FontManager;
 import com.milwar.kaosuarina.utils.Constants;
 
 public class WinScreen implements Screen {
@@ -17,8 +18,7 @@ public class WinScreen implements Screen {
     private final KaosuarinaGame game;
     private final SpriteBatch    batch;
     private final OrthographicCamera camera;
-    private final BitmapFont     titleFont;
-    private final BitmapFont     font;
+    private final FitViewport    viewport;
 
     private final int      score;
     private final int      tiempoSegundos;
@@ -41,19 +41,10 @@ public class WinScreen implements Screen {
         this.armasText      = armasText;
         this.leaderboard    = leaderboard;
 
-        batch  = new SpriteBatch();
-        camera = new OrthographicCamera();
+        batch    = new SpriteBatch();
+        camera   = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
-
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(5f);
-        titleFont.setUseIntegerPositions(false);
-        titleFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
-        font = new BitmapFont();
-        font.getData().setScale(2f);
-        font.setUseIntegerPositions(false);
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
     }
 
     @Override public void show() {}
@@ -72,6 +63,7 @@ public class WinScreen implements Screen {
         }
 
         ScreenUtils.clear(0.02f, 0f, 0.08f, 1f);
+        viewport.apply(true);
         camera.update();
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
@@ -79,45 +71,45 @@ public class WinScreen implements Screen {
         float cx = Constants.SCREEN_WIDTH  / 2f;
         float cy = Constants.SCREEN_HEIGHT / 2f;
 
-        titleFont.setColor(1f, 0.85f, 0.2f, 1f);
-        titleFont.draw(batch, "¡VICTORIA!", cx - 215, cy + 270);
+        BitmapFont fT = FontManager.get().title;
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fM = FontManager.get().medium;
+        BitmapFont fS = FontManager.get().small;
 
-        font.getData().setScale(2f);
-        font.setColor(0.85f, 0.85f, 1f, 1f);
-        font.draw(batch, rolNombre + "  (" + reliquiaNombre + ")",              cx - 160, cy + 175);
+        fT.setColor(1f, 0.85f, 0.2f, 1f);
+        fT.draw(batch, "¡VICTORIA!", cx - 215, cy + 260);
 
-        font.setColor(Color.WHITE);
-        font.draw(batch, "Score: " + score,                                     cx - 160, cy + 135);
-        font.draw(batch, String.format("Tiempo: %02d:%02d",
-            tiempoSegundos / 60, tiempoSegundos % 60),                         cx - 160, cy + 95);
-        font.draw(batch, "Nivel: " + level + "    Oleada: " + waveCount,        cx - 160, cy + 55);
+        fM.setColor(new Color(0.85f, 0.85f, 1f, 1f));
+        fM.draw(batch, rolNombre + "  (" + reliquiaNombre + ")", cx - 160, cy + 170);
 
-        font.getData().setScale(1.5f);
-        font.setColor(0.5f, 0.9f, 1f, 1f);
-        font.draw(batch, armasText,                                             cx - 160, cy + 18);
+        fL.setColor(Color.WHITE);
+        fL.draw(batch, "Score: " + score,                                           cx - 160, cy + 130);
+        fL.draw(batch, String.format("Tiempo: %02d:%02d",
+            tiempoSegundos / 60, tiempoSegundos % 60),                             cx - 160, cy + 92);
+        fL.draw(batch, "Nivel: " + level + "    Oleada: " + waveCount,             cx - 160, cy + 54);
 
-        renderLeaderboard(cx, cy - 20);
+        fM.setColor(new Color(0.5f, 0.9f, 1f, 1f));
+        fM.draw(batch, armasText, cx - 160, cy + 20);
 
-        font.getData().setScale(1.8f);
-        font.setColor(0.4f, 0.95f, 0.4f, 1f);
-        font.draw(batch, "[R]    Jugar de nuevo",                               cx - 160, cy - 230);
-        font.setColor(0.65f, 0.65f, 0.65f, 1f);
-        font.draw(batch, "[ESC]  Menu principal",                               cx - 160, cy - 268);
+        renderLeaderboard(cx, cy - 18, fS);
 
-        font.getData().setScale(2f);
-        font.setColor(Color.WHITE);
+        fL.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
+        fL.draw(batch, "[R]    Jugar de nuevo",  cx - 160, cy - 230);
+        fL.setColor(new Color(0.65f, 0.65f, 0.65f, 1f));
+        fL.draw(batch, "[ESC]  Menu principal",  cx - 160, cy - 270);
+
         batch.end();
     }
 
-    private void renderLeaderboard(float cx, float topY) {
+    private void renderLeaderboard(float cx, float topY, BitmapFont f) {
         if (leaderboard == null || leaderboard.length == 0) return;
-        font.getData().setScale(1.3f);
-        font.setColor(1f, 0.85f, 0.2f, 1f);
-        font.draw(batch, "TOP SCORES", cx - 80, topY);
-        font.setColor(0.82f, 0.82f, 0.82f, 1f);
+        f.setColor(new Color(1f, 0.85f, 0.2f, 1f));
+        f.draw(batch, "TOP SCORES", cx - 70, topY);
+        f.setColor(new Color(0.82f, 0.82f, 0.82f, 1f));
         for (int i = 0; i < leaderboard.length; i++) {
-            font.draw(batch, leaderboard[i], cx - 170, topY - 26 - i * 24);
+            f.draw(batch, leaderboard[i], cx - 170, topY - 22 - i * 22);
         }
+        f.setColor(Color.WHITE);
     }
 
     private static String rolNombreDe(int id) {
@@ -138,7 +130,7 @@ public class WinScreen implements Screen {
         }
     }
 
-    @Override public void resize(int w, int h) {}
+    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
@@ -146,7 +138,5 @@ public class WinScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
-        titleFont.dispose();
-        font.dispose();
     }
 }

@@ -11,11 +11,11 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.milwar.kaosuarina.systems.Upgrade;
+import com.milwar.kaosuarina.ui.FontManager;
 
 public class LevelUpScreen implements Disposable {
-    private final BitmapFont titleFont;
-    private final BitmapFont cardFont;
-    private final ShapeRenderer shapeRenderer;
+
+    private final ShapeRenderer  shapeRenderer;
     private final OrthographicCamera camera;
 
     private Array<Upgrade> options;
@@ -26,58 +26,38 @@ public class LevelUpScreen implements Disposable {
     private final int screenHeight;
 
     public LevelUpScreen(int screenWidth, int screenHeight) {
-        this.screenWidth = screenWidth;
+        this.screenWidth  = screenWidth;
         this.screenHeight = screenHeight;
 
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(4f);
-        titleFont.setColor(Color.GOLD);
-
-        cardFont = new BitmapFont();
-        cardFont.getData().setScale(2f);
-        cardFont.setColor(Color.WHITE);
-
         shapeRenderer = new ShapeRenderer();
-
-        camera = new OrthographicCamera();
+        camera        = new OrthographicCamera();
         camera.setToOrtho(false, screenWidth, screenHeight);
 
-        options = new Array<>();
+        options       = new Array<>();
         selectedIndex = 0;
-        isActive = false;
+        isActive      = false;
     }
 
     public void show(Array<Upgrade> upgrades) {
-        this.options = upgrades;
-        this.selectedIndex = 0;
-        this.isActive = true;
+        options       = upgrades;
+        selectedIndex = 0;
+        isActive      = true;
     }
 
-    public void hide() {
-        this.isActive = false;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
+    public void hide()       { isActive = false; }
+    public boolean isActive(){ return isActive; }
 
     public void handleInput() {
         if (!isActive) return;
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.A) || Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.A) || Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
             selectedIndex = Math.max(0, selectedIndex - 1);
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.D) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.D) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
             selectedIndex = Math.min(options.size - 1, selectedIndex + 1);
-        }
-
     }
 
     public Upgrade getSelectedUpgrade() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
             return options.get(selectedIndex);
-        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1) && options.size >= 1) return options.get(0);
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2) && options.size >= 2) return options.get(1);
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3) && options.size >= 3) return options.get(2);
@@ -91,7 +71,6 @@ public class LevelUpScreen implements Disposable {
         batch.setProjectionMatrix(camera.combined);
         shapeRenderer.setProjectionMatrix(camera.combined);
 
-        // Fondo semitransparente
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -100,82 +79,63 @@ public class LevelUpScreen implements Disposable {
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
-        // Renderizar cards
         renderCards(batch);
 
         batch.begin();
 
-        // Título
-        String title = "LEVEL UP!";
-        titleFont.draw(batch, title, (screenWidth - 200) / 2, screenHeight - 50);
+        BitmapFont fH = FontManager.get().heading;
+        BitmapFont fS = FontManager.get().small;
 
-        // Instrucciones
-        cardFont.getData().setScale(1.5f);
-        cardFont.draw(batch, "A/D o Flechas para seleccionar | ENTER/SPACE para confirmar | 1/2/3 para elegir directo",
-            50, 80);
-        cardFont.getData().setScale(2f);
+        fH.setColor(Color.GOLD);
+        fH.draw(batch, "LEVEL UP!", (screenWidth - 210) / 2f, screenHeight - 40);
+
+        fS.setColor(Color.GRAY);
+        fS.draw(batch, "A/D o Flechas para seleccionar  |  ENTER/SPACE confirmar  |  1/2/3 elegir directo",
+            50, 72);
 
         batch.end();
     }
 
     private void renderCards(SpriteBatch batch) {
-        float cardWidth = 300f;
-        float cardHeight = 400f;
-        float spacing = 50f;
+        float cardWidth = 300f, cardHeight = 400f, spacing = 50f;
         float totalWidth = (cardWidth * options.size) + (spacing * (options.size - 1));
-        float startX = (screenWidth - totalWidth) / 2;
-        float cardY = (screenHeight - cardHeight) / 2;
+        float startX = (screenWidth - totalWidth) / 2f;
+        float cardY  = (screenHeight - cardHeight) / 2f;
+
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fM = FontManager.get().medium;
+        BitmapFont fS = FontManager.get().small;
 
         for (int i = 0; i < options.size; i++) {
-            float cardX = startX + (i * (cardWidth + spacing));
+            float cardX = startX + i * (cardWidth + spacing);
+            boolean sel = i == selectedIndex;
 
-            // Fondo de card
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-            if (i == selectedIndex) {
-                // Card seleccionada (dorada)
-                shapeRenderer.setColor(0.3f, 0.25f, 0.1f, 1f);
-            } else {
-                // Card no seleccionada (gris oscuro)
-                shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
-            }
-
+            shapeRenderer.setColor(sel ? 0.3f : 0.2f, sel ? 0.25f : 0.2f, sel ? 0.1f : 0.2f, 1f);
             shapeRenderer.rect(cardX, cardY, cardWidth, cardHeight);
             shapeRenderer.end();
 
-            // Borde
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            Gdx.gl.glLineWidth(i == selectedIndex ? 5 : 2);
-            shapeRenderer.setColor(i == selectedIndex ? Color.GOLD : Color.GRAY);
+            Gdx.gl.glLineWidth(sel ? 4 : 2);
+            shapeRenderer.setColor(sel ? Color.GOLD : Color.GRAY);
             shapeRenderer.rect(cardX, cardY, cardWidth, cardHeight);
             shapeRenderer.end();
             Gdx.gl.glLineWidth(1);
 
-            // Texto
             batch.begin();
-
             Upgrade upgrade = options.get(i);
 
-            // Número de opción
-            cardFont.getData().setScale(3f);
-            cardFont.setColor(Color.GOLD);
-            cardFont.draw(batch, "" + (i + 1), cardX + 20, cardY + cardHeight - 20);
+            fL.setColor(Color.GOLD);
+            fL.draw(batch, "" + (i + 1), cardX + 18, cardY + cardHeight - 14);
 
-            // Nombre
-            cardFont.getData().setScale(2f);
-            cardFont.setColor(Color.WHITE);
-            cardFont.draw(batch, upgrade.nombre, cardX + 20, cardY + cardHeight - 80, cardWidth - 40, 1, true);
+            fL.setColor(Color.WHITE);
+            fL.draw(batch, upgrade.nombre, cardX + 18, cardY + cardHeight - 60, cardWidth - 36, 1, true);
 
-            // Descripción
-            cardFont.getData().setScale(1.5f);
-            cardFont.setColor(Color.LIGHT_GRAY);
-            cardFont.draw(batch, upgrade.descripcion, cardX + 20, cardY + cardHeight - 180, cardWidth - 40, 1, true);
+            fM.setColor(Color.LIGHT_GRAY);
+            fM.draw(batch, upgrade.descripcion, cardX + 18, cardY + cardHeight - 130, cardWidth - 36, 1, true);
 
-            // Nivel actual
-            cardFont.getData().setScale(1.8f);
-            cardFont.setColor(Color.CYAN);
-            cardFont.draw(batch, "[" + upgrade.nivel + "/" + upgrade.nivelMax + "]",
-                cardX + 20, cardY + 40);
+            fM.setColor(Color.CYAN);
+            fM.draw(batch, "[" + upgrade.nivel + " / " + upgrade.nivelMax + "]", cardX + 18, cardY + 36);
 
             batch.end();
         }
@@ -183,8 +143,6 @@ public class LevelUpScreen implements Disposable {
 
     @Override
     public void dispose() {
-        titleFont.dispose();
-        cardFont.dispose();
         shapeRenderer.dispose();
     }
 }
