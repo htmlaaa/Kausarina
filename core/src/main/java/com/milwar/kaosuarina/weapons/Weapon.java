@@ -1,5 +1,6 @@
 package com.milwar.kaosuarina.weapons;
 
+import com.milwar.kaosuarina.data.WeaponInstance;
 import com.milwar.kaosuarina.roles.Role;
 import com.milwar.kaosuarina.utils.DamageType;
 import com.milwar.kaosuarina.weapons.Inscription;
@@ -24,6 +25,10 @@ public abstract class Weapon {
     public final int            manaMaxBonus;
     /** Multiplied into player speed while this weapon is equipped. */
     public final float          moveSpeedMult;
+    /** Null para armas de WeaponPool (stats hardcodeados). Poblado por WeaponDropper en drops. */
+    public WeaponInstance rolledInstance = null;
+    /** Tier ID del JSON (T1-T5). Null para armas base del pool. */
+    public String tierId = null;
     /** Inscripción activa en este arma. Null si no lleva ninguna. */
     public Inscription inscription = null;
 

@@ -5,11 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.milwar.kaosuarina.KaosuarinaGame;
+import com.milwar.kaosuarina.ui.FontManager;
 import com.milwar.kaosuarina.utils.Constants;
 
 public class GameOverScreen implements Screen {
@@ -19,85 +20,64 @@ public class GameOverScreen implements Screen {
         "Maldito", "Espectral", "Guardian", "Arquero", "Devastador"
     };
 
-    private final KaosuarinaGame game;
-    private final SpriteBatch batch;
+    private final KaosuarinaGame  game;
+    private final SpriteBatch     batch;
     private final OrthographicCamera camera;
-    private final BitmapFont titleFont;
-    private final BitmapFont font;
+    private final FitViewport     viewport;
 
-    private final int score;
-    private final int tiempoSegundos;
-    private final int level;
-    private final int waveCount;
+    private final int    score;
+    private final int    tiempoSegundos;
+    private final int    level;
+    private final int    waveCount;
     private final String rolNombre;
     private final String armasText;
-    private final int[] killsPorTipo;
+    private final int[]  killsPorTipo;
     private final String[] leaderboard;
 
     public GameOverScreen(KaosuarinaGame game, int score, int tiempoSegundos, int level,
                           int waveCount, int personajeId, String armasText,
                           int[] killsPorTipo, String[] leaderboard) {
-        this.game = game;
-        this.score = score;
+        this.game           = game;
+        this.score          = score;
         this.tiempoSegundos = tiempoSegundos;
-        this.level = level;
-        this.waveCount = waveCount;
-        this.rolNombre = rolNombreDe(personajeId);
-        this.armasText = armasText;
-        this.killsPorTipo = killsPorTipo;
-        this.leaderboard = leaderboard;
+        this.level          = level;
+        this.waveCount      = waveCount;
+        this.rolNombre      = rolNombreDe(personajeId);
+        this.armasText      = armasText;
+        this.killsPorTipo   = killsPorTipo;
+        this.leaderboard    = leaderboard;
 
-        batch = new SpriteBatch();
-        camera = new OrthographicCamera();
+        batch    = new SpriteBatch();
+        camera   = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
-
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(5f);
-        titleFont.setUseIntegerPositions(false);
-        titleFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
-        font = new BitmapFont();
-        font.getData().setScale(2f);
-        font.setUseIntegerPositions(false);
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
     }
 
     private static String rolNombreDe(int id) {
         switch (id) {
-            case 1:
-                return "Caballero";
-            case 2:
-                return "Mago";
-            case 3:
-                return "Tirador";
-            default:
-                return "???";
+            case 1:  return "Caballero";
+            case 2:  return "Mago";
+            case 3:  return "Tirador";
+            default: return "???";
         }
     }
 
-    @Override
-    public void show() {
-    }
+    @Override public void show() {}
 
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            dispose();
-            game.setScreen(new CharacterSelectScreen(game));
-            return;
+            dispose(); game.setScreen(new CharacterSelectScreen(game)); return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.L)) {
-            dispose();
-            game.setScreen(new LeaderboardScreen(game));
-            return;
+            dispose(); game.setScreen(new LeaderboardScreen(game)); return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            dispose();
-            game.setScreen(new MainMenuScreen(game));
-            return;
+            dispose(); game.setScreen(new MainMenuScreen(game)); return;
         }
 
-        ScreenUtils.clear(0f, 0f, 0f, 1f);
+        ScreenUtils.clear(0.04f, 0.02f, 0.06f, 1f);
+        viewport.apply(true);
         camera.update();
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
@@ -105,40 +85,42 @@ public class GameOverScreen implements Screen {
         float cx = Constants.SCREEN_WIDTH / 2f;
         float cy = Constants.SCREEN_HEIGHT / 2f;
 
-        titleFont.setColor(0.9f, 0.1f, 0.1f, 1f);
-        titleFont.draw(batch, "GAME OVER", cx - 235, cy + 270);
+        BitmapFont fTitle  = FontManager.get().title;
+        BitmapFont fHeading = FontManager.get().heading;
+        BitmapFont fLarge  = FontManager.get().large;
+        BitmapFont fMedium = FontManager.get().medium;
+        BitmapFont fSmall  = FontManager.get().small;
 
-        font.getData().setScale(2f);
-        font.setColor(0.85f, 0.85f, 1f, 1f);
-        font.draw(batch, "Rol: " + rolNombre, cx - 160, cy + 175);
+        fTitle.setColor(0.9f, 0.12f, 0.12f, 1f);
+        fTitle.draw(batch, "GAME OVER", cx - 310, cy + 290);
 
-        font.setColor(Color.WHITE);
-        font.draw(batch, "Score: " + score, cx - 160, cy + 133);
-        font.draw(batch, String.format("Tiempo: %02d:%02d",
-            tiempoSegundos / 60, tiempoSegundos % 60), cx - 160, cy + 91);
-        font.draw(batch, "Nivel: " + level + "    Oleada: " + waveCount, cx - 160, cy + 49);
+        fHeading.setColor(new Color(0.75f, 0.8f, 1f, 1f));
+        fHeading.draw(batch, rolNombre, cx - 200, cy + 215);
 
-        font.getData().setScale(1.4f);
-        font.setColor(0.85f, 0.6f, 0.3f, 1f);
-        font.draw(batch, buildKillsTotal(), cx - 160, cy + 14);
-        font.draw(batch, buildKillsDetalle(), cx - 160, cy - 10);
+        fLarge.setColor(Color.WHITE);
+        fLarge.draw(batch, "Score:    " + score,                                        cx - 200, cy + 165);
+        fLarge.draw(batch, String.format("Tiempo:   %02d:%02d", tiempoSegundos / 60, tiempoSegundos % 60), cx - 200, cy + 127);
+        fLarge.draw(batch, "Nivel:    " + level + "     Oleada: " + waveCount,          cx - 200, cy + 89);
 
-        font.getData().setScale(1.5f);
-        font.setColor(0.5f, 0.9f, 1f, 1f);
-        font.draw(batch, armasText, cx - 160, cy - 40);
+        fMedium.setColor(new Color(0.85f, 0.62f, 0.32f, 1f));
+        fMedium.draw(batch, buildKillsTotal(),   cx - 200, cy + 56);
+        fMedium.draw(batch, buildKillsDetalle(), cx - 200, cy + 32);
 
-        renderLeaderboardCompact(cx, cy - 75);
+        fMedium.setColor(new Color(0.5f, 0.9f, 1f, 1f));
+        fMedium.draw(batch, armasText, cx - 200, cy + 4);
 
-        font.getData().setScale(1.8f);
-        font.setColor(0.4f, 0.95f, 0.4f, 1f);
-        font.draw(batch, "[R]    Jugar de nuevo", cx - 160, cy - 215);
-        font.setColor(1f, 0.85f, 0.2f, 1f);
-        font.draw(batch, "[L]    Ver Records completos", cx - 160, cy - 250);
-        font.setColor(0.65f, 0.65f, 0.65f, 1f);
-        font.draw(batch, "[ESC]  Menu principal", cx - 160, cy - 285);
+        renderLeaderboardCompact(cx, cy - 30);
 
-        font.getData().setScale(2f);
-        font.setColor(Color.WHITE);
+        fLarge.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
+        fLarge.draw(batch, "[R]      Jugar de nuevo",           cx - 200, cy - 210);
+        fLarge.setColor(new Color(1f, 0.85f, 0.2f, 1f));
+        fLarge.draw(batch, "[L]      Ver Records completos",    cx - 200, cy - 248);
+        fLarge.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
+        fLarge.draw(batch, "[ESC]  Menu principal",             cx - 200, cy - 286);
+
+        fLarge.setColor(Color.WHITE);
+        fTitle.setColor(Color.WHITE);
+        fHeading.setColor(Color.WHITE);
         batch.end();
     }
 
@@ -165,36 +147,24 @@ public class GameOverScreen implements Screen {
 
     private void renderLeaderboardCompact(float cx, float topY) {
         if (leaderboard == null || leaderboard.length == 0) return;
-        font.getData().setScale(1.2f);
-        font.setColor(1f, 0.85f, 0.2f, 1f);
-        font.draw(batch, "TOP 3", cx - 40, topY);
-        font.setColor(0.75f, 0.75f, 0.75f, 1f);
+        BitmapFont fSmall = FontManager.get().small;
+        fSmall.setColor(new Color(1f, 0.85f, 0.2f, 1f));
+        fSmall.draw(batch, "TOP 3", cx - 45, topY);
+        fSmall.setColor(new Color(0.75f, 0.75f, 0.75f, 1f));
         int n = Math.min(leaderboard.length, 3);
         for (int i = 0; i < n; i++) {
-            font.draw(batch, leaderboard[i], cx - 170, topY - 22 - i * 22);
+            fSmall.draw(batch, leaderboard[i], cx - 200, topY - 18 - i * 18);
         }
+        fSmall.setColor(Color.WHITE);
     }
 
-    @Override
-    public void resize(int w, int h) {
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void hide() {
-    }
+    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
 
     @Override
     public void dispose() {
         batch.dispose();
-        titleFont.dispose();
-        font.dispose();
     }
 }

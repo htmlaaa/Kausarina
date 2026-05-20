@@ -19,6 +19,13 @@ import java.util.List;
  */
 public class WeaponInstanceFactory {
 
+    private static WeaponInstanceFactory instance;
+
+    public static WeaponInstanceFactory getInstance() {
+        if (instance == null) instance = new WeaponInstanceFactory();
+        return instance;
+    }
+
     private final DataManager dm;
 
     public WeaponInstanceFactory() {

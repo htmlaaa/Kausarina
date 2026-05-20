@@ -17,6 +17,7 @@ public class SharedTextures {
     private static Texture devastador;
     private static Texture bala;
     private static Texture balaEnemiga;
+    private static Texture weaponDrop;
 
     public static void load() {
         // Jugador — círculo blanco; Player.render() lo tinta con el color del rol
@@ -39,6 +40,9 @@ public class SharedTextures {
 
         // Balas enemigas — círculo rojo
         balaEnemiga = circleGlow(14, 1f, 0.3f, 0.25f);
+
+        // Drop de arma en suelo — rombo blanco 24px
+        weaponDrop = diamond(24, 1f, 1f, 1f);
     }
 
     // ── Helpers de Pixmap ─────────────────────────────────────────────────────
@@ -179,6 +183,29 @@ public class SharedTextures {
         return t;
     }
 
+    /** Rombo (diamante) para representar drops de arma en el suelo. */
+    private static Texture diamond(int size, float r, float g, float b) {
+        Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        p.setColor(0, 0, 0, 0);
+        p.fill();
+        int cx = size / 2, cy = size / 2, half = size / 2 - 1;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float dx = Math.abs(x - cx), dy = Math.abs(y - cy);
+                float dist = (dx + dy) / half;
+                if (dist <= 1f) {
+                    float alpha = Math.min(1f, (1f - dist) * 3f + 0.3f);
+                    p.setColor(r, g, b, alpha);
+                    p.drawPixel(x, y);
+                }
+            }
+        }
+        Texture t = new Texture(p);
+        t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        p.dispose();
+        return t;
+    }
+
     // ── Getters ───────────────────────────────────────────────────────────────
 
     public static Texture getPlayer() {
@@ -209,6 +236,10 @@ public class SharedTextures {
         return balaEnemiga;
     }
 
+    public static Texture getWeaponDrop() {
+        return weaponDrop;
+    }
+
     public static void dispose() {
         if (player != null) {
             player.dispose();
@@ -237,6 +268,10 @@ public class SharedTextures {
         if (balaEnemiga != null) {
             balaEnemiga.dispose();
             balaEnemiga = null;
+        }
+        if (weaponDrop != null) {
+            weaponDrop.dispose();
+            weaponDrop = null;
         }
     }
 }

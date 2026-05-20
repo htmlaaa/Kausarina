@@ -22,17 +22,40 @@ import com.milwar.kaosuarina.ui.HUD;
 import com.milwar.kaosuarina.utils.AudioManager;
 import com.milwar.kaosuarina.utils.ColisionManager;
 import com.milwar.kaosuarina.utils.Constants;
+import com.badlogic.gdx.graphics.Color;
+import com.milwar.kaosuarina.data.DataManager;
 import com.milwar.kaosuarina.weapons.Weapon;
 import com.milwar.kaosuarina.weapons.WeaponCategory;
+import com.milwar.kaosuarina.weapons.WeaponDropper;
 import com.milwar.kaosuarina.weapons.WeaponNormal;
 import com.milwar.kaosuarina.weapons.WeaponPool;
 import com.milwar.kaosuarina.weapons.WeaponSkill;
 import com.milwar.kaosuarina.weapons.WeaponType;
+import com.milwar.kaosuarina.utils.SharedTextures;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import java.util.HashMap;
+import java.util.Map;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import java.util.List;
 
 public class GameScreen implements Screen {
+
+    private static final Map<String, String> WEAPON_NAMES = new HashMap<>();
+    static {
+        WEAPON_NAMES.put("W_SHORTSWORD",   "Espada_Corta");
+        WEAPON_NAMES.put("W_FLAMEBLADE",   "Hoja_Llameante");
+        WEAPON_NAMES.put("W_HEAVYBLADE",   "Mandoble");
+        WEAPON_NAMES.put("W_VAMP_DAGGER",  "Daga_Vampirica");
+        WEAPON_NAMES.put("W_HUNTBOW",      "Arco_de_Caza");
+        WEAPON_NAMES.put("W_POISON_BOW",   "Arco_Venenoso");
+        WEAPON_NAMES.put("W_BALLISTA",     "Ballesta");
+        WEAPON_NAMES.put("W_DUAL_PISTOLS", "Pistolas_Gemelas");
+        WEAPON_NAMES.put("W_APP_STAFF",    "Baculo_Aprendiz");
+        WEAPON_NAMES.put("W_FIRE_STAFF",   "Baculo_de_Fuego");
+        WEAPON_NAMES.put("W_CHAOS_WAND",   "Vara_del_Caos");
+        WEAPON_NAMES.put("W_PLAGUE_GRIM",  "Grimorio_Plaga");
+    }
 
     private final KaosuarinaGame game;
     private final Role roleInicial;
@@ -40,6 +63,7 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
+    private FitViewport gameViewport;
 
     private Player player;
     private PoolBalas poolBalas;
@@ -58,6 +82,9 @@ public class GameScreen implements Screen {
     private float aimAngle;
     private boolean leftClickJust;
     private boolean rightClickJust;
+    private int   lastMouseX, lastMouseY;
+    private float mouseActiveTimer = 0f;
+    private static final float MOUSE_ACTIVE_DURATION = 1.5f;
     private float   tiempoSupervivencia;
     private boolean runGuardada;
     private boolean gameWon;
@@ -65,9 +92,24 @@ public class GameScreen implements Screen {
     private int     nextChestWave;
     private float   chestX, chestY;
     private boolean chestActive;
+    private Weapon  chestWeapon;
     private Weapon  pendingPickupWeapon;
     private boolean swapMenuActive;
     private float   swapMenuTimer;
+    private boolean pauseMenuActive;
+    private int     currentDepthForDrops = 1;
+    private float   hpRegenAccum         = 0f;
+
+    // Inventario de 6 slots (TAB)
+    private boolean inventoryOpen     = false;
+    private int     inventorySelected = -1;
+
+    // Pool de drops de arma en mundo (enemy loot)
+    private static final int DROP_POOL = 8;
+    private final float[]   dropX      = new float[DROP_POOL];
+    private final float[]   dropY      = new float[DROP_POOL];
+    private final Weapon[]  dropWeapon = new Weapon[DROP_POOL];
+    private final boolean[] dropActive = new boolean[DROP_POOL];
 
     // S6-02 — Scroll de Inscripción
     private int     nextScrollWave;
@@ -99,17 +141,16 @@ public class GameScreen implements Screen {
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
+        gameViewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
 
         player = new Player(0, 0, roleInicial);
-        if (roleInicial.tipo == Role.Tipo.SHOOTER) {
-            player.equipWeapon(0, WeaponPool.get(WeaponType.PISTOLAS_GEMELAS));
-        }
         poolBalas = new PoolBalas();
         poolEnemigos = new PoolEnemigos();
         poolBalasEnemigas = new PoolBalasEnemigas();
         hud = new HUD(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
         upgradeManager = new UpgradeManager();
+        upgradeManager.setRole(player.getRole().tipo);
         player.setUpgradeManager(upgradeManager);
 
         levelUpScreen = new LevelUpScreen(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
@@ -124,9 +165,11 @@ public class GameScreen implements Screen {
 
         nextChestWave = MathUtils.random(Constants.CHEST_SPAWN_INTERVAL_MIN, Constants.CHEST_SPAWN_INTERVAL_MAX);
         chestActive = false;
+        chestWeapon = null;
         pendingPickupWeapon = null;
         swapMenuActive = false;
         swapMenuTimer = 0f;
+        pauseMenuActive = false;
         com.milwar.kaosuarina.weapons.inscriptions.EchoQueue.clear();
         com.milwar.kaosuarina.utils.ParticlePool.clear();
         AudioManager.startMusic();
@@ -161,20 +204,137 @@ public class GameScreen implements Screen {
             return;
         }
 
-        procesarInput();
-        actualizarJuego(delta);
-        procesarColisiones();
-        detectarLevelUp();
+        // TAB opens/closes inventory
+        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB) && !swapMenuActive && !scrollMenuActive && !pauseMenuActive) {
+            inventoryOpen = !inventoryOpen;
+            inventorySelected = -1;
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            if (inventoryOpen) { inventoryOpen = false; inventorySelected = -1; }
+            else if (!swapMenuActive && !scrollMenuActive) { pauseMenuActive = !pauseMenuActive; }
+        }
+
+        boolean anyOverlay = pauseMenuActive || swapMenuActive || scrollMenuActive || inventoryOpen;
+        if (!anyOverlay) {
+            procesarInput();
+            actualizarJuego(delta);
+            procesarColisiones();
+            detectarLevelUp();
+        } else if (swapMenuActive) {
+            updateSwapMenu(delta);
+        } else if (scrollMenuActive) {
+            updateScrollMenu(delta);
+        }
+
+        actualizarHudSlots();
         renderizar();
+
+        if (inventoryOpen) {
+            int hovered = hud.getInventoryHoveredSlot(Gdx.input.getX(), Gdx.input.getY());
+            hud.renderInventoryOverlay(batch, hovered, inventorySelected);
+            if (Gdx.input.isButtonJustPressed(com.badlogic.gdx.Input.Buttons.LEFT) && hovered >= 0) {
+                procesarClickInventario(hovered);
+            }
+        }
+
+        if (pauseMenuActive && !inventoryOpen) {
+            hud.renderPauseMenu(batch);
+            if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+                pauseMenuActive = false;
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
+                liberarRecursos();
+                game.setScreen(new MainMenuScreen(game));
+            }
+        }
+    }
+
+    private void actualizarHudSlots() {
+        // Slots 0-1: activos (con cooldown y mana lock)
+        for (int i = 0; i < 2; i++) {
+            Weapon w = player.getWeaponAtSlot(i);
+            String insc = (w != null && w.inscription != null) ? w.inscription.getName() : null;
+            String tier = (w != null) ? w.tierId : null;
+            if (w == null) {
+                hud.setWeaponSlot(i, "-", false, 0f, false, null, null);
+            } else if (w instanceof WeaponSkill) {
+                WeaponSkill sk = (WeaponSkill) w;
+                float frac = sk.skillCooldownBase > 0 ? Math.min(1f, sk.skillCooldownTimer / sk.skillCooldownBase) : 0f;
+                boolean locked = player.getStats().mana < sk.manaCost;
+                hud.setWeaponSlot(i, specificWeaponName(w), true, frac, locked, insc, tier);
+            } else {
+                float frac = w.cooldownBase > 0 ? Math.min(1f, w.cooldownTimer / w.cooldownBase) : 0f;
+                hud.setWeaponSlot(i, specificWeaponName(w), false, frac, false, insc, tier);
+            }
+        }
+        // Slots 2-5: almacenamiento
+        for (int i = 0; i < 4; i++) {
+            Weapon w = player.getStorageWeapon(i);
+            if (w != null) {
+                String insc = w.inscription != null ? w.inscription.getName() : null;
+                hud.setWeaponSlot(i + 2, specificWeaponName(w), false, 0f, false, insc, w.tierId);
+            } else {
+                hud.setWeaponSlot(i + 2, "-", false, 0f, false, null, null);
+            }
+        }
+    }
+
+    private void procesarClickInventario(int clicked) {
+        if (inventorySelected == -1) {
+            inventorySelected = clicked;
+        } else if (inventorySelected == clicked) {
+            inventorySelected = -1; // deselect
+        } else {
+            // Swap the two slots
+            int a = inventorySelected, b = clicked;
+            boolean aActive = a < 2, bActive = b < 2;
+            if (aActive && bActive) {
+                // swap active ↔ active: swap via storage trick
+                Weapon wA = player.getWeaponAtSlot(a);
+                player.equipWeapon(a, player.getWeaponAtSlot(b));
+                player.equipWeapon(b, wA);
+            } else if (aActive) {
+                player.swapActiveWithStorage(a, b - 2);
+            } else if (bActive) {
+                player.swapActiveWithStorage(b, a - 2);
+            } else {
+                player.swapStorageSlots(a - 2, b - 2);
+            }
+            inventorySelected = -1;
+        }
     }
 
     private void procesarLevelUp() {
         levelUpScreen.handleInput();
         Upgrade seleccionado = levelUpScreen.getSelectedUpgrade();
         if (seleccionado != null) {
-            int hpBonus = upgradeManager.aplicarUpgrade(seleccionado);
-            if (hpBonus > 0) player.aumentarVidaMaxima(hpBonus);
+            upgradeManager.aplicarUpgrade(seleccionado);
+            aplicarBonusUpgrade(seleccionado);
             levelUpScreen.hide();
+        }
+    }
+
+    private void aplicarBonusUpgrade(Upgrade u) {
+        com.milwar.kaosuarina.systems.PlayerStats st = player.getStats();
+        switch (u.tipo) {
+            case VIDA_MAXIMA_UP:
+                player.aumentarVidaMaxima(20); break;
+            case GOLPE_PESADO:
+                st.meleeLightDamage = Math.round(st.meleeLightDamage * 1.30f);
+                st.meleeHeavyDamage = Math.round(st.meleeHeavyDamage * 1.30f); break;
+            case DEFENSA:
+                st.defensa  += 8f;
+                st.defBase  += 8f; break;
+            case MANA_MAXIMO_UP:
+                st.maxMana      += 30f;
+                st.manaMaxBase  += 30f; break;
+            case RESONANCIA:
+                st.blastRadiusMult *= 1.40f; break;
+            case CADENCIA_MAGICA:
+                st.lightAttackCooldown = Math.max(0.10f, st.lightAttackCooldown * 0.80f); break;
+            case RECARGA_RAPIDA:
+                st.baseShootCooldown = Math.max(0.08f, st.baseShootCooldown * 0.85f); break;
+            default: break;
         }
     }
 
@@ -187,12 +347,20 @@ public class GameScreen implements Screen {
 
         if (player.velocity.len2() > 0) player.velocity.nor().scl(player.getVelocidadActual());
 
-        float mouseX = Gdx.input.getX();
-        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        int curMouseX = Gdx.input.getX();
+        int curMouseY = Gdx.input.getY();
+        float mouseX = curMouseX;
+        float mouseY = Gdx.graphics.getHeight() - curMouseY;
         aimAngle = (float) Math.atan2(
             mouseY - Gdx.graphics.getHeight() / 2f,
             mouseX - Gdx.graphics.getWidth() / 2f
         );
+        if (Math.abs(curMouseX - lastMouseX) > 2 || Math.abs(curMouseY - lastMouseY) > 2) {
+            mouseActiveTimer = MOUSE_ACTIVE_DURATION;
+        }
+        lastMouseX = curMouseX;
+        lastMouseY = curMouseY;
+        if (mouseActiveTimer > 0) mouseActiveTimer -= Gdx.graphics.getDeltaTime();
 
         leftClickJust = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
         rightClickJust = Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT);
@@ -204,13 +372,23 @@ public class GameScreen implements Screen {
         com.milwar.kaosuarina.utils.ParticlePool.update(delta);
         player.update(delta, poolBalas, aimAngle);
 
+        // HP regen pasiva (amuleto Tótem de Regen)
+        float regenRate = player.getStats().hpRegenPerSec;
+        if (regenRate > 0) {
+            hpRegenAccum += regenRate * delta;
+            if (hpRegenAccum >= 1f) {
+                player.curar((int) hpRegenAccum);
+                hpRegenAccum -= (int) hpRegenAccum;
+            }
+        }
+
         // Manual attacks (Caballero / Mago)
         if (player.getRole().attackMode != com.milwar.kaosuarina.roles.Role.AttackMode.AUTO_SHOOT) {
             if (leftClickJust) recompensarKills(player.triggerLightAttack(poolBalas, aimAngle, poolEnemigos));
             if (rightClickJust) recompensarKills(player.triggerHeavyAttack(poolBalas, aimAngle, poolEnemigos));
         }
 
-        // Weapon auto-fire (S5-04, ADR-006)
+        // Weapon auto-fire (S5-04, ADR-006) — Caballero / Mago via slots
         player.updateWeaponCooldowns(delta);
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
             Weapon w = player.getWeaponAtSlot(i);
@@ -218,6 +396,12 @@ public class GameScreen implements Screen {
                 ((WeaponNormal) w).shoot(player, poolBalas, aimAngle);
                 w.cooldownTimer = calcCooldownEfectivo(w);
             }
+        }
+
+        // Shooter built-in range-based auto-fire (no weapon slot)
+        if (player.getRole().tipo == com.milwar.kaosuarina.roles.Role.Tipo.SHOOTER) {
+            player.updateShooterAutoFire(delta, poolBalas, poolEnemigos,
+                aimAngle, mouseActiveTimer > 0);
         }
 
         // Skill cooldown timers (S5-05)
@@ -239,6 +423,8 @@ public class GameScreen implements Screen {
         hud.update(delta);
 
         // Wave spawning + difficulty scaling
+        currentDepthForDrops = hud.getLevel();
+        poolEnemigos.setCurrentDepth(currentDepthForDrops);
         if (spawnManager.update(delta, hud.getLevel())) {
             onWaveFired();
         }
@@ -246,7 +432,9 @@ public class GameScreen implements Screen {
         hud.setHealth(player.getCurrentHealth(), player.getMaxHealth());
         hud.setMana(player.getStats().mana, player.getStats().maxMana);
 
-        checkPlayerChestCollision();
+        checkChestProximity();
+        procesarLootDrops();
+        checkPlayerDropCollision();
         updateSwapMenu(delta);
         checkPlayerScrollCollision();
         updateScrollMenu(delta);
@@ -262,25 +450,10 @@ public class GameScreen implements Screen {
         // Amuleto icons HUD (S6-03)
         hud.setAmuletFlags(player.getStats().hasSedDeSangre, player.getStats().hasGuardianArena);
 
-        // Core display HUD (S6-07)
-        hud.setCoreDisplay(getCoreDisplayText());
+        // Relic display HUD
+        hud.setWave(spawnManager.getWaveCount());
+        actualizarRelicDisplay();
 
-        // Weapon slots HUD con inscripción (S6-07)
-        for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
-            Weapon w = player.getWeaponAtSlot(i);
-            String insc = (w != null && w.inscription != null) ? w.inscription.getName() : null;
-            if (w == null) {
-                hud.setWeaponSlot(i, "-", false, 0f, false, null);
-            } else if (w instanceof WeaponSkill) {
-                WeaponSkill sk = (WeaponSkill) w;
-                float frac = sk.skillCooldownBase > 0 ? Math.min(1f, sk.skillCooldownTimer / sk.skillCooldownBase) : 0f;
-                boolean locked = player.getStats().mana < sk.manaCost;
-                hud.setWeaponSlot(i, w.type.name(), true, frac, locked, insc);
-            } else {
-                float frac = w.cooldownBase > 0 ? Math.min(1f, w.cooldownTimer / w.cooldownBase) : 0f;
-                hud.setWeaponSlot(i, w.type.name(), false, frac, false, insc);
-            }
-        }
     }
 
     /** Called by SpawnManager when a wave fires. Handles collectibles and arena bonus. */
@@ -348,6 +521,7 @@ public class GameScreen implements Screen {
     }
 
     private void renderizar() {
+        gameViewport.apply(true);
         camera.position.set(player.position.x, player.position.y, 0);
         camera.update();
 
@@ -367,16 +541,23 @@ public class GameScreen implements Screen {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         player.renderAttackEffect(shapeRenderer);
         if (chestActive) {
-            shapeRenderer.setColor(1f, 0.8f, 0.1f, 1f);
-            shapeRenderer.rect(chestX - 16, chestY - 16, 32, 32);
+            // Cofre: cuerpo oscuro
+            shapeRenderer.setColor(0.30f, 0.20f, 0.04f, 1f);
+            shapeRenderer.rect(chestX - 16, chestY - 16, 32, 24);
+            // Tapa
+            shapeRenderer.setColor(0.40f, 0.28f, 0.06f, 1f);
+            shapeRenderer.rect(chestX - 16, chestY + 8, 32, 10);
+            // Broche dorado
+            shapeRenderer.setColor(1f, 0.82f, 0.1f, 1f);
+            shapeRenderer.rect(chestX - 5, chestY - 3, 10, 7);
         }
         if (scrollActive) {
             shapeRenderer.setColor(0.2f, 0.8f, 0.8f, 1f);
-            shapeRenderer.rect(scrollX - 12, scrollY - 12, 24, 24);
+            shapeRenderer.circle(scrollX, scrollY, 12, 12);
         }
         if (amuletActive) {
             shapeRenderer.setColor(0.6f, 0.1f, 0.9f, 1f);
-            shapeRenderer.rect(amuletX - 10, amuletY - 10, 20, 20);
+            shapeRenderer.circle(amuletX, amuletY, 10, 12);
         }
         shapeRenderer.end();
 
@@ -394,13 +575,15 @@ public class GameScreen implements Screen {
         poolBalasEnemigas.render(batch);
         poolEnemigos.render(batch);
         player.render(batch);
+        renderDrops(batch);
         batch.end();
 
         hud.render(batch);
         if (swapMenuActive && pendingPickupWeapon != null) {
-            String s0 = player.getWeaponAtSlot(0) != null ? player.getWeaponAtSlot(0).type.name() : "VACIO";
-            String s1 = player.getWeaponAtSlot(1) != null ? player.getWeaponAtSlot(1).type.name() : "VACIO";
-            hud.renderSwapMenu(batch, s0, s1, pendingPickupWeapon.type.name(), swapMenuTimer);
+            HUD.WeaponCard newCard  = buildWeaponCard(pendingPickupWeapon);
+            HUD.WeaponCard card0    = buildWeaponCard(player.getWeaponAtSlot(0));
+            HUD.WeaponCard card1    = buildWeaponCard(player.getWeaponAtSlot(1));
+            hud.renderSwapMenuCards(batch, newCard, card0, card1, swapMenuTimer);
         }
         if (scrollMenuActive && pendingInscription != null) {
             boolean s0w = player.getWeaponAtSlot(0) != null;
@@ -513,12 +696,17 @@ public class GameScreen implements Screen {
         }
     }
 
-    /** cd_efectivo = max(cd_base × affinityMult / multiplicadorCadencia, MIN_WEAPON_CD) */
+    /** cd_efectivo = max(cd_base × affinityMult / multiplicadorCadencia × (1-afijo%), MIN_WEAPON_CD) */
     private float calcCooldownEfectivo(Weapon w) {
         float cd = w.cooldownBase;
         if (w.hasAffinityFor(player.getRole().tipo)) cd *= Constants.WEAPON_AFFINITY_CD_MULT;
         float cadMult = (upgradeManager != null) ? upgradeManager.getMultiplicadorCadencia() : 1f;
-        return Math.max(Constants.MIN_WEAPON_CD, cd / cadMult);
+        cd /= cadMult;
+        if (w.rolledInstance != null) {
+            float pct = w.rolledInstance.getSumStat("reduced_cd_pct");
+            if (pct > 0) cd *= (1f - pct / 100f);
+        }
+        return Math.max(Constants.MIN_WEAPON_CD, cd);
     }
 
     private static int personajeIdDe(Role.Tipo tipo) {
@@ -535,6 +723,7 @@ public class GameScreen implements Screen {
         float dist = 300f + MathUtils.random(200f);
         chestX = player.position.x + MathUtils.cos(angulo) * dist;
         chestY = player.position.y + MathUtils.sin(angulo) * dist;
+        chestWeapon = WeaponDropper.generate(currentDepthForDrops, player.getRole().tipo);
         chestActive = true;
     }
 
@@ -542,28 +731,108 @@ public class GameScreen implements Screen {
         if (chestActive) return;
         chestX = x;
         chestY = y;
+        chestWeapon = WeaponDropper.generate(currentDepthForDrops, player.getRole().tipo);
         chestActive = true;
         nextChestWave = spawnManager.getWaveCount() +
             MathUtils.random(Constants.CHEST_SPAWN_INTERVAL_MIN, Constants.CHEST_SPAWN_INTERVAL_MAX);
     }
 
-    private void checkPlayerChestCollision() {
-        if (!chestActive) return;
+    private void checkChestProximity() {
+        if (!chestActive || swapMenuActive || scrollMenuActive) {
+            if (!chestActive) hud.clearChestPickupPrompt();
+            return;
+        }
         float dx = player.position.x - chestX;
         float dy = player.position.y - chestY;
-        if (dx * dx + dy * dy < Constants.WEAPON_PICKUP_RADIUS * Constants.WEAPON_PICKUP_RADIUS) {
-            chestActive = false;
-            triggerWeaponPickup(WeaponPool.getRandom());
+        float proximityR = Constants.WEAPON_PICKUP_RADIUS * 2f;
+        if (dx * dx + dy * dy < proximityR * proximityR) {
+            hud.setChestPickupPrompt(chestWeapon != null ? specificWeaponName(chestWeapon) : "ARMA");
+            if (Gdx.input.isKeyJustPressed(Input.Keys.F) && chestWeapon != null) {
+                chestActive = false;
+                hud.clearChestPickupPrompt();
+                Weapon toPickup = chestWeapon;
+                chestWeapon = null;
+                triggerWeaponPickup(toPickup);
+            }
+        } else {
+            hud.clearChestPickupPrompt();
+        }
+    }
+
+    private void renderDrops(SpriteBatch b) {
+        for (int i = 0; i < DROP_POOL; i++) {
+            if (!dropActive[i]) continue;
+            Color c = tierColor(dropWeapon[i]);
+            b.setColor(c);
+            b.draw(SharedTextures.getWeaponDrop(), dropX[i] - 12, dropY[i] - 12, 24, 24);
+            b.setColor(Color.WHITE);
+        }
+    }
+
+    private void procesarLootDrops() {
+        for (Enemy e : poolEnemigos.getEnemigos()) {
+            if (!e.pendingLootDrop) continue;
+            e.pendingLootDrop = false;
+
+            float chance = dropChancePor(e.tipo);
+            if (MathUtils.random() >= chance) continue;
+
+            for (int i = 0; i < DROP_POOL; i++) {
+                if (!dropActive[i]) {
+                    dropX[i]      = e.position.x;
+                    dropY[i]      = e.position.y;
+                    dropWeapon[i] = WeaponDropper.generate(currentDepthForDrops, player.getRole().tipo);
+                    dropActive[i] = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    private float dropChancePor(Enemy.Tipo tipo) {
+        switch (tipo) {
+            case GUARDIAN: case ARQUERO: case DEVASTADOR: return 1.0f;
+            case TANQUE:   case ESPECTRAL:                return 0.50f;
+            default:                                      return 0.12f;
+        }
+    }
+
+    private void checkPlayerDropCollision() {
+        if (swapMenuActive || scrollMenuActive) return;
+        for (int i = 0; i < DROP_POOL; i++) {
+            if (!dropActive[i]) continue;
+            float dx = player.position.x - dropX[i];
+            float dy = player.position.y - dropY[i];
+            if (dx * dx + dy * dy < Constants.WEAPON_PICKUP_RADIUS * Constants.WEAPON_PICKUP_RADIUS) {
+                triggerWeaponPickup(dropWeapon[i]);
+                dropActive[i] = false;
+                break;
+            }
+        }
+    }
+
+    private Color tierColor(Weapon w) {
+        if (w == null || w.tierId == null) return Color.WHITE;
+        switch (w.tierId) {
+            case "T2": return Color.GREEN;
+            case "T3": return Color.CYAN;
+            case "T4": return new Color(0.7f, 0.3f, 1f, 1f);
+            case "T5": return Color.GOLD;
+            default:   return Color.WHITE;
         }
     }
 
     private void triggerWeaponPickup(Weapon w) {
+        if (player.getRole().tipo == com.milwar.kaosuarina.roles.Role.Tipo.SHOOTER
+                && w.type == com.milwar.kaosuarina.weapons.WeaponType.PISTOLAS_GEMELAS) return;
+
+        // Try active slots first
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
-            if (player.getWeaponAtSlot(i) == null) {
-                player.equipWeapon(i, w);
-                return;
-            }
+            if (player.getWeaponAtSlot(i) == null) { player.equipWeapon(i, w); return; }
         }
+        // Try storage slots
+        if (player.storeWeapon(w)) return;
+        // All 6 slots full — offer swap of active slots
         pendingPickupWeapon = w;
         swapMenuActive = true;
         swapMenuTimer = Constants.WEAPON_SWAP_TIMEOUT;
@@ -609,7 +878,7 @@ public class GameScreen implements Screen {
     }
 
     private void checkPlayerScrollCollision() {
-        if (!scrollActive) return;
+        if (!scrollActive || swapMenuActive || scrollMenuActive) return;
         float dx = player.position.x - scrollX;
         float dy = player.position.y - scrollY;
         if (dx * dx + dy * dy < Constants.SCROLL_PICKUP_RADIUS * Constants.SCROLL_PICKUP_RADIUS) {
@@ -686,17 +955,65 @@ public class GameScreen implements Screen {
             case GUARDIAN_DE_LA_ARENA:
                 player.getStats().hasGuardianArena = true;
                 break;
+            case PIEL_DE_PIEDRA:
+                player.aumentarVidaMaxima(40);
+                break;
+            case BOTAS_RAPIDAS:
+                player.getStats().baseSpeed *= 1.20f;
+                break;
+            case COLLAR_VAMPIRICO:
+                player.getStats().lifeStealPercent += 0.024f;
+                break;
+            case TOTEM_REGEN:
+                player.getStats().hpRegenPerSec += 2f;
+                break;
+            case TALISMAN_MANA:
+                player.getStats().maxMana    += 25f;
+                player.getStats().manaMaxBase += 25f;
+                break;
         }
     }
 
-    // ── S6-07 Core display text ───────────────────────────────────────────────
+    // ── Relic display en HUD ─────────────────────────────────────────────────
 
-    private String getCoreDisplayText() {
+    private void actualizarRelicDisplay() {
         switch (player.getRole().tipo) {
-            case CABALLERO: return "ARM " + player.getReliquiaStacks();
-            case SHOOTER:   return "CMB " + player.getComboCount();
-            default:        return "";
+            case CABALLERO:
+                hud.setRelicDisplay("Armadura", player.getReliquiaStacks());
+                break;
+            case SHOOTER:
+                hud.setRelicDisplay("Combo", player.getComboCount());
+                break;
+            default:
+                hud.setRelicDisplay("", 0);
+                break;
         }
+    }
+
+    private String specificWeaponName(Weapon w) {
+        if (w.rolledInstance != null) {
+            String mapped = WEAPON_NAMES.get(w.rolledInstance.weaponId);
+            if (mapped != null) return mapped;
+        }
+        return w.type.name();
+    }
+
+    private HUD.WeaponCard buildWeaponCard(Weapon w) {
+        if (w == null) return null;
+        String name     = HUD.formatWeaponName(specificWeaponName(w));
+        String dmgType  = w.damageType != null ? w.damageType.name() : "FISICO";
+        int    damage   = w.baseDamage;
+        String insc     = w.inscription != null ? w.inscription.getName() : null;
+        boolean matches = w.hasAffinityFor(player.getRole().tipo);
+        String affLabel = affinityLabel(w);
+        return new HUD.WeaponCard(name, w.tierId, dmgType, damage, insc, matches, affLabel);
+    }
+
+    private String affinityLabel(Weapon w) {
+        if (w.hasAffinityFor(Role.Tipo.CABALLERO)) return "Caballero";
+        if (w.hasAffinityFor(Role.Tipo.MAGO))      return "Mago";
+        if (w.hasAffinityFor(Role.Tipo.SHOOTER))   return "Shooter";
+        return "Neutro";
     }
 
     private void reiniciar() {
@@ -717,6 +1034,9 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int w, int h) {
+        gameViewport.update(w, h, true);
+        hud.resize(w, h);
+        levelUpScreen.resize(w, h);
     }
 
     @Override

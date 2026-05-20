@@ -51,52 +51,152 @@
   },
   {
     "depth": 6,
-    "hp_mult": "",
-    "dmg_mult": "",
-    "speed_mult": "",
-    "xp_mult": "",
-    "gold_mult": "",
-    "elite_chance_pct": "",
-    "notes": "Rellenar cuando defináis nivel 6"
+    "hp_mult": 2.25,
+    "dmg_mult": 1.65,
+    "speed_mult": 1.13,
+    "xp_mult": 1.85,
+    "gold_mult": 1.70,
+    "elite_chance_pct": 24,
+    "notes": "Jugador empoderado — escalado agresivo en HP, daño moderado. BASICO ~90 HP efectivo (4-5 hits Caballero sin upgrades)."
   },
   {
     "depth": 7,
-    "hp_mult": "",
-    "dmg_mult": "",
-    "speed_mult": "",
-    "xp_mult": "",
-    "gold_mult": "",
-    "elite_chance_pct": "",
-    "notes": ""
+    "hp_mult": 2.65,
+    "dmg_mult": 1.82,
+    "speed_mult": 1.17,
+    "xp_mult": 2.15,
+    "gold_mult": 1.90,
+    "elite_chance_pct": 28,
+    "notes": "Punto de inflexión — runs largas requieren upgrades sólidos. Elites frecuentes crean combate variado."
   },
   {
     "depth": 8,
-    "hp_mult": "",
-    "dmg_mult": "",
-    "speed_mult": "",
-    "xp_mult": "",
-    "gold_mult": "",
-    "elite_chance_pct": "",
-    "notes": ""
+    "hp_mult": 3.10,
+    "dmg_mult": 2.00,
+    "speed_mult": 1.20,
+    "xp_mult": 2.50,
+    "gold_mult": 2.15,
+    "elite_chance_pct": 32,
+    "notes": "Late-game extremo — KAMIKAZE hace 50 dmg max (Mago sobrevive 1 golpe con 20 HP). Velocidad capeada a 1.20 para no romper bullet-hell."
   },
   {
     "depth": 9,
-    "hp_mult": "",
-    "dmg_mult": "",
-    "speed_mult": "",
-    "xp_mult": "",
-    "gold_mult": "",
-    "elite_chance_pct": "",
-    "notes": ""
+    "hp_mult": 3.60,
+    "dmg_mult": 2.20,
+    "speed_mult": 1.22,
+    "xp_mult": 2.90,
+    "gold_mult": 2.40,
+    "elite_chance_pct": 36,
+    "notes": "Pre-boss — enemigos extremamente resistentes. Prepara al jugador para el Devastador."
   },
   {
     "depth": 10,
-    "hp_mult": "",
-    "dmg_mult": "",
-    "speed_mult": "",
-    "xp_mult": "",
-    "gold_mult": "",
-    "elite_chance_pct": "",
-    "notes": "Último piso antes del boss final?"
+    "hp_mult": 4.20,
+    "dmg_mult": 2.40,
+    "speed_mult": 1.25,
+    "xp_mult": 3.40,
+    "gold_mult": 2.70,
+    "elite_chance_pct": 40,
+    "notes": "Último piso — aparición garantizada del Devastador del Caos. Velocidad capeada a 1.25."
+  },
+  {
+    "depth": 11,
+    "hp_mult": 4.90,
+    "dmg_mult": 2.60,
+    "speed_mult": 1.27,
+    "xp_mult": 3.90,
+    "gold_mult": 3.00,
+    "elite_chance_pct": 42,
+    "notes": "Post-boss — run infinita. HP crece más rápido que el daño para forzar builds defensivos."
+  },
+  {
+    "depth": 12,
+    "hp_mult": 5.70,
+    "dmg_mult": 2.80,
+    "speed_mult": 1.28,
+    "xp_mult": 4.50,
+    "gold_mult": 3.30,
+    "elite_chance_pct": 44,
+    "notes": ""
+  },
+  {
+    "depth": 13,
+    "hp_mult": 6.60,
+    "dmg_mult": 3.00,
+    "speed_mult": 1.30,
+    "xp_mult": 5.20,
+    "gold_mult": 3.65,
+    "elite_chance_pct": 46,
+    "notes": "Media run infinita — elites muy frecuentes, requiere armas T3+."
+  },
+  {
+    "depth": 14,
+    "hp_mult": 7.60,
+    "dmg_mult": 3.20,
+    "speed_mult": 1.31,
+    "xp_mult": 6.00,
+    "gold_mult": 4.00,
+    "elite_chance_pct": 48,
+    "notes": ""
+  },
+  {
+    "depth": 15,
+    "hp_mult": 8.80,
+    "dmg_mult": 3.45,
+    "speed_mult": 1.32,
+    "xp_mult": 7.00,
+    "gold_mult": 4.40,
+    "elite_chance_pct": 50,
+    "notes": "Run endgame — mayoría de spawns son elites o bosses. Requiere builds completos."
+  },
+  {
+    "depth": 16,
+    "hp_mult": 10.20,
+    "dmg_mult": 3.70,
+    "speed_mult": 1.33,
+    "xp_mult": 8.20,
+    "gold_mult": 4.80,
+    "elite_chance_pct": 52,
+    "notes": ""
+  },
+  {
+    "depth": 17,
+    "hp_mult": 11.80,
+    "dmg_mult": 4.00,
+    "speed_mult": 1.34,
+    "xp_mult": 9.50,
+    "gold_mult": 5.20,
+    "elite_chance_pct": 54,
+    "notes": ""
+  },
+  {
+    "depth": 18,
+    "hp_mult": 13.60,
+    "dmg_mult": 4.30,
+    "speed_mult": 1.35,
+    "xp_mult": 11.00,
+    "gold_mult": 5.60,
+    "elite_chance_pct": 56,
+    "notes": ""
+  },
+  {
+    "depth": 19,
+    "hp_mult": 15.60,
+    "dmg_mult": 4.65,
+    "speed_mult": 1.37,
+    "xp_mult": 12.50,
+    "gold_mult": 6.00,
+    "elite_chance_pct": 58,
+    "notes": ""
+  },
+  {
+    "depth": 20,
+    "hp_mult": 18.00,
+    "dmg_mult": 5.00,
+    "speed_mult": 1.38,
+    "xp_mult": 14.00,
+    "gold_mult": 6.50,
+    "elite_chance_pct": 60,
+    "notes": "Techo de escalado — valores estables más allá del 20. Velocidad capeada a 1.38 para mantener jugabilidad."
   }
 ]

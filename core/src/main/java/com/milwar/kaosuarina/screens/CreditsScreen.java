@@ -5,38 +5,30 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.milwar.kaosuarina.KaosuarinaGame;
+import com.milwar.kaosuarina.ui.FontManager;
 import com.milwar.kaosuarina.utils.Constants;
 
 public class CreditsScreen implements Screen {
 
     private final KaosuarinaGame game;
-    private final SpriteBatch batch;
-    private final OrthographicCamera camera;
-    private final BitmapFont titleFont;
-    private final BitmapFont bodyFont;
+    private final SpriteBatch    batch;
+    private final FitViewport    viewport;
 
     public CreditsScreen(KaosuarinaGame game) {
         this.game = game;
-        batch = new SpriteBatch();
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(4.5f);
-        bodyFont = new BitmapFont();
-        bodyFont.getData().setScale(2f);
+        batch    = new SpriteBatch();
+        viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
     }
 
-    @Override
-    public void show() {}
+    @Override public void show() {}
 
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) ||
-            Gdx.input.isKeyJustPressed(Input.Keys.ENTER) ||
+            Gdx.input.isKeyJustPressed(Input.Keys.ENTER)  ||
             Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             dispose();
             game.setScreen(new MainMenuScreen(game));
@@ -46,58 +38,58 @@ public class CreditsScreen implements Screen {
         Gdx.gl.glClearColor(0.03f, 0.01f, 0.08f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        camera.update();
-        batch.setProjectionMatrix(camera.combined);
+        viewport.apply();
+        batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        float cx = Constants.SCREEN_WIDTH / 2f;
-        float top = Constants.SCREEN_HEIGHT;
+        float cx  = Constants.SCREEN_WIDTH  / 2f;
+        float top = Constants.SCREEN_HEIGHT - 40f;
 
-        titleFont.setColor(Color.GOLD);
-        titleFont.draw(batch, "KAOSUARINA", cx - 225, top - 55);
+        // Título
+        FontManager.get().title.setColor(Color.GOLD);
+        FontManager.get().title.draw(batch, "KAOSUARINA", cx - 220f, top);
 
-        bodyFont.getData().setScale(1.7f);
-        bodyFont.setColor(0.7f, 0.7f, 0.9f, 1f);
-        bodyFont.draw(batch, "Roguelite 2D Top-Down Shooter", cx - 260, top - 115);
+        FontManager.get().medium.setColor(0.7f, 0.7f, 0.9f, 1f);
+        FontManager.get().medium.draw(batch, "Roguelite 2D Top-Down Shooter", cx - 210f, top - 80f);
 
-        float y = top - 180;
-        section("DESARROLLO", cx, y);
-        bodyFont.getData().setScale(1.6f);
-        bodyFont.setColor(Color.WHITE);
-        bodyFont.draw(batch, "Autor:       Milwar Chapi", cx - 250, y - 42);
-        bodyFont.draw(batch, "Proyecto:    TFG  —  GS Desarrollo de Aplicaciones Multiplataforma", cx - 250, y - 80);
-        bodyFont.draw(batch, "Curso:       2025 / 2026", cx - 250, y - 118);
+        float y = top - 150f;
+        section(cx, y, "DESARROLLO");
+        float ly = y - 40f;
+        line(cx, ly,      "Autor:      Milwar Chapi");
+        line(cx, ly - 32f, "Proyecto:   TFG — GS Desarrollo de Aplicaciones Multiplataforma");
+        line(cx, ly - 64f, "Curso:      2025 / 2026");
 
-        y -= 175;
-        section("TECNOLOGIAS", cx, y);
-        bodyFont.getData().setScale(1.6f);
-        bodyFont.setColor(Color.WHITE);
-        bodyFont.draw(batch, "Motor:       LibGDX 1.14.0  /  Java 8  /  LWJGL3", cx - 250, y - 42);
-        bodyFont.draw(batch, "Graficos:    Procedural (Pixmap)  +  PixelLab MCP", cx - 250, y - 80);
-        bodyFont.draw(batch, "Base datos:  MySQL  (patron DAO  +  JDBC)", cx - 250, y - 118);
-        bodyFont.draw(batch, "Build:       Gradle  /  gdx-liftoff", cx - 250, y - 156);
+        y -= 180f;
+        section(cx, y, "TECNOLOGIAS");
+        ly = y - 40f;
+        line(cx, ly,       "Motor:      LibGDX 1.14.0  /  Java 8  /  LWJGL3");
+        line(cx, ly - 32f, "Graficos:   Procedural (Pixmap)  +  PixelLab MCP");
+        line(cx, ly - 64f, "Base datos: MySQL  (patron DAO + JDBC)");
+        line(cx, ly - 96f, "Build:      Gradle  /  gdx-liftoff");
 
-        y -= 210;
-        section("AGRADECIMIENTOS", cx, y);
-        bodyFont.getData().setScale(1.6f);
-        bodyFont.setColor(Color.LIGHT_GRAY);
-        bodyFont.draw(batch, "Kenney.nl  —  assets de audio CC0", cx - 250, y - 42);
-        bodyFont.draw(batch, "LibGDX community  —  documentacion y ejemplos", cx - 250, y - 80);
+        y -= 200f;
+        section(cx, y, "AGRADECIMIENTOS");
+        ly = y - 40f;
+        line(cx, ly,       "Kenney.nl  —  assets de audio CC0");
+        line(cx, ly - 32f, "LibGDX community  —  documentacion y ejemplos");
 
-        bodyFont.getData().setScale(1.4f);
-        bodyFont.setColor(Color.GRAY);
-        bodyFont.draw(batch, "ESC / ENTER / SPACE  para volver", cx - 200, 34);
+        FontManager.get().small.setColor(Color.GRAY);
+        FontManager.get().small.draw(batch, "ESC / ENTER / SPACE  para volver al menu", cx - 160f, 30f);
 
         batch.end();
     }
 
-    private void section(String title, float cx, float y) {
-        bodyFont.getData().setScale(1.9f);
-        bodyFont.setColor(Color.CYAN);
-        bodyFont.draw(batch, title, cx - title.length() * 6, y);
+    private void section(float cx, float y, String title) {
+        FontManager.get().heading.setColor(Color.CYAN);
+        FontManager.get().heading.draw(batch, title, cx - title.length() * 10f, y);
     }
 
-    @Override public void resize(int w, int h) {}
+    private void line(float cx, float y, String text) {
+        FontManager.get().large.setColor(Color.WHITE);
+        FontManager.get().large.draw(batch, text, cx - 310f, y);
+    }
+
+    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
@@ -105,7 +97,5 @@ public class CreditsScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
-        titleFont.dispose();
-        bodyFont.dispose();
     }
 }

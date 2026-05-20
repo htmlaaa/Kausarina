@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milwar.kaosuarina.data.model.DepthScalingData;
 import com.milwar.kaosuarina.utils.SharedTextures;
 import com.milwar.kaosuarina.utils.StatusEffect;
 
@@ -30,8 +31,16 @@ public class Enemy {
     public float defensa;           // reducción de daño físico
     public float resistenciaMagica; // reducción de daño mágico
     public boolean debeExplotar;      // MALDITO: set al morir, procesado por ColisionManager
+    /** Set true on kill — GameScreen processes loot drop and clears this flag. */
+    public boolean pendingLootDrop = false;
+    /** JSON catalog ID — maps to enemy_id in enemies.json (S10-02). */
+    public String enemyId = null;
     /** Stun timer: while > 0 the enemy skips movement. Set by InscripcionSismica. */
     public float stunTimer = 0f;
+    /** Slow timer: while > 0 velocity is scaled by slowMult. Set by CAOS_PRIMORDIAL hits. */
+    public float slowTimer = 0f;
+    /** Speed multiplier while slowed (0.5 = half speed). */
+    public float slowMult  = 1f;
     /** HP snapshot taken before each hit — used by ColisionManager for overkill mana (S6-04). */
     public int lastHpSnapshot = 0;
     /** Boss attack timer: counts down to next shockwave (GUARDIAN only). */
@@ -69,7 +78,11 @@ public class Enemy {
         active = true;
         this.tipo = tipo;
         debeExplotar = false;
+        enemyId        = null;
+        pendingLootDrop = false;
         stunTimer = 0f;
+        slowTimer = 0f;
+        slowMult  = 1f;
         lastHpSnapshot = 0;
         bossAttackTimer = 0f;
         shockwaveThisFrame = false;
@@ -86,6 +99,7 @@ public class Enemy {
 
         switch (tipo) {
             case BASICO:
+                enemyId = "EN_NORMAL";
                 speed = 150f;
                 size = 32f;
                 health = 40;
@@ -93,28 +107,32 @@ public class Enemy {
                 color.set(0.2f, 0.9f, 0.3f, 1f);
                 break;
             case RAPIDO:
+                enemyId = "EN_KAMIKAZE";
                 speed = 300f;
                 size = 24f;
-                health = 12;
-                maxHealth = 12;
+                health = 25;
+                maxHealth = 25;
                 color.set(0.3f, 0.6f, 1f, 1f);
                 break;
             case TANQUE:
+                enemyId = "EN_TANK";
                 speed = 80f;
                 size = 48f;
-                health = 180;
-                maxHealth = 180;
+                health = 200;
+                maxHealth = 200;
                 defensa = 20f;
                 color.set(0.9f, 0.2f, 0.2f, 1f);
                 break;
             case SHOOTER:
+                enemyId = "EN_ORBITER";
                 speed = 100f;
                 size = 32f;
-                health = 50;
-                maxHealth = 50;
+                health = 35;
+                maxHealth = 35;
                 color.set(0.95f, 0.85f, 0.2f, 1f);
                 break;
             case MALDITO:
+                enemyId = "EN_MALDITO";
                 speed = 130f;
                 size = 30f;
                 health = 45;
@@ -122,6 +140,7 @@ public class Enemy {
                 color.set(0.55f, 0.1f, 0.75f, 1f);    // morado oscuro
                 break;
             case ESPECTRAL:
+                enemyId = "EN_ESPECTRAL";
                 speed = 160f;
                 size = 28f;
                 health = 35;
@@ -130,6 +149,7 @@ public class Enemy {
                 color.set(0.5f, 0.9f, 1f, 0.45f); // cian semitransparente
                 break;
             case GUARDIAN:
+                enemyId = "EN_MINIBOSS";
                 speed = com.milwar.kaosuarina.utils.Constants.GUARDIAN_SPEED;
                 size = 64f;
                 health = com.milwar.kaosuarina.utils.Constants.GUARDIAN_HP;
@@ -140,6 +160,7 @@ public class Enemy {
                 color.set(1f, 0.5f, 0.05f, 1f); // naranja
                 break;
             case ARQUERO:
+                enemyId = "EN_ELITE_TP";
                 speed = com.milwar.kaosuarina.utils.Constants.ARQUERO_SPEED;
                 size = 48f;
                 health = com.milwar.kaosuarina.utils.Constants.ARQUERO_HP;
@@ -150,6 +171,7 @@ public class Enemy {
                 color.set(0.3f, 0.5f, 1f, 1f); // azul
                 break;
             case DEVASTADOR:
+                enemyId = "EN_BOSS_FINAL";
                 size = 80f;
                 health = com.milwar.kaosuarina.utils.Constants.DEVASTADOR_HP;
                 maxHealth = com.milwar.kaosuarina.utils.Constants.DEVASTADOR_HP;
@@ -282,7 +304,18 @@ public class Enemy {
             }
         }
 
+        if (slowTimer > 0) {
+            slowTimer -= delta;
+            velocity.scl(slowMult);
+        }
         position.add(velocity.x * delta, velocity.y * delta);
+    }
+
+    public void applyDepthScaling(DepthScalingData d) {
+        if (d == null || d.hpMult <= 0) return;
+        health    = Math.max(1, Math.round(health * d.hpMult));
+        maxHealth = health;
+        speed    *= d.speedMult;
     }
 
     public void recibirDanio(int damage) {

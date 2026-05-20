@@ -6,6 +6,7 @@ import com.milwar.kaosuarina.entities.Player;
 import com.milwar.kaosuarina.entities.PoolBalas;
 import com.milwar.kaosuarina.entities.PoolEnemigos;
 import com.milwar.kaosuarina.roles.Role;
+import com.milwar.kaosuarina.data.WeaponInstanceFactory;
 import com.milwar.kaosuarina.systems.UpgradeManager;
 import com.milwar.kaosuarina.utils.ColisionManager;
 import com.milwar.kaosuarina.utils.Constants;
@@ -68,6 +69,10 @@ public class WeaponSkill extends Weapon {
         UpgradeManager um = p.getUpgradeManager();
         float mult = (um != null) ? um.getMultiplicadorDanio() : 1f;
         if (hasAffinityFor(p.getRole().tipo)) mult *= Constants.WEAPON_AFFINITY_DMG_MULT;
+        if (rolledInstance != null) {
+            float base = WeaponInstanceFactory.getInstance().rollHitDamage(rolledInstance);
+            return Math.max(1, Math.round(base * mult));
+        }
         return Math.max(1, Math.round(baseDamage * mult));
     }
 }

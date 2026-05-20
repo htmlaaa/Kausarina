@@ -5,6 +5,7 @@ import com.milwar.kaosuarina.entities.Bala;
 import com.milwar.kaosuarina.entities.Player;
 import com.milwar.kaosuarina.entities.PoolBalas;
 import com.milwar.kaosuarina.roles.Role;
+import com.milwar.kaosuarina.data.WeaponInstanceFactory;
 import com.milwar.kaosuarina.systems.UpgradeManager;
 import com.milwar.kaosuarina.utils.Constants;
 import com.milwar.kaosuarina.utils.DamageType;
@@ -71,6 +72,10 @@ public class WeaponNormal extends Weapon {
         UpgradeManager um = p.getUpgradeManager();
         float mult = (um != null) ? um.getMultiplicadorDanio() : 1f;
         if (hasAffinityFor(p.getRole().tipo)) mult *= Constants.WEAPON_AFFINITY_DMG_MULT;
+        if (rolledInstance != null) {
+            float base = WeaponInstanceFactory.getInstance().rollHitDamage(rolledInstance);
+            return Math.max(1, Math.round(base * mult));
+        }
         return Math.max(1, Math.round(baseDamage * mult));
     }
 }

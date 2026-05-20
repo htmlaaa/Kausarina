@@ -36,10 +36,10 @@ public class Role {
         s.defensa = 20f;
         s.maxMana = Constants.MANA_MAX_CABALLERO_BASE;
         s.mana    = Constants.MANA_MAX_CABALLERO_BASE;
-        s.lightAttackCooldown = 0.35f;
+        s.lightAttackCooldown = 0.20f;
         s.heavyAttackCooldown = 1.0f;
-        s.meleeLightDamage = 22;
-        s.meleeHeavyDamage = 45;
+        s.meleeLightDamage = 38;
+        s.meleeHeavyDamage = 72;
         return new Role(Tipo.CABALLERO, "Caballero", s, new ReliquiaCaballero());
     }
 
@@ -55,8 +55,8 @@ public class Role {
         s.manaRegen = Constants.MAGE_PASSIVE_REGEN;
         s.lightAttackCooldown = 0.28f;
         s.heavyAttackCooldown = 1.5f;
-        s.magicLightDamage = 22;
-        s.magicHeavyDamage = 55;
+        s.magicLightDamage = 34;
+        s.magicHeavyDamage = 85;
         s.magicLightManaCost = 8f;
         s.magicHeavyManaCost = 35f;
         return new Role(Tipo.MAGO, "Mago", s, new ReliquiaMago());

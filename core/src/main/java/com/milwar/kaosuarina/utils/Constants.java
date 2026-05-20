@@ -35,10 +35,20 @@ public class Constants {
 
     // Efectos de estado sobre enemigos (FUEGO → BURN, VENENO → POISON)
     public static final float STATUS_BURN_DURATION = 3f;
-    public static final int STATUS_BURN_DAMAGE = 8;   // por tick (cada 0.5s)
+    public static final int   STATUS_BURN_DAMAGE   = 8;    // por tick (cada 0.5s) — usado por CAOS_PRIMORDIAL secuela
     public static final float STATUS_POISON_DURATION = 5f;
-    public static final int STATUS_POISON_DAMAGE = 5;   // por tick (cada 1s)
-    public static final float LIFESTEAL_BASE_PERCENT = 0.15f;
+    public static final int   STATUS_POISON_DAMAGE   = 5;  // por tick (cada 1s)
+    public static final float LIFESTEAL_BASE_PERCENT = 0.03f;
+
+    // FUEGO — daño base amplificado + DoT temporal
+    public static final float STATUS_FIRE_DURATION = 4.5f; // duración del DoT de fuego
+    public static final int   STATUS_FIRE_DMG_MIN  = 2;    // mínimo tick de fuego (cada 0.5s)
+    public static final int   STATUS_FIRE_DMG_MAX  = 3;    // máximo tick de fuego (varía por hit)
+    public static final float STATUS_FUEGO_DMG_MULT = 1.15f; // multiplicador de daño base en hit de FUEGO
+
+    // CAOS_PRIMORDIAL — daño verdadero + ralentización
+    public static final float CAOS_PRIMORDIAL_SLOW_DURATION = 2f;
+    public static final float CAOS_PRIMORDIAL_SLOW_MULT     = 0.5f;
 
     // Mana system (S5-03)
     public static final float MAGE_PASSIVE_REGEN              = 2.0f;
@@ -76,8 +86,13 @@ public class Constants {
     public static final int   SED_DE_SANGRE_GAIN_AMULET  = 5;
     public static final int   GUARDIAN_ARENA_GAIN        = 20;
 
+    // Invulnerabilidad post-golpe por rol
+    public static final float INVULNERABILITY_CABALLERO = 0.30f;
+    public static final float INVULNERABILITY_MAGO      = 0.30f;
+    public static final float INVULNERABILITY_SHOOTER   = 0.20f;
+
     // Minijefe Guardián (S6-05)
-    public static final int   GUARDIAN_HP               = 800;
+    public static final int   GUARDIAN_HP               = 900;
     public static final float GUARDIAN_SPEED            = 60f;
     public static final int   GUARDIAN_CONTACT_DMG      = 25;
     public static final float GUARDIAN_ATTACK_INTERVAL  = 3f;
@@ -86,7 +101,7 @@ public class Constants {
     public static final int   MINIBOSS_WAVE_INTERVAL    = 10;
 
     // Minijefe Arquero (S7-03)
-    public static final int   ARQUERO_HP                  = 500;
+    public static final int   ARQUERO_HP                  = 300;
     public static final float ARQUERO_SPEED               = 90f;
     public static final int   ARQUERO_CONTACT_DMG         = 15;
     public static final int   ARQUERO_PROJECTILE_DMG      = 18;
@@ -105,14 +120,23 @@ public class Constants {
     public static final float PARTICLE_LIFE_IMPACT     = 0.25f;
 
     // Dificultad de oleadas (SpawnManager)
-    // MODO TEST: oleada 50 en ~10 min. Para producción usar: 90f / 12f / 150f / 0.92f
-    public static final float SPAWN_INTERVAL_BASE      = 25f;   // segundos entre oleadas al inicio
-    public static final float SPAWN_INTERVAL_MIN       = 4f;    // intervalo mínimo (máxima intensidad)
-    public static final float DIFICULTAD_RAMP_INTERVAL = 50f;   // cada Xs escala la dificultad
-    public static final float DIFICULTAD_RAMP_FACTOR   = 0.88f; // reducción del intervalo por ramp
+    public static final float SPAWN_INTERVAL_BASE      = 18f;   // segundos entre oleadas al inicio
+    public static final float SPAWN_INTERVAL_MIN       = 3.5f;  // intervalo mínimo (máxima intensidad)
+    public static final float DIFICULTAD_RAMP_INTERVAL = 35f;   // cada Xs escala la dificultad
+    public static final float DIFICULTAD_RAMP_FACTOR   = 0.84f; // reducción del intervalo por ramp
+
+    // Spawn de enemigos por oleada
+    public static final int   SPAWN_BASE_COUNT         = 12;    // mínimo enemigos oleada 1
+    public static final int   SPAWN_PER_LEVEL          = 3;     // +X por nivel del jugador
+    public static final int   SPAWN_RANDOM_EXTRA       = 5;     // variación aleatoria ±
+    public static final int   SPAWN_ELITE_WAVE_START   = 4;     // oleada en que empiezan elites
+
+    // Tirador — auto-disparo basado en rango (sin slot de arma)
+    public static final float SHOOTER_AUTO_RANGE  = 600f;
+    public static final int   SHOOTER_AUTO_DAMAGE = 18;
 
     // Boss Final — Devastador del Caos (S8-01)
-    public static final int   DEVASTADOR_HP               = 2000;
+    public static final int   DEVASTADOR_HP               = 2200;
     public static final float DEVASTADOR_SPEED_P1         = 60f;
     public static final float DEVASTADOR_SPEED_P2         = 100f;
     public static final int   DEVASTADOR_CONTACT_DMG      = 25;

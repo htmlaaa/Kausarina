@@ -4,12 +4,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.milwar.kaosuarina.data.DataManager;
 import java.util.Arrays;
 
 public class PoolEnemigos {
     private final Array<Enemy> enemigos;
     private static final int POOL_SIZE = 150;
     private final int[] killsByType = new int[Enemy.Tipo.values().length];
+    private int currentDepth = 1;
 
     public PoolEnemigos() {
         enemigos = new Array<>(POOL_SIZE);
@@ -18,10 +20,15 @@ public class PoolEnemigos {
         }
     }
 
+    public void setCurrentDepth(int depth) {
+        this.currentDepth = depth;
+    }
+
     public void spawn(float x, float y, Enemy.Tipo tipo) {
         for (Enemy e : enemigos) {
             if (!e.active) {
                 e.activate(x, y, tipo);
+                e.applyDepthScaling(DataManager.getInstance().getDepthScaling(currentDepth));
                 return;
             }
         }
@@ -36,11 +43,11 @@ public class PoolEnemigos {
 
     private Enemy.Tipo tipoAleatorio() {
         float r = MathUtils.random(100f);
-        if (r < 40f) return Enemy.Tipo.BASICO;
-        if (r < 60f) return Enemy.Tipo.RAPIDO;
-        if (r < 70f) return Enemy.Tipo.TANQUE;
-        if (r < 80f) return Enemy.Tipo.SHOOTER;
-        if (r < 92f) return Enemy.Tipo.MALDITO;
+        if (r < 35f) return Enemy.Tipo.BASICO;
+        if (r < 62f) return Enemy.Tipo.RAPIDO;   // 27% kamikazes
+        if (r < 72f) return Enemy.Tipo.TANQUE;
+        if (r < 83f) return Enemy.Tipo.SHOOTER;
+        if (r < 93f) return Enemy.Tipo.MALDITO;
         return Enemy.Tipo.ESPECTRAL;
     }
 

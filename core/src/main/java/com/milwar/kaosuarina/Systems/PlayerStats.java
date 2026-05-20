@@ -76,6 +76,10 @@ public class PlayerStats {
     // ── Robo de vida (Sprint 3 — hook para Sprint 4 armas/reliquias) ──────────
     // 0.0 = deshabilitado; 0.1 = roba 10% del daño causado como HP
     public float lifeStealPercent = 0f;
+    // Multiplicador del radio de explosión mágica (upgrade Resonancia)
+    public float blastRadiusMult  = 1f;
+    // HP regenerado por segundo (amuleto Tótem de Regen)
+    public float hpRegenPerSec = 0f;
 
     // ── Amuletos recogidos en la run (S6-03) ─────────────────────────────────
     public boolean hasSedDeSangre   = false;

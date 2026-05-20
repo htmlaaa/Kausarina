@@ -2,6 +2,7 @@ package com.milwar.kaosuarina.utils;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.milwar.kaosuarina.data.DataManager;
 import com.milwar.kaosuarina.systems.UpgradeManager;
 import com.milwar.kaosuarina.entities.*;
 import com.milwar.kaosuarina.weapons.Inscription;
@@ -31,6 +32,7 @@ public class ColisionManager {
                     if (estabaVivo && !enemy.active) {
                         muertes++;
                         poolEnemigos.registrarKill(enemy.tipo);
+                        enemy.pendingLootDrop = true;
                         int overkillAmt = dmg - enemy.lastHpSnapshot;
                         if (overkillAmt > 0) {
                             player.getStats().addMana(overkillAmt / Constants.OVERKILL_DIVISOR);
@@ -133,6 +135,7 @@ public class ColisionManager {
                 if (wasAlive && !e.active) {
                     kills++;
                     pool.registrarKill(e.tipo);
+                    e.pendingLootDrop = true;
                     ParticlePool.spawnDeath(e.position.x, e.position.y, e.tipo);
                     int ok = dmgDealt - e.lastHpSnapshot;
                     if (ok > 0) player.getStats().addMana(ok / Constants.OVERKILL_DIVISOR);
@@ -161,6 +164,7 @@ public class ColisionManager {
                 if (wasAlive && !e.active) {
                     kills++;
                     pool.registrarKill(e.tipo);
+                    e.pendingLootDrop = true;
                     ParticlePool.spawnDeath(e.position.x, e.position.y, e.tipo);
                     int ok = dmgDealt - e.lastHpSnapshot;
                     if (ok > 0) player.getStats().addMana(ok / Constants.OVERKILL_DIVISOR);
@@ -196,6 +200,7 @@ public class ColisionManager {
                 if (wasAlive && !e.active) {
                     kills++;
                     pool.registrarKill(e.tipo);
+                    e.pendingLootDrop = true;
                 }
                 // Sin encadenamiento: MALDITO muerto aquí no dispara otra explosión esta pasada
             }
@@ -210,12 +215,23 @@ public class ColisionManager {
         if (!enemy.active) return;
         switch (tipo) {
             case FUEGO:
+                int fireDmg = MathUtils.random(Constants.STATUS_FIRE_DMG_MIN, Constants.STATUS_FIRE_DMG_MAX);
                 enemy.statusEffect.apply(StatusEffect.Tipo.BURN,
-                    Constants.STATUS_BURN_DURATION, Constants.STATUS_BURN_DAMAGE);
+                    Constants.STATUS_FIRE_DURATION, fireDmg);
                 break;
             case VENENO:
                 enemy.statusEffect.apply(StatusEffect.Tipo.POISON,
                     Constants.STATUS_POISON_DURATION, Constants.STATUS_POISON_DAMAGE);
+                break;
+            case CAOS_PRIMORDIAL:
+                enemy.statusEffect.apply(StatusEffect.Tipo.BURN,
+                    Constants.STATUS_BURN_DURATION * 1.5f, Constants.STATUS_BURN_DAMAGE + 4);
+                boolean slowImmune = enemy.enemyId != null &&
+                    DataManager.getInstance().isImmune(enemy.enemyId, "EFF_SLOW");
+                if (!slowImmune) {
+                    enemy.slowTimer = Constants.CAOS_PRIMORDIAL_SLOW_DURATION;
+                    enemy.slowMult  = Constants.CAOS_PRIMORDIAL_SLOW_MULT;
+                }
                 break;
             default:
                 break;
@@ -261,6 +277,9 @@ public class ColisionManager {
      * ignoresDefense=true (InscripcionDeVacio) bypasses all reduction.
      */
     private static int calcularDaño(int raw, DamageType tipo, Enemy enemy, boolean ignoresDefense) {
+        // FUEGO: 1.15x amplificador de daño base antes de reduciones
+        if (tipo == DamageType.FUEGO) raw = Math.round(raw * Constants.STATUS_FUEGO_DMG_MULT);
+
         if (enemy.tipo == Enemy.Tipo.ESPECTRAL) {
             if (tipo == DamageType.FISICO && !ignoresDefense) return 0;
             if (tipo == DamageType.FUEGO) return Math.round(raw * 1.5f);
@@ -269,6 +288,10 @@ public class ColisionManager {
             return Math.max(1, Math.round(raw * 1.5f - enemy.resistenciaMagica));
         }
         if (ignoresDefense) return Math.max(1, raw);
+
+        // CAOS_PRIMORDIAL: daño verdadero — sin reducciones ni resistencias JSON
+        if (tipo == DamageType.CAOS_PRIMORDIAL) return Math.max(1, raw);
+
         float reduccion;
         switch (tipo) {
             case FISICO:
@@ -278,7 +301,6 @@ public class ColisionManager {
                 reduccion = enemy.resistenciaMagica;
                 break;
             case CAOS:
-            case CAOS_PRIMORDIAL:
                 reduccion = enemy.defensa * 0.5f + enemy.resistenciaMagica * 0.5f;
                 break;
             case A_DISTANCIA:
@@ -288,7 +310,31 @@ public class ColisionManager {
                 reduccion = 0f;
                 break;
         }
-        return Math.max(1, Math.round(raw - reduccion));
+        int damage = Math.max(1, Math.round(raw - reduccion));
+
+        // S10-02: capa de resistencias JSON (porcentaje adicional, negativo = vulnerabilidad)
+        if (enemy.enemyId != null) {
+            String dmgId = dmgToId(tipo);
+            if (dmgId != null) {
+                int resistPct = DataManager.getInstance().getResistPct(enemy.enemyId, dmgId);
+                if (resistPct != 0) {
+                    damage = Math.max(1, Math.round(damage * (1f - resistPct / 100f)));
+                }
+            }
+        }
+        return damage;
+    }
+
+    private static String dmgToId(DamageType tipo) {
+        switch (tipo) {
+            case FISICO:      return "DMG_PHYSICAL";
+            case MAGICO:      return "DMG_MAGIC";
+            case A_DISTANCIA: return "DMG_RANGED";
+            case FUEGO:       return "DMG_FIRE";
+            case VENENO:      return "DMG_POISON";
+            case CAOS:        return "DMG_CHAOS";
+            default:          return null;
+        }
     }
 
     private static boolean colisionan(Vector2 p1, float r1, Vector2 p2, float r2) {

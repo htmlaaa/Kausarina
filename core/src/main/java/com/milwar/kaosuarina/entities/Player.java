@@ -16,9 +16,10 @@ import com.milwar.kaosuarina.utils.DamageType;
 import com.milwar.kaosuarina.utils.SharedTextures;
 import com.milwar.kaosuarina.utils.SpriteSheets;
 import com.milwar.kaosuarina.weapons.Weapon;
+import com.milwar.kaosuarina.weapons.WeaponType;
 
 public class Player {
-    private static final float INVULNERABILITY_TIME = 1f;
+    private final float invulnerabilityTime;
     private final Role role;
     private final PlayerStats stats;
     private final Reliquia reliquia;
@@ -54,6 +55,9 @@ public class Player {
     // Cicatriz de Combate (S6-04): maná al expirar el i-frame (solo Caballero)
     private int lastDamageReceived = 0;
 
+    // Shooter auto-fire (sin slot de arma, basado en rango)
+    private float shooterCooldown = 0f;
+
     // Veneno de contacto (aplicado por MALDITO)
     private float poisonTimer = 0f;
     private float poisonTickTimer = 0f;
@@ -63,6 +67,7 @@ public class Player {
 
     // ── Weapon slots (S5-02, ADR-006) ────────────────────────────────────────
     private final Weapon[] equippedWeapons = new Weapon[Constants.WEAPON_SLOTS];
+    private final Weapon[] storageWeapons  = new Weapon[4];
 
     private UpgradeManager upgradeManager;
 
@@ -76,18 +81,15 @@ public class Player {
         stats.resMagBase  = stats.resistenciaMagica;
         stats.manaMaxBase = stats.maxMana;
         switch (role.tipo) {
-            case CABALLERO:
-                roleAccent = new Color(0f, 0.898f, 0.8f, 1f);
-                break;
-            case MAGO:
-                roleAccent = new Color(0.608f, 0.188f, 1f, 1f);
-                break;
-            case SHOOTER:
-                roleAccent = new Color(1f, 0.722f, 0f, 1f);
-                break;
-            default:
-                roleAccent = Color.WHITE.cpy();
-                break;
+            case CABALLERO: roleAccent = new Color(0f, 0.898f, 0.8f, 1f); break;
+            case MAGO:      roleAccent = new Color(0.608f, 0.188f, 1f, 1f); break;
+            case SHOOTER:   roleAccent = new Color(1f, 0.722f, 0f, 1f); break;
+            default:        roleAccent = Color.WHITE.cpy(); break;
+        }
+        switch (role.tipo) {
+            case CABALLERO: invulnerabilityTime = Constants.INVULNERABILITY_CABALLERO; break;
+            case SHOOTER:   invulnerabilityTime = Constants.INVULNERABILITY_SHOOTER;   break;
+            default:        invulnerabilityTime = Constants.INVULNERABILITY_MAGO;      break;
         }
         position = new Vector2(x, y);
         velocity = new Vector2();
@@ -179,7 +181,7 @@ public class Player {
 
         currentHealth -= actualDamage;
         lastDamageReceived = actualDamage;
-        invulnerabilityTimer = INVULNERABILITY_TIME;
+        invulnerabilityTimer = invulnerabilityTime;
 
         if (currentHealth <= 0) {
             currentHealth = 0;
@@ -246,9 +248,11 @@ public class Player {
                     Constants.MELEE_HEAVY_RADIUS, stats.meleeHeavyDamage, DamageType.FISICO, poolEnemigos);
                 break;
             case MAGO:
-                if (stats.consumirMana(stats.magicHeavyManaCost))
-                    kills = ColisionManager.comprobarBlast(this, position, Constants.MAGIC_BLAST_RADIUS,
+                if (stats.consumirMana(stats.magicHeavyManaCost)) {
+                    float blastR = Constants.MAGIC_BLAST_RADIUS * stats.blastRadiusMult;
+                    kills = ColisionManager.comprobarBlast(this, position, blastR,
                         stats.magicHeavyDamage, DamageType.MAGICO, poolEnemigos);
+                }
                 break;
             default:
                 break;
@@ -268,6 +272,42 @@ public class Player {
         poolBalas.spawn(position.x, position.y,
             MathUtils.cos(shootAngle), MathUtils.sin(shootAngle),
             dmg, 0, 0, DamageType.MAGICO);
+    }
+
+    /**
+     * Shooter auto-fire: autoaim al enemigo más cercano dentro de SHOOTER_AUTO_RANGE.
+     * Si el ratón se ha movido recientemente (mouseActive=true), apunta al cursor en su lugar.
+     */
+    public void updateShooterAutoFire(float delta, PoolBalas poolBalas, PoolEnemigos poolEnemigos,
+                                       float mouseAngle, boolean mouseActive) {
+        shooterCooldown -= delta;
+        if (shooterCooldown > 0) return;
+
+        float angle;
+        if (mouseActive) {
+            angle = mouseAngle;
+        } else {
+            Enemy nearest = ColisionManager.nearestEnemy(poolEnemigos, position, Constants.SHOOTER_AUTO_RANGE);
+            if (nearest == null) return;
+            angle = MathUtils.atan2(nearest.position.y - position.y, nearest.position.x - position.x);
+        }
+
+        float mult   = (upgradeManager != null) ? upgradeManager.getMultiplicadorDanio() : 1f;
+        int   dmg    = Math.max(1, Math.round(Constants.SHOOTER_AUTO_DAMAGE * mult));
+        int   pierce = (upgradeManager != null) ? upgradeManager.getNivelPerforation() : 0;
+        int   extra  = (upgradeManager != null) ? upgradeManager.getBalasExtra() : 0;
+        int   total  = 2 + extra;
+        float spread = 6f * MathUtils.degreesToRadians;
+
+        for (int b = 0; b < total; b++) {
+            float t = (total > 1) ? (b / (float)(total - 1) - 0.5f) * 2f : 0f;
+            float a = angle + t * spread;
+            poolBalas.spawnReturning(position.x, position.y,
+                MathUtils.cos(a), MathUtils.sin(a),
+                dmg, pierce, 0, DamageType.A_DISTANCIA, 900f, stats.rango, WeaponType.PISTOLAS_GEMELAS);
+        }
+        shooterCooldown = stats.baseShootCooldown;
+        activarVisualAtaque(angle, false);
     }
 
     private void activarVisualAtaque(float aimAngle, boolean heavy) {
@@ -463,6 +503,36 @@ public class Player {
     /** Returns the weapon in the given slot, or null if empty. */
     public Weapon getWeaponAtSlot(int slot) {
         return equippedWeapons[slot];
+    }
+
+    /** Stores a weapon in the first free storage slot. Returns true if stored. */
+    public boolean storeWeapon(Weapon w) {
+        for (int i = 0; i < storageWeapons.length; i++) {
+            if (storageWeapons[i] == null) { storageWeapons[i] = w; return true; }
+        }
+        return false;
+    }
+
+    public boolean isStorageFull() {
+        for (Weapon w : storageWeapons) if (w == null) return false;
+        return true;
+    }
+
+    public Weapon getStorageWeapon(int slot) { return storageWeapons[slot]; }
+
+    /** Swaps an active slot (0-1) with a storage slot (0-3). */
+    public void swapActiveWithStorage(int activeSlot, int storageSlot) {
+        Weapon tmp = equippedWeapons[activeSlot];
+        equippedWeapons[activeSlot] = storageWeapons[storageSlot];
+        storageWeapons[storageSlot] = tmp;
+        recalcStats();
+    }
+
+    /** Swaps two storage slots. */
+    public void swapStorageSlots(int a, int b) {
+        Weapon tmp = storageWeapons[a];
+        storageWeapons[a] = storageWeapons[b];
+        storageWeapons[b] = tmp;
     }
 
     /**

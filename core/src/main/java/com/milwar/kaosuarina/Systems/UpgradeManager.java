@@ -1,6 +1,7 @@
 package com.milwar.kaosuarina.systems;
 
 import com.badlogic.gdx.utils.Array;
+import com.milwar.kaosuarina.roles.Role;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,33 +12,73 @@ public class UpgradeManager {
     private final Array<Upgrade> todosLosUpgrades;
     private final Array<Upgrade> upgradesActivos;
     private final List<Upgrade>  upgradesAplicados = new ArrayList<>();
-    private final Random random;
+    private final Random         random;
+    private Role.Tipo            currentRole = null;
 
     public UpgradeManager() {
         todosLosUpgrades = new Array<>();
-        upgradesActivos = new Array<>();
-        random = new Random();
+        upgradesActivos  = new Array<>();
+        random           = new Random();
         inicializarUpgrades();
     }
 
+    public void setRole(Role.Tipo role) {
+        this.currentRole = role;
+    }
+
     private void inicializarUpgrades() {
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.DANIO_UP, "Daño +40%", "Aumenta el daño de tus balas", 5));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CADENCIA_UP, "Cadencia +15%", "Disparas más rápido", 5));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VELOCIDAD_UP, "Velocidad +10%", "Te mueves más rápido", 5));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VIDA_MAXIMA_UP, "Vida Máxima +20", "Aumenta tu vida máxima", 3));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.PERFORACION, "Perforación", "Balas atraviesan enemigos", 3));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.BALA_EXTRA, "Bala Extra", "Dispara 1 bala adicional", 3));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.FILO_IGNEO, "Filo Ígneo", "Ataques aplican Quemadura", 1));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CUCHILLA_VENENO, "Cuchilla Venenosa", "Ataques aplican Veneno", 1));
-        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VAMPIRISMO, "Vampirismo", "Roba 15% del daño como HP", 1));
+        // ── Genéricos (todos los roles) ───────────────────────────────────────
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.DANIO_UP,
+            "Daño +40%", "Aumenta el daño de todos tus ataques un 40%.", 5));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CADENCIA_UP,
+            "Cadencia +15%", "Dispararás un 15% más rápido.", 5));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VELOCIDAD_UP,
+            "Velocidad +10%", "Te mueves un 10% más rápido.", 5));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VIDA_MAXIMA_UP,
+            "Vida Máx +20", "Aumenta tu vida máxima en 20 puntos.", 3));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.FILO_IGNEO,
+            "Filo Ígneo", "Tus ataques aplican Quemadura al enemigo.", 1));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CUCHILLA_VENENO,
+            "Cuchilla Venenosa", "Tus ataques aplican Veneno al enemigo.", 1));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.VAMPIRISMO,
+            "Vampirismo", "Roba el 3% del daño causado como vida.", 1));
+
+        // ── Tirador ───────────────────────────────────────────────────────────
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.PERFORACION,
+            "Perforación", "Las balas atraviesan enemigos adicionales.",
+            3, Role.Tipo.SHOOTER));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.BALA_EXTRA,
+            "Bala Extra", "Dispara 1 bala adicional por ráfaga.",
+            3, Role.Tipo.SHOOTER));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.RECARGA_RAPIDA,
+            "Recarga Veloz", "Reduce el cooldown de disparo un 15%.",
+            4, Role.Tipo.SHOOTER));
+
+        // ── Caballero ─────────────────────────────────────────────────────────
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.GOLPE_PESADO,
+            "Golpe Letal", "Ataques cuerpo a cuerpo infligen un 30% más de daño.",
+            4, Role.Tipo.CABALLERO));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.DEFENSA,
+            "Armadura Reforzada", "Aumenta tu defensa física en 8 puntos.",
+            4, Role.Tipo.CABALLERO));
+
+        // ── Mago ──────────────────────────────────────────────────────────────
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.MANA_MAXIMO_UP,
+            "Pozo Arcano", "Aumenta tu maná máximo en 30 puntos.",
+            4, Role.Tipo.MAGO));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.RESONANCIA,
+            "Resonancia Amplificada", "El radio de la explosión mágica crece un 40%.",
+            3, Role.Tipo.MAGO));
+        todosLosUpgrades.add(new Upgrade(Upgrade.Tipo.CADENCIA_MAGICA,
+            "Foco Arcano", "Lanza el bolt mágico un 20% más rápido.",
+            4, Role.Tipo.MAGO));
     }
 
     public Array<Upgrade> getUpgradesAleatorios(int cantidad) {
         Array<Upgrade> disponibles = new Array<>();
         for (Upgrade u : todosLosUpgrades) {
-            if (u.puedeMejorar()) disponibles.add(u);
+            if (u.puedeMejorar() && u.isAvailableFor(currentRole)) disponibles.add(u);
         }
-
         if (disponibles.size <= cantidad) return disponibles;
 
         Array<Upgrade> seleccionados = new Array<>();
@@ -50,14 +91,9 @@ public class UpgradeManager {
         return seleccionados;
     }
 
-    /**
-     * Returns HP bonus to apply to the player (20 for VIDA_MAXIMA_UP, 0 otherwise).
-     */
     public int aplicarUpgrade(Upgrade upgrade) {
         upgrade.mejorar();
-        if (!upgradesActivos.contains(upgrade, true)) {
-            upgradesActivos.add(upgrade);
-        }
+        if (!upgradesActivos.contains(upgrade, true)) upgradesActivos.add(upgrade);
         upgradesAplicados.add(upgrade);
         return upgrade.tipo == Upgrade.Tipo.VIDA_MAXIMA_UP ? 20 : 0;
     }
@@ -92,9 +128,6 @@ public class UpgradeManager {
         return extra;
     }
 
-    /**
-     * Nivel de perforación actual (0 = sin perforación)
-     */
     public int getNivelPerforation() {
         for (Upgrade u : upgradesActivos)
             if (u.tipo == Upgrade.Tipo.PERFORACION) return u.nivel;
@@ -109,9 +142,8 @@ public class UpgradeManager {
 
     public com.milwar.kaosuarina.utils.DamageType getElementalOnHit() {
         for (Upgrade u : upgradesActivos) {
-            if (u.tipo == Upgrade.Tipo.FILO_IGNEO && u.nivel > 0) return com.milwar.kaosuarina.utils.DamageType.FUEGO;
-            if (u.tipo == Upgrade.Tipo.CUCHILLA_VENENO && u.nivel > 0)
-                return com.milwar.kaosuarina.utils.DamageType.VENENO;
+            if (u.tipo == Upgrade.Tipo.FILO_IGNEO    && u.nivel > 0) return com.milwar.kaosuarina.utils.DamageType.FUEGO;
+            if (u.tipo == Upgrade.Tipo.CUCHILLA_VENENO && u.nivel > 0) return com.milwar.kaosuarina.utils.DamageType.VENENO;
         }
         return null;
     }
@@ -123,11 +155,6 @@ public class UpgradeManager {
         return 0f;
     }
 
-    public Array<Upgrade> getUpgradesActivos() {
-        return upgradesActivos;
-    }
-
-    public List<Upgrade> getUpgradesAplicados() {
-        return Collections.unmodifiableList(upgradesAplicados);
-    }
+    public Array<Upgrade>  getUpgradesActivos()  { return upgradesActivos; }
+    public List<Upgrade>   getUpgradesAplicados() { return Collections.unmodifiableList(upgradesAplicados); }
 }

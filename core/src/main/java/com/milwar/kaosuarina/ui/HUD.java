@@ -2,19 +2,50 @@ package com.milwar.kaosuarina.ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class HUD implements Disposable {
-    private final BitmapFont font;
-    private final BitmapFont timerFont;
+
+    // ── WeaponCard DTO — filled by GameScreen, rendered here ───────────────────
+    public static class WeaponCard {
+        public final String  name;          // pre-formatted ("Espada Verdugo")
+        public final String  tierId;        // "T1"-"T5" or null
+        public final String  dmgType;       // DamageType.name() e.g. "FISICO"
+        public final int     damage;        // baseDamage value
+        public final String  inscription;   // inscription name or null
+        public final boolean matchesRole;   // affinity matches player's role
+        public final String  affinityLabel; // "Caballero", "Mago", "Shooter", "Neutro"
+
+        public WeaponCard(String name, String tierId, String dmgType, int damage,
+                          String inscription, boolean matchesRole, String affinityLabel) {
+            this.name          = name;
+            this.tierId        = tierId;
+            this.dmgType       = dmgType;
+            this.damage        = damage;
+            this.inscription   = inscription;
+            this.matchesRole   = matchesRole;
+            this.affinityLabel = affinityLabel;
+        }
+    }
+
     private final ShapeRenderer shapeRenderer;
     private final OrthographicCamera hudCamera;
-
+    private final FitViewport hudViewport;
+    private final int screenWidth;
+    private final int screenHeight;
+    // Slots 0-1 = activos (armas equipadas), 2-5 = almacenamiento
+    private final String[]  slotName        = {"-","-","-","-","-","-"};
+    private final boolean[] slotIsSkill     = new boolean[6];
+    private final float[]   slotCdFraction  = new float[6];
+    private final boolean[] slotManaLocked  = new boolean[6];
+    private final String[]  slotInscription = new String[6];
+    private final String[]  slotTierId      = new String[6];
     private int currentHealth;
     private int maxHealth;
     private float currentMana;
@@ -25,56 +56,28 @@ public class HUD implements Disposable {
     private int level;
     private float experience;
     private float expToNextLevel;
-    private final int screenWidth;
-    private final int screenHeight;
+    private int waveNumber;
+    private String relicLabel = "";
+    private int relicStacks = 0;
 
-    // Weapon slot display state (updated each frame from GameScreen)
-    private final String[]  slotName        = {"-", "-"};
-    private final boolean[] slotIsSkill     = new boolean[2];
-    private final float[]   slotCdFraction  = new float[2];
-    private final boolean[] slotManaLocked  = new boolean[2];
-    // S6-07 — inscription name per slot (null = no inscription)
-    private final String[]  slotInscription = {null, null};
-    // S6-07 — core status display (ARM X / CMB X)
-    private String coreDisplayText = "";
-    // S6-05 — boss health bar (bossType: 0=guardian, 1=arquero, 2=devastador)
-    private int     bossCurrentHealth = 0;
-    private int     bossMaxHealth     = 0;
-    private int     bossType          = 0;
-    // S6-03 — amuleto flags
-    private boolean hudHasSedDeSangre   = false;
+    private int bossCurrentHealth = 0;
+    private int bossMaxHealth = 0;
+    private int bossType = 0;
+
+    private boolean hudHasSedDeSangre = false;
     private boolean hudHasGuardianArena = false;
+
+    private String chestPickupPrompt = null;
 
     public HUD(int screenWidth, int screenHeight) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
 
-        // Fuente normal para stats (mejorada)
-        font = new BitmapFont();
-        font.getData().setScale(2.5f); // Más grande
-        font.setColor(Color.WHITE);
-        font.setUseIntegerPositions(false); // Suavizado
-        font.getRegion().getTexture().setFilter(
-            Texture.TextureFilter.Linear,
-            Texture.TextureFilter.Linear
-        );
-
-        // Fuente gigante para timer
-        timerFont = new BitmapFont();
-        timerFont.getData().setScale(2f); // Muy grande
-        timerFont.setColor(Color.WHITE);
-        timerFont.setUseIntegerPositions(false);
-        timerFont.getRegion().getTexture().setFilter(
-            Texture.TextureFilter.Linear,
-            Texture.TextureFilter.Linear
-        );
-
         shapeRenderer = new ShapeRenderer();
-
         hudCamera = new OrthographicCamera();
         hudCamera.setToOrtho(false, screenWidth, screenHeight);
+        hudViewport = new FitViewport(screenWidth, screenHeight, hudCamera);
 
-        // Valores iniciales
         currentHealth = 100;
         maxHealth = 100;
         currentMana = 0f;
@@ -84,6 +87,11 @@ public class HUD implements Disposable {
         level = 1;
         experience = 0;
         expToNextLevel = 100;
+        waveNumber = 0;
+    }
+
+    public void resize(int w, int h) {
+        hudViewport.update(w, h, true);
     }
 
     public void update(float delta) {
@@ -91,177 +99,172 @@ public class HUD implements Disposable {
         if (manaFeedbackTimer > 0) manaFeedbackTimer -= delta;
     }
 
+    public void setChestPickupPrompt(String weaponName) {
+        chestPickupPrompt = weaponName;
+    }
+
+    public void clearChestPickupPrompt() {
+        chestPickupPrompt = null;
+    }
+
+    public void setRelicDisplay(String label, int stacks) {
+        relicLabel = label != null ? label : "";
+        relicStacks = stacks;
+    }
+
     public void render(SpriteBatch batch) {
+        hudViewport.apply();
         hudCamera.update();
         batch.setProjectionMatrix(hudCamera.combined);
         shapeRenderer.setProjectionMatrix(hudCamera.combined);
 
-        // Renderizar barras primero
         renderHealthBar();
         if (maxMana > 0) renderManaBar();
         renderExperienceBar();
         renderWeaponSlots();
         if (bossMaxHealth > 0) renderBossBar();
 
+        BitmapFont fLarge = FontManager.get().large;
+        BitmapFont fMedium = FontManager.get().medium;
+        BitmapFont fSmall = FontManager.get().small;
+
         batch.begin();
 
-        // HP (arriba izquierda)
-        font.draw(batch, "HP", 25, screenHeight - 15);
+        // ── Zona top-left: HP / MP / Lv ────────────────────────────────────
+        float barLabelX = 20f;
+        float barStartX = 68f;
+        float hpBarY = screenHeight - 28f;
+        float mpBarY = screenHeight - 52f;
+        float lvY = screenHeight - 72f;
 
-        // Score (arriba derecha)
-        String scoreText = "Score: " + score;
-        font.draw(batch, scoreText, screenWidth - 250, screenHeight - 15);
+        // HP
+        fSmall.setColor(Color.WHITE);
+        fSmall.draw(batch, "HP", barLabelX, hpBarY + 14f);
+        fSmall.draw(batch, currentHealth + " / " + maxHealth, barStartX + 4, hpBarY + 14f);
 
-        // Nivel (arriba izquierda, debajo de HP)
-        font.draw(batch, "Lvl " + level, 25, screenHeight - 55);
+        // MP
+        if (maxMana > 0) {
+            Color mpColor = manaFeedbackTimer > 0 ? new Color(1f, 0.4f, 0.4f, 1f) : new Color(0.6f, 0.9f, 1f, 1f);
+            fSmall.setColor(mpColor);
+            fSmall.draw(batch, "MP", barLabelX, mpBarY + 14f);
+            fSmall.draw(batch, (int) currentMana + " / " + (int) maxMana, barStartX + 4, mpBarY + 14f);
+        }
 
-        // Timer (CENTRO SUPERIOR, grande y sin texto)
-        String timeText = String.format("%02d:%02d",
-            (int) (survivalTime / 60),
-            (int) (survivalTime % 60));
+        // Lv
+        fSmall.setColor(new Color(0.75f, 0.75f, 0.75f, 1f));
+        fSmall.draw(batch, "Lv " + level, barLabelX, lvY);
 
-        // Centrar manualmente
-        float timerX = (screenWidth / 2f) - 60; // Ajuste manual para centrar
-        timerFont.draw(batch, timeText, timerX, screenHeight - 20);
+        // Relic indicator (slot pequeño debajo de MP)
+        if (!relicLabel.isEmpty()) {
+            fSmall.setColor(new Color(0.85f, 0.7f, 1f, 1f));
+            String relicText = relicStacks > 0 ? relicLabel + " x" + relicStacks : relicLabel;
+            fSmall.draw(batch, relicText, barLabelX, lvY - 18f);
+            fSmall.setColor(Color.WHITE);
+        }
 
-        // Weapon slot labels + key hints + inscription
-        float slotSize = 48f;
-        float slotGap  = 10f;
-        float slotsStartX = (screenWidth - (2 * slotSize + slotGap)) / 2f;
-        font.getData().setScale(1.1f);
-        for (int i = 0; i < 2; i++) {
-            if (!slotName[i].equals("-")) {
-                float sx = slotsStartX + i * (slotSize + slotGap);
-                String abbrev = slotName[i].length() > 3 ? slotName[i].substring(0, 3) : slotName[i];
-                font.draw(batch, abbrev, sx + 3, 60f + 28f);
+        // ── Score (top-right) ─────────────────────────────────────────────
+        fMedium.setColor(Color.WHITE);
+        fMedium.draw(batch, "Score: " + score, screenWidth - 235, screenHeight - 12);
+
+        // ── Timer (top-center) ────────────────────────────────────────────
+        String timeText = String.format("%02d:%02d", (int) (survivalTime / 60), (int) (survivalTime % 60));
+        fLarge.setColor(Color.WHITE);
+        fLarge.draw(batch, timeText, screenWidth / 2f - 36, screenHeight - 12);
+
+        // ── Left panel slot labels ────────────────────────────────────────
+        float labelX = LSLOT_X + LSLOT_SIZE + 6f;
+        for (int i = 0; i < 6; i++) {
+            if (slotName[i].equals("-")) continue;
+            float sy = lslotY(i);
+            String display = formatWeaponName(slotName[i]);
+            fSmall.setColor(tierColor(slotTierId[i]));
+            fSmall.draw(batch, display, labelX, sy + LSLOT_SIZE - 2f);
+            if (i < 2) {
+                // Skill hint
                 if (slotIsSkill[i]) {
-                    font.draw(batch, i == 0 ? "[Q]" : "[E]", sx + 3, 60f + 12f);
+                    fSmall.setColor(0.7f, 0.7f, 0.7f, 1f);
+                    fSmall.draw(batch, i == 0 ? "[Q]" : "[E]", labelX, sy + 16f);
                 }
+                // Inscription
                 if (slotInscription[i] != null) {
-                    font.setColor(0.5f, 0.8f, 1f, 1f);
-                    font.draw(batch, slotInscription[i], sx + 3, 60f - 6f);
-                    font.setColor(Color.WHITE);
+                    fSmall.setColor(0.5f, 0.8f, 1f, 1f);
+                    fSmall.draw(batch, slotInscription[i], labelX, sy + 2f);
                 }
             }
+            fSmall.setColor(Color.WHITE);
         }
-        font.getData().setScale(2.5f);
+        // TAB hint
+        fSmall.setColor(0.45f, 0.45f, 0.45f, 1f);
+        fSmall.draw(batch, "[TAB]", LSLOT_X, lslotY(5) + LSLOT_SIZE + 16f);
+        fSmall.setColor(Color.WHITE);
 
-        // Core display (S6-07): ARM X / CMB X
-        if (!coreDisplayText.isEmpty()) {
-            font.getData().setScale(1.3f);
-            font.setColor(1f, 0.9f, 0.2f, 1f);
-            font.draw(batch, coreDisplayText, 25, 115);
-            font.setColor(Color.WHITE);
-            font.getData().setScale(2.5f);
-        }
-
-        // Amuleto icons (S6-03)
-        if (hudHasSedDeSangre || hudHasGuardianArena) {
-            font.getData().setScale(0.9f);
-            font.setColor(0.8f, 0.3f, 1f, 1f);
-            int iconX = 25;
-            if (hudHasSedDeSangre)   { font.draw(batch, "SDS", iconX, 90); iconX += 55; }
-            if (hudHasGuardianArena) { font.draw(batch, "GDA", iconX, 90); }
-            font.setColor(Color.WHITE);
-            font.getData().setScale(2.5f);
+        // ── Chest pickup prompt ───────────────────────────────────────────
+        if (chestPickupPrompt != null) {
+            fMedium.setColor(new Color(1f, 0.9f, 0.4f, 1f));
+            fMedium.draw(batch, "[F]  Recoger: " + formatWeaponName(chestPickupPrompt),
+                screenWidth / 2f - 140, screenHeight / 2f - 60);
+            fMedium.setColor(Color.WHITE);
         }
 
         batch.end();
     }
 
-    // Barra de VIDA (arriba izquierda)
+    // ── Bar renderers ─────────────────────────────────────────────────────────
+
     private void renderHealthBar() {
-        float barWidth = 200f;
-        float barHeight = 20f;
-        float barX = 100f;
-        float barY = screenHeight - 40f;
+        float barWidth = 200f, barHeight = 18f;
+        float barX = 68f, barY = screenHeight - 30f;
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        // Fondo oscuro con transparencia
-        shapeRenderer.setColor(0.15f, 0.15f, 0.15f, 0.85f);
+        shapeRenderer.setColor(0.12f, 0.12f, 0.12f, 0.88f);
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
-
-        // Vida actual (gradiente)
-        float healthPercent = (float) currentHealth / maxHealth;
-
-        Color barColor;
-        if (healthPercent > 0.6f) {
-            barColor = new Color(0.2f, 0.9f, 0.3f, 1f); // Verde brillante
-        } else if (healthPercent > 0.3f) {
-            barColor = new Color(0.95f, 0.85f, 0.2f, 1f); // Amarillo
-        } else {
-            barColor = new Color(0.95f, 0.2f, 0.2f, 1f); // Rojo brillante
-        }
-
-        shapeRenderer.setColor(barColor);
-        shapeRenderer.rect(barX + 3, barY + 3, (barWidth - 6) * healthPercent, barHeight - 6);
-
+        float pct = maxHealth > 0 ? (float) currentHealth / maxHealth : 0f;
+        Color c = pct > 0.6f ? new Color(0.2f, 0.9f, 0.3f, 1f)
+            : pct > 0.3f ? new Color(0.95f, 0.85f, 0.2f, 1f)
+              : new Color(0.95f, 0.2f, 0.2f, 1f);
+        shapeRenderer.setColor(c);
+        shapeRenderer.rect(barX + 2, barY + 2, (barWidth - 4) * pct, barHeight - 4);
         shapeRenderer.end();
 
-        // Borde brillante
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        Gdx.gl.glLineWidth(3);
-        shapeRenderer.setColor(0.9f, 0.9f, 0.9f, 1f);
+        Gdx.gl.glLineWidth(2);
+        shapeRenderer.setColor(0.7f, 0.7f, 0.7f, 1f);
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
         shapeRenderer.end();
         Gdx.gl.glLineWidth(1);
     }
 
-    // Barra de MANA (debajo de HP) — width escalado según maxMana
     private void renderManaBar() {
-        float barWidth = Math.min(200f, 50f + maxMana);
-        float barHeight = 20f;
-        float barX = 100f;
-        float barY = screenHeight - 80f;
+        float barWidth = Math.min(200f, 50f + maxMana), barHeight = 18f;
+        float barX = 68f, barY = screenHeight - 54f;
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        // Fondo oscuro
-        shapeRenderer.setColor(0.15f, 0.15f, 0.15f, 0.85f);
+        shapeRenderer.setColor(0.12f, 0.12f, 0.12f, 0.88f);
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
-
-        // Mana actual — azul cian normal, rojo cuando hay feedback de maná insuficiente
-        float manaPercent = currentMana / maxMana;
-        if (manaFeedbackTimer > 0) {
-            shapeRenderer.setColor(0.95f, 0.15f, 0.15f, 1f);
-        } else {
-            shapeRenderer.setColor(0.2f, 0.6f, 1f, 1f);
-        }
-        shapeRenderer.rect(barX + 3, barY + 3, (barWidth - 6) * manaPercent, barHeight - 6);
-
+        float pct = maxMana > 0 ? currentMana / maxMana : 0f;
+        shapeRenderer.setColor(manaFeedbackTimer > 0 ? new Color(0.95f, 0.15f, 0.15f, 1f) : new Color(0.2f, 0.6f, 1f, 1f));
+        shapeRenderer.rect(barX + 2, barY + 2, (barWidth - 4) * pct, barHeight - 4);
         shapeRenderer.end();
 
-        // Borde
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        Gdx.gl.glLineWidth(3);
-        shapeRenderer.setColor(0.9f, 0.9f, 0.9f, 1f);
+        Gdx.gl.glLineWidth(2);
+        shapeRenderer.setColor(0.7f, 0.7f, 0.7f, 1f);
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
         shapeRenderer.end();
         Gdx.gl.glLineWidth(1);
     }
 
-    // Barra de EXPERIENCIA (centro inferior, MUY fina)
     private void renderExperienceBar() {
-        float barWidth = 700f;  // Muy ancha
-        float barHeight = 10f;  // Muy fina
-        float barX = (screenWidth - barWidth) / 2;
-        float barY = 35f;
+        float barWidth = 700f, barHeight = 10f;
+        float barX = (screenWidth - barWidth) / 2f, barY = 35f;
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        // Fondo oscuro sutil
         shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 0.7f);
         shapeRenderer.rect(barX, barY, barWidth, barHeight);
-
-        // Experiencia actual (dorado brillante)
-        float expPercent = experience / expToNextLevel;
         shapeRenderer.setColor(1f, 0.9f, 0.3f, 1f);
-        shapeRenderer.rect(barX + 2, barY + 2, (barWidth - 4) * expPercent, barHeight - 4);
-
+        shapeRenderer.rect(barX + 2, barY + 2, (barWidth - 4) * (experience / expToNextLevel), barHeight - 4);
         shapeRenderer.end();
 
-        // Borde sutil
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         Gdx.gl.glLineWidth(2);
         shapeRenderer.setColor(0.7f, 0.7f, 0.7f, 0.9f);
@@ -270,37 +273,167 @@ public class HUD implements Disposable {
         Gdx.gl.glLineWidth(1);
     }
 
-    // Métodos públicos
+    // ── Left-panel slot layout constants ─────────────────────────────────────
+    private static final float LSLOT_X    = 10f;
+    private static final float LSLOT_SIZE = 46f;
+    private static final float LSLOT_GAP  = 8f;
+    private static final float LSLOT_SEP  = 14f; // extra gap between active/storage groups
+    // active slots at bottom (y=66, y=120); storage above (y=200..344)
+    private static float lslotY(int i) {
+        if (i == 0) return 66f;
+        if (i == 1) return 66f + LSLOT_SIZE + LSLOT_GAP;
+        return 66f + 2 * (LSLOT_SIZE + LSLOT_GAP) + LSLOT_SEP + (i - 2) * (LSLOT_SIZE + LSLOT_GAP);
+    }
+
+    private void renderWeaponSlots() {
+        for (int i = 0; i < 6; i++) {
+            float x  = LSLOT_X;
+            float y  = lslotY(i);
+            float cx = x + LSLOT_SIZE / 2f;
+            float cy = y + LSLOT_SIZE / 2f;
+            boolean active  = i < 2;
+            boolean manaLk  = active && slotManaLocked[i];
+
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(active ? 0.20f : 0.12f, active ? 0.20f : 0.12f, active ? 0.20f : 0.12f, 1f);
+            shapeRenderer.rect(x, y, LSLOT_SIZE, LSLOT_SIZE);
+            if (active && slotCdFraction[i] > 0.01f) {
+                shapeRenderer.setColor(0.04f, 0.04f, 0.04f, 1f);
+                float sweep = slotCdFraction[i] * 360f;
+                shapeRenderer.arc(cx, cy, LSLOT_SIZE / 2f - 2f, 90f - sweep, sweep);
+            }
+            shapeRenderer.end();
+
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            Gdx.gl.glLineWidth(active ? 2 : 1);
+            if (manaLk)        shapeRenderer.setColor(0.9f, 0.15f, 0.15f, 1f);
+            else if (active)   shapeRenderer.setColor(0.75f, 0.75f, 0.75f, 1f);
+            else               shapeRenderer.setColor(0.38f, 0.38f, 0.38f, 1f);
+            shapeRenderer.rect(x, y, LSLOT_SIZE, LSLOT_SIZE);
+            shapeRenderer.end();
+            Gdx.gl.glLineWidth(1);
+        }
+        // Separator line between active/storage groups
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.35f, 0.35f, 0.35f, 1f);
+        float sepY = 66f + 2 * (LSLOT_SIZE + LSLOT_GAP) + 3f;
+        shapeRenderer.rect(LSLOT_X, sepY, LSLOT_SIZE, 2f);
+        shapeRenderer.end();
+    }
+
+    private void renderBossBar() {
+        float bw = 400f, bh = 22f;
+        float bx = (screenWidth - bw) / 2f, by = screenHeight - 50f;
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.1f, 0.05f, 0.1f, 0.9f);
+        shapeRenderer.rect(bx, by, bw, bh);
+        float pct = bossMaxHealth > 0 ? (float) bossCurrentHealth / bossMaxHealth : 0f;
+        if (bossType == 1) shapeRenderer.setColor(0.2f, 0.5f, 1f, 1f);
+        else if (bossType == 2) shapeRenderer.setColor(0.75f, 0.05f, 0.1f, 1f);
+        else shapeRenderer.setColor(1f, 0.45f, 0.05f, 1f);
+        shapeRenderer.rect(bx + 2, by + 2, (bw - 4) * pct, bh - 4);
+        shapeRenderer.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glLineWidth(2);
+        if (bossType == 1) shapeRenderer.setColor(0.5f, 0.7f, 1f, 1f);
+        else if (bossType == 2) shapeRenderer.setColor(1f, 0.2f, 0.15f, 1f);
+        else shapeRenderer.setColor(1f, 0.7f, 0.3f, 1f);
+        shapeRenderer.rect(bx, by, bw, bh);
+        shapeRenderer.end();
+        Gdx.gl.glLineWidth(1);
+    }
+
+    // ── Panel helper ──────────────────────────────────────────────────────────
+
+    private void renderPanel(float x, float y, float w, float h) {
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.05f, 0.05f, 0.14f, 0.93f);
+        shapeRenderer.rect(x, y, w, h);
+        shapeRenderer.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glLineWidth(2);
+        shapeRenderer.setColor(0.55f, 0.55f, 0.75f, 1f);
+        shapeRenderer.rect(x, y, w, h);
+        shapeRenderer.end();
+        Gdx.gl.glLineWidth(1);
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    public static String formatWeaponName(String raw) {
+        if (raw == null) return "";
+        // ESPADA_VERDUGO → Espada Verdugo
+        String[] parts = raw.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String p : parts) {
+            if (p.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(p.charAt(0)));
+            if (p.length() > 1) sb.append(p.substring(1).toLowerCase());
+        }
+        return sb.toString();
+    }
+
+    // ── Tier color ────────────────────────────────────────────────────────────
+
+    private Color tierColor(String tierId) {
+        if (tierId == null) return Color.WHITE;
+        switch (tierId) {
+            case "T2":
+                return Color.GREEN;
+            case "T3":
+                return Color.CYAN;
+            case "T4":
+                return new Color(0.7f, 0.3f, 1f, 1f);
+            case "T5":
+                return Color.GOLD;
+            default:
+                return Color.WHITE;
+        }
+    }
+
+    // ── Public setters ────────────────────────────────────────────────────────
+
     public void setHealth(int current, int max) {
-        this.currentHealth = current;
-        this.maxHealth = max;
+        currentHealth = current;
+        maxHealth = max;
     }
 
     public void setMana(float current, float max) {
-        this.currentMana = current;
-        this.maxMana = max;
+        currentMana = current;
+        maxMana = max;
     }
 
-    /** Triggers a 0.2s red blink on the mana bar to signal insufficient mana. */
     public void showManaInsuficienteFeedback() {
         manaFeedbackTimer = 0.2f;
     }
 
     public void addScore(int points) {
-        this.score += points;
+        score += points;
     }
 
-    public void setLevel(int level) {
-        this.level = level;
+    public void setWave(int wave) {
+        waveNumber = wave;
+    }
+
+    public void setCoreDisplay(String text) { /* deprecated — use setRelicDisplay */ }
+
+    public void setAmuletFlags(boolean sds, boolean gda) {
+        hudHasSedDeSangre = sds;
+        hudHasGuardianArena = gda;
     }
 
     public void addExperience(float exp) {
-        this.experience += exp;
-
-        while (this.experience >= expToNextLevel) {
-            this.experience -= expToNextLevel;
-            this.level++;
-            this.expToNextLevel *= 1.2f;
+        experience += exp;
+        while (experience >= expToNextLevel) {
+            experience -= expToNextLevel;
+            level++;
+            expToNextLevel *= 1.2f;
         }
     }
 
@@ -316,29 +449,34 @@ public class HUD implements Disposable {
         return level;
     }
 
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
     public void setWeaponSlot(int i, String name, boolean isSkill, float cdFraction, boolean manaLocked) {
-        setWeaponSlot(i, name, isSkill, cdFraction, manaLocked, null);
+        setWeaponSlot(i, name, isSkill, cdFraction, manaLocked, null, null);
     }
 
-    public void setWeaponSlot(int i, String name, boolean isSkill, float cdFraction, boolean manaLocked, String inscriptionName) {
-        if (i < 0 || i >= 2) return;
-        slotName[i]        = name;
-        slotIsSkill[i]     = isSkill;
-        slotCdFraction[i]  = cdFraction;
-        slotManaLocked[i]  = manaLocked;
-        slotInscription[i] = inscriptionName;
+    public void setWeaponSlot(int i, String name, boolean isSkill, float cdFraction, boolean manaLocked, String inscription) {
+        setWeaponSlot(i, name, isSkill, cdFraction, manaLocked, inscription, null);
     }
 
-    public void setCoreDisplay(String text) {
-        coreDisplayText = text != null ? text : "";
+    public void setWeaponSlot(int i, String name, boolean isSkill, float cdFraction, boolean manaLocked, String inscription, String tierId) {
+        if (i < 0 || i >= 6) return;
+        slotName[i] = name != null ? name : "-";
+        slotIsSkill[i] = isSkill;
+        slotCdFraction[i] = cdFraction;
+        slotManaLocked[i] = manaLocked;
+        slotInscription[i] = inscription;
+        slotTierId[i] = tierId;
     }
 
     public void setBossHealth(int current, int max) {
         setBossHealth(current, max, 0);
     }
 
-    public void setBossHealth(int current, int max, boolean isArquero) {
-        setBossHealth(current, max, isArquero ? 1 : 0);
+    public void setBossHealth(int current, int max, boolean isArq) {
+        setBossHealth(current, max, isArq ? 1 : 0);
     }
 
     public void setBossHealth(int current, int max, int type) {
@@ -353,160 +491,65 @@ public class HUD implements Disposable {
         bossType = 0;
     }
 
-    public void setAmuletFlags(boolean sedDeSangre, boolean guardianArena) {
-        hudHasSedDeSangre   = sedDeSangre;
-        hudHasGuardianArena = guardianArena;
-    }
-
-    private void renderWeaponSlots() {
-        float slotSize   = 48f;
-        float slotGap    = 10f;
-        float startX     = (screenWidth - (2 * slotSize + slotGap)) / 2f;
-        float slotY      = 60f;
-
-        for (int i = 0; i < 2; i++) {
-            float x  = startX + i * (slotSize + slotGap);
-            float cx = x + slotSize / 2f;
-            float cy = slotY + slotSize / 2f;
-
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-            // Slot background
-            shapeRenderer.setColor(0.22f, 0.22f, 0.22f, 1f);
-            shapeRenderer.rect(x, slotY, slotSize, slotSize);
-
-            // Cooldown arc — dark sector sweeping clockwise from top
-            if (slotCdFraction[i] > 0.01f) {
-                shapeRenderer.setColor(0.04f, 0.04f, 0.04f, 1f);
-                float sweep = slotCdFraction[i] * 360f;
-                shapeRenderer.arc(cx, cy, slotSize / 2f - 2f, 90f - sweep, sweep);
-            }
-
-            shapeRenderer.end();
-
-            // Border — red if mana locked, grey otherwise
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            Gdx.gl.glLineWidth(2);
-            shapeRenderer.setColor(slotManaLocked[i] ? 0.9f : 0.65f,
-                                   slotManaLocked[i] ? 0.15f : 0.65f,
-                                   slotManaLocked[i] ? 0.15f : 0.65f, 1f);
-            shapeRenderer.rect(x, slotY, slotSize, slotSize);
-            shapeRenderer.end();
-            Gdx.gl.glLineWidth(1);
-        }
-    }
-
-    private void renderBossBar() {
-        float barWidth = 400f;
-        float barHeight = 22f;
-        float barX = (screenWidth - barWidth) / 2f;
-        float barY = screenHeight - 50f;
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0.1f, 0.05f, 0.1f, 0.9f);
-        shapeRenderer.rect(barX, barY, barWidth, barHeight);
-        float pct = bossMaxHealth > 0 ? (float) bossCurrentHealth / bossMaxHealth : 0f;
-        if (bossType == 1) {
-            shapeRenderer.setColor(0.2f, 0.5f, 1f, 1f);       // azul Arquero
-        } else if (bossType == 2) {
-            shapeRenderer.setColor(0.75f, 0.05f, 0.1f, 1f);   // rojo oscuro Devastador
-        } else {
-            shapeRenderer.setColor(1f, 0.45f, 0.05f, 1f);     // naranja Guardián
-        }
-        shapeRenderer.rect(barX + 3, barY + 3, (barWidth - 6) * pct, barHeight - 6);
-        shapeRenderer.end();
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        Gdx.gl.glLineWidth(2);
-        if (bossType == 1) {
-            shapeRenderer.setColor(0.5f, 0.7f, 1f, 1f);       // azul claro
-        } else if (bossType == 2) {
-            shapeRenderer.setColor(1f, 0.2f, 0.15f, 1f);      // rojo brillante
-        } else {
-            shapeRenderer.setColor(1f, 0.7f, 0.3f, 1f);       // dorado
-        }
-        shapeRenderer.rect(barX, barY, barWidth, barHeight);
-        shapeRenderer.end();
-        Gdx.gl.glLineWidth(1);
-    }
+    // ── Overlay renderers ─────────────────────────────────────────────────────
 
     public void renderVictoria(SpriteBatch batch, String[] leaderboardLines) {
+        hudViewport.apply();
         hudCamera.update();
         batch.setProjectionMatrix(hudCamera.combined);
         batch.begin();
-
-        float cx = screenWidth / 2f;
-        float cy = screenHeight / 2f;
-
-        timerFont.getData().setScale(5f);
-        timerFont.setColor(1f, 0.85f, 0.2f, 1f);
-        timerFont.draw(batch, "VICTORIA!", cx - 210, cy + 160);
-        timerFont.getData().setScale(2f);
-        timerFont.setColor(Color.WHITE);
-
-        font.getData().setScale(1.9f);
-        font.setColor(Color.WHITE);
-        font.draw(batch, "Score: " + score,                              cx - 150, cy + 80);
-        font.draw(batch, String.format("Tiempo: %02d:%02d",
-            (int)(survivalTime / 60), (int)(survivalTime % 60)),        cx - 150, cy + 45);
-        font.draw(batch, "Nivel alcanzado: " + level,                   cx - 150, cy + 10);
-
-        font.getData().setScale(1.4f);
-        font.setColor(0.7f, 0.85f, 1f, 1f);
-        font.draw(batch, buildArmasText(),                               cx - 150, cy - 18);
-
-        renderLeaderboardLines(batch, leaderboardLines, cx, cy - 48);
-
-        font.getData().setScale(1.6f);
-        font.setColor(0.4f, 0.95f, 0.4f, 1f);
-        font.draw(batch, "[R]  Jugar de nuevo",                         cx - 150, cy - 210);
-        font.setColor(0.65f, 0.65f, 0.65f, 1f);
-        font.draw(batch, "[ESC]  Menu principal",                       cx - 150, cy - 250);
-
-        font.getData().setScale(2.5f);
-        font.setColor(Color.WHITE);
+        float cx = screenWidth / 2f, cy = screenHeight / 2f;
+        BitmapFont fT = FontManager.get().title;
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fS = FontManager.get().small;
+        fT.setColor(1f, 0.85f, 0.2f, 1f);
+        fT.draw(batch, "VICTORIA!", cx - 230, cy + 200);
+        fL.setColor(Color.WHITE);
+        fL.draw(batch, "Score: " + score, cx - 160, cy + 100);
+        fL.draw(batch, String.format("Tiempo: %02d:%02d", (int) (survivalTime / 60), (int) (survivalTime % 60)), cx - 160, cy + 62);
+        fL.draw(batch, "Nivel: " + level, cx - 160, cy + 24);
+        fL.setColor(new Color(0.7f, 0.85f, 1f, 1f));
+        fL.draw(batch, buildArmasText(), cx - 160, cy - 14);
+        renderLeaderboardLines(batch, leaderboardLines, cx, cy - 54, fS);
+        fL.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
+        fL.draw(batch, "[R]  Jugar de nuevo", cx - 160, cy - 230);
+        fL.setColor(new Color(0.65f, 0.65f, 0.65f, 1f));
+        fL.draw(batch, "[ESC]  Menu principal", cx - 160, cy - 268);
+        fL.setColor(Color.WHITE);
+        fT.setColor(Color.WHITE);
         batch.end();
     }
 
     public void renderGameOver(SpriteBatch batch, String[] leaderboardLines) {
+        hudViewport.apply();
         hudCamera.update();
         batch.setProjectionMatrix(hudCamera.combined);
         batch.begin();
-
-        float cx = screenWidth / 2f;
-        float cy = screenHeight / 2f;
-
-        timerFont.getData().setScale(5f);
-        timerFont.setColor(0.9f, 0.1f, 0.1f, 1f);
-        timerFont.draw(batch, "GAME OVER", cx - 235, cy + 160);
-        timerFont.getData().setScale(2f);
-        timerFont.setColor(Color.WHITE);
-
-        font.getData().setScale(1.9f);
-        font.setColor(Color.WHITE);
-        font.draw(batch, "Score: " + score,                             cx - 150, cy + 80);
-        font.draw(batch, String.format("Tiempo: %02d:%02d",
-            (int)(survivalTime / 60), (int)(survivalTime % 60)),       cx - 150, cy + 45);
-        font.draw(batch, "Nivel alcanzado: " + level,                  cx - 150, cy + 10);
-
-        font.getData().setScale(1.4f);
-        font.setColor(0.7f, 0.85f, 1f, 1f);
-        font.draw(batch, buildArmasText(),                              cx - 150, cy - 18);
-
-        renderLeaderboardLines(batch, leaderboardLines, cx, cy - 48);
-
-        font.getData().setScale(1.6f);
-        font.setColor(0.4f, 0.95f, 0.4f, 1f);
-        font.draw(batch, "[R]  Jugar de nuevo",                        cx - 150, cy - 210);
-        font.setColor(0.65f, 0.65f, 0.65f, 1f);
-        font.draw(batch, "[ESC]  Menu principal",                      cx - 150, cy - 250);
-
-        font.getData().setScale(2.5f);
-        font.setColor(Color.WHITE);
+        float cx = screenWidth / 2f, cy = screenHeight / 2f;
+        BitmapFont fT = FontManager.get().title;
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fS = FontManager.get().small;
+        fT.setColor(0.9f, 0.1f, 0.1f, 1f);
+        fT.draw(batch, "GAME OVER", cx - 255, cy + 200);
+        fL.setColor(Color.WHITE);
+        fL.draw(batch, "Score: " + score, cx - 160, cy + 100);
+        fL.draw(batch, String.format("Tiempo: %02d:%02d", (int) (survivalTime / 60), (int) (survivalTime % 60)), cx - 160, cy + 62);
+        fL.draw(batch, "Nivel: " + level, cx - 160, cy + 24);
+        fL.setColor(new Color(0.7f, 0.85f, 1f, 1f));
+        fL.draw(batch, buildArmasText(), cx - 160, cy - 14);
+        renderLeaderboardLines(batch, leaderboardLines, cx, cy - 54, fS);
+        fL.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
+        fL.draw(batch, "[R]  Jugar de nuevo", cx - 160, cy - 230);
+        fL.setColor(new Color(0.65f, 0.65f, 0.65f, 1f));
+        fL.draw(batch, "[ESC]  Menu principal", cx - 160, cy - 268);
+        fL.setColor(Color.WHITE);
+        fT.setColor(Color.WHITE);
         batch.end();
     }
 
-    public String getArmasText() { return buildArmasText(); }
+    public String getArmasText() {
+        return buildArmasText();
+    }
 
     private String buildArmasText() {
         StringBuilder sb = new StringBuilder("Armas: ");
@@ -523,50 +566,342 @@ public class HUD implements Disposable {
         return sb.toString();
     }
 
-    private void renderLeaderboardLines(SpriteBatch batch, String[] lines, float cx, float topY) {
+    private void renderLeaderboardLines(SpriteBatch batch, String[] lines, float cx, float topY, BitmapFont f) {
         if (lines == null || lines.length == 0) return;
-        font.getData().setScale(1.3f);
-        font.setColor(1f, 0.85f, 0.2f, 1f);
-        font.draw(batch, "TOP SCORES", cx - 80, topY);
-        font.setColor(0.82f, 0.82f, 0.82f, 1f);
-        for (int i = 0; i < lines.length; i++) {
-            font.draw(batch, lines[i], cx - 170, topY - 28 - i * 26);
-        }
-        font.getData().setScale(2.5f);
-        font.setColor(Color.WHITE);
+        f.setColor(new Color(1f, 0.85f, 0.2f, 1f));
+        f.draw(batch, "TOP SCORES", cx - 70, topY);
+        f.setColor(new Color(0.82f, 0.82f, 0.82f, 1f));
+        for (int i = 0; i < lines.length; i++) f.draw(batch, lines[i], cx - 170, topY - 20 - i * 20);
+        f.setColor(Color.WHITE);
     }
 
     public void renderScrollMenu(SpriteBatch batch, boolean slot0HasWeapon, boolean slot1HasWeapon,
                                  String inscriptionName, float timer) {
+        hudViewport.apply();
         hudCamera.update();
         batch.setProjectionMatrix(hudCamera.combined);
+        shapeRenderer.setProjectionMatrix(hudCamera.combined);
+
+        float pw = 440f, ph = 190f, px = (screenWidth - pw) / 2f, py = screenHeight / 2f - 40f;
+        renderPanel(px, py, pw, ph);
+
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fM = FontManager.get().medium;
         batch.begin();
-        float cx = screenWidth / 2f - 190;
-        float cy = screenHeight / 2f + 100;
-        font.draw(batch, "INSCRIPCION: " + inscriptionName, cx, cy);
-        if (slot0HasWeapon) font.draw(batch, "[1] Aplicar slot 1", cx, cy - 45);
-        if (slot1HasWeapon) font.draw(batch, "[2] Aplicar slot 2", cx, cy - 90);
-        font.draw(batch, "[X] Descartar  " + String.format("%.0f", Math.max(0f, timer)) + "s", cx, cy - 135);
+        float tx = px + 18f, ty = py + ph - 16f;
+        fM.setColor(new Color(0.7f, 0.9f, 1f, 1f));
+        fM.draw(batch, "INSCRIPCION:  " + inscriptionName, tx, ty);
+        fL.setColor(Color.WHITE);
+        if (slot0HasWeapon) fL.draw(batch, "[1]  Aplicar a slot 1", tx, ty - 44);
+        if (slot1HasWeapon) fL.draw(batch, "[2]  Aplicar a slot 2", tx, ty - 88);
+        fL.setColor(new Color(0.65f, 0.65f, 0.65f, 1f));
+        fL.draw(batch, "[X]  Descartar     " + String.format("%.0fs", Math.max(0f, timer)), tx, ty - 140);
+        fL.setColor(Color.WHITE);
         batch.end();
     }
 
     public void renderSwapMenu(SpriteBatch batch, String slot0Name, String slot1Name, String pendingName, float timer) {
+        hudViewport.apply();
         hudCamera.update();
         batch.setProjectionMatrix(hudCamera.combined);
+        shapeRenderer.setProjectionMatrix(hudCamera.combined);
+
+        float pw = 480f, ph = 210f, px = (screenWidth - pw) / 2f, py = screenHeight / 2f - 55f;
+        renderPanel(px, py, pw, ph);
+
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fM = FontManager.get().medium;
         batch.begin();
-        float cx = screenWidth / 2f - 160;
-        float cy = screenHeight / 2f + 60;
-        font.draw(batch, "NUEVA ARMA: " + pendingName,      cx, cy);
-        font.draw(batch, "[1] Sustituir: " + slot0Name,     cx, cy - 45);
-        font.draw(batch, "[2] Sustituir: " + slot1Name,     cx, cy - 90);
-        font.draw(batch, "[X] Descartar  " + String.format("%.0f", Math.max(0f, timer)) + "s", cx, cy - 135);
+        float tx = px + 18f, ty = py + ph - 16f;
+        fM.setColor(new Color(1f, 0.9f, 0.4f, 1f));
+        fM.draw(batch, "NUEVA ARMA:  " + pendingName, tx, ty);
+        fL.setColor(Color.WHITE);
+        fL.draw(batch, "[1]  Reemplazar:  " + slot0Name, tx, ty - 46);
+        fL.draw(batch, "[2]  Reemplazar:  " + slot1Name, tx, ty - 92);
+        fL.setColor(new Color(0.65f, 0.65f, 0.65f, 1f));
+        fL.draw(batch, "[X]  Descartar     " + String.format("%.0fs", Math.max(0f, timer)), tx, ty - 150);
+        fL.setColor(Color.WHITE);
+        batch.end();
+    }
+
+    // ── Nightreign-style weapon swap menu ─────────────────────────────────────
+
+    public void renderSwapMenuCards(SpriteBatch batch, WeaponCard newW,
+                                    WeaponCard slot0, WeaponCard slot1, float timer) {
+        hudViewport.apply();
+        hudCamera.update();
+        batch.setProjectionMatrix(hudCamera.combined);
+        shapeRenderer.setProjectionMatrix(hudCamera.combined);
+
+        float pw = 730f, ph = 310f;
+        float px = (screenWidth - pw) / 2f, py = screenHeight / 2f - ph / 2f;
+        renderPanel(px, py, pw, ph);
+
+        float divX = px + pw * 0.51f;
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.35f, 0.35f, 0.55f, 0.7f);
+        shapeRenderer.rect(divX, py + 36f, 2f, ph - 52f);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        BitmapFont fM = FontManager.get().medium;
+        BitmapFont fS = FontManager.get().small;
+
+        batch.begin();
+
+        float lx = px + 18f;
+        float ty = py + ph - 20f;
+
+        // ── Left: new weapon ─────────────────────────────────────────────────
+        fM.setColor(new Color(1f, 0.85f, 0.3f, 1f));
+        fM.draw(batch, "NUEVA ARMA", lx, ty);
+
+        if (newW != null) {
+            fM.setColor(tierColor(newW.tierId));
+            fM.draw(batch, newW.name, lx, ty - 32f);
+
+            fS.setColor(tierColor(newW.tierId));
+            fS.draw(batch, newW.tierId != null ? newW.tierId : "T1", lx, ty - 56f);
+
+            fS.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+            fS.draw(batch, dmgTypeLabel(newW.dmgType) + "   " + newW.damage + " dmg", lx, ty - 74f);
+
+            if (newW.matchesRole) {
+                fS.setColor(new Color(0.3f, 1f, 0.3f, 1f));
+                fS.draw(batch, "+" + newW.affinityLabel + "  +15% dmg", lx, ty - 92f);
+            } else {
+                fS.setColor(new Color(0.5f, 0.5f, 0.5f, 1f));
+                fS.draw(batch, newW.affinityLabel, lx, ty - 92f);
+            }
+
+            if (newW.inscription != null) {
+                fS.setColor(new Color(0.5f, 0.85f, 1f, 1f));
+                fS.draw(batch, "Inscr: " + newW.inscription, lx, ty - 110f);
+            } else {
+                fS.setColor(new Color(0.38f, 0.38f, 0.38f, 1f));
+                fS.draw(batch, "Sin inscripción", lx, ty - 110f);
+            }
+        }
+        fS.setColor(Color.WHITE);
+        fM.setColor(Color.WHITE);
+
+        // ── Right: slot mini-cards ───────────────────────────────────────────
+        float rx    = divX + 14f;
+        float cardW = (px + pw - rx - 14f) / 2f - 6f;
+        drawMiniCard(batch, slot0, rx,           ty, "[1]", fM, fS);
+        drawMiniCard(batch, slot1, rx + cardW + 12f, ty, "[2]", fM, fS);
+
+        // ── Footer ───────────────────────────────────────────────────────────
+        fS.setColor(new Color(0.5f, 0.5f, 0.5f, 1f));
+        fS.draw(batch, "[X]  Descartar     " + String.format("%.0fs", Math.max(0f, timer)), lx, py + 18f);
+        fS.setColor(Color.WHITE);
+
+        batch.end();
+    }
+
+    private void drawMiniCard(SpriteBatch batch, WeaponCard card, float x, float ty,
+                               String key, BitmapFont fM, BitmapFont fS) {
+        fS.setColor(new Color(0.7f, 0.85f, 1f, 1f));
+        fS.draw(batch, key + "  Reemplazar:", x, ty);
+
+        if (card == null) {
+            fS.setColor(new Color(0.35f, 0.35f, 0.35f, 1f));
+            fS.draw(batch, "VACÍO", x, ty - 22f);
+        } else {
+            fS.setColor(tierColor(card.tierId));
+            fS.draw(batch, card.name, x, ty - 22f);
+            fS.setColor(new Color(0.62f, 0.62f, 0.62f, 1f));
+            String info = (card.tierId != null ? card.tierId : "—") + "  " + dmgTypeLabel(card.dmgType);
+            fS.draw(batch, info, x, ty - 40f);
+            if (card.matchesRole) {
+                fS.setColor(new Color(0.3f, 1f, 0.3f, 1f));
+                fS.draw(batch, "+" + card.affinityLabel, x, ty - 58f);
+            } else {
+                fS.setColor(new Color(0.45f, 0.45f, 0.45f, 1f));
+                fS.draw(batch, card.affinityLabel, x, ty - 58f);
+            }
+            if (card.inscription != null) {
+                fS.setColor(new Color(0.5f, 0.85f, 1f, 1f));
+                fS.draw(batch, card.inscription, x, ty - 76f);
+            }
+        }
+        fS.setColor(Color.WHITE);
+    }
+
+    private static String dmgTypeLabel(String name) {
+        if (name == null) return "Físico";
+        switch (name) {
+            case "FISICO":          return "Físico";
+            case "MAGICO":          return "Mágico";
+            case "A_DISTANCIA":     return "A Dist.";
+            case "FUEGO":           return "Fuego";
+            case "VENENO":          return "Veneno";
+            case "CAOS":            return "Caos";
+            case "CAOS_PRIMORDIAL": return "Primordial";
+            default:                return name;
+        }
+    }
+
+    // ── Pause menu ────────────────────────────────────────────────────────────
+
+    public void renderPauseMenu(SpriteBatch batch) {
+        hudViewport.apply();
+        hudCamera.update();
+        batch.setProjectionMatrix(hudCamera.combined);
+        shapeRenderer.setProjectionMatrix(hudCamera.combined);
+
+        float pw = 420f, ph = 250f;
+        float px = (screenWidth - pw) / 2f, py = (screenHeight - ph) / 2f;
+        renderPanel(px, py, pw, ph);
+
+        BitmapFont fH = FontManager.get().heading;
+        BitmapFont fL = FontManager.get().large;
+
+        batch.begin();
+        float lx = px + 28f;
+        float ty = py + ph - 24f;
+
+        fH.setColor(Color.WHITE);
+        fH.draw(batch, "PAUSA", lx, ty);
+
+        fL.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
+        fL.draw(batch, "[1]  Continuar", lx, ty - 68f);
+
+        fL.setColor(new Color(0.9f, 0.4f, 0.4f, 1f));
+        fL.draw(batch, "[2]  Salir al menú principal", lx, ty - 114f);
+
+        fL.setColor(new Color(0.55f, 0.55f, 0.55f, 1f));
+        fL.draw(batch, "[ESC]  Continuar", lx, ty - 162f);
+
+        fL.setColor(Color.WHITE);
+        fH.setColor(Color.WHITE);
+        batch.end();
+    }
+
+    // ── 6-slot inventory overlay ──────────────────────────────────────────────
+
+    /** Card rect for inventory slot i: {x, y, w, h} in HUD coordinates. */
+    private static float[] inventoryCardRect(int slot) {
+        float cardW = 290f, cardH = 108f, colGap = 20f, rowGap = 14f;
+        float panelX = (1280f - 2 * cardW - colGap) / 2f;
+        float panelTopY = 160f + 3 * cardH + 2 * rowGap; // top of topmost card
+        int col = slot % 2;
+        int row = slot / 2;
+        float x = panelX + col * (cardW + colGap);
+        float y = panelTopY - row * (cardH + rowGap) - cardH;
+        return new float[]{x, y, cardW, cardH};
+    }
+
+    public int getInventoryHoveredSlot(int screenX, int screenY) {
+        com.badlogic.gdx.math.Vector3 v = new com.badlogic.gdx.math.Vector3(screenX, screenY, 0);
+        hudViewport.unproject(v);
+        float hx = v.x, hy = v.y;
+        for (int i = 0; i < 6; i++) {
+            float[] r = inventoryCardRect(i);
+            if (hx >= r[0] && hx <= r[0] + r[2] && hy >= r[1] && hy <= r[1] + r[3]) return i;
+        }
+        return -1;
+    }
+
+    public void renderInventoryOverlay(SpriteBatch batch, int hoveredSlot, int selectedSlot) {
+        hudViewport.apply();
+        hudCamera.update();
+        batch.setProjectionMatrix(hudCamera.combined);
+        shapeRenderer.setProjectionMatrix(hudCamera.combined);
+
+        // Dark overlay
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.72f);
+        shapeRenderer.rect(0, 0, screenWidth, screenHeight);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        BitmapFont fM = FontManager.get().medium;
+        BitmapFont fS = FontManager.get().small;
+        BitmapFont fH = FontManager.get().heading;
+
+        // Title
+        batch.begin();
+        fH.setColor(Color.WHITE);
+        fH.draw(batch, "INVENTARIO  [TAB]  Cerrar", 340f, 575f);
+        fH.setColor(Color.WHITE);
+        batch.end();
+
+        for (int i = 0; i < 6; i++) {
+            float[] r = inventoryCardRect(i);
+            boolean active   = i < 2;
+            boolean hovered  = i == hoveredSlot;
+            boolean selected = i == selectedSlot;
+            boolean empty    = slotName[i].equals("-");
+
+            // Card background
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            if      (selected) shapeRenderer.setColor(0.35f, 0.25f, 0.02f, 1f);
+            else if (hovered)  shapeRenderer.setColor(0.22f, 0.22f, 0.32f, 1f);
+            else if (active)   shapeRenderer.setColor(0.18f, 0.18f, 0.26f, 1f);
+            else               shapeRenderer.setColor(0.10f, 0.10f, 0.14f, 1f);
+            shapeRenderer.rect(r[0], r[1], r[2], r[3]);
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            Gdx.gl.glLineWidth(selected ? 3 : hovered ? 2 : 1);
+            if      (selected) shapeRenderer.setColor(Color.GOLD);
+            else if (hovered)  shapeRenderer.setColor(Color.WHITE);
+            else if (active)   shapeRenderer.setColor(0.6f, 0.6f, 0.8f, 1f);
+            else               shapeRenderer.setColor(0.35f, 0.35f, 0.35f, 1f);
+            shapeRenderer.rect(r[0], r[1], r[2], r[3]);
+            shapeRenderer.end();
+            Gdx.gl.glLineWidth(1);
+
+            batch.begin();
+            float tx = r[0] + 10f;
+            float ty = r[1] + r[3] - 10f;
+
+            // Slot type badge
+            fS.setColor(active ? new Color(0.85f, 0.85f, 0.55f, 1f) : new Color(0.5f, 0.5f, 0.5f, 1f));
+            String badge = active ? "ACTIVO " + (i + 1) : "GUARDADO " + (i - 1);
+            fS.draw(batch, badge, tx, ty);
+
+            if (empty) {
+                fS.setColor(0.35f, 0.35f, 0.35f, 1f);
+                fS.draw(batch, "VACÍO", tx, ty - 22f);
+            } else {
+                fM.setColor(tierColor(slotTierId[i]));
+                fM.draw(batch, formatWeaponName(slotName[i]), tx, ty - 20f);
+                fS.setColor(0.6f, 0.6f, 0.6f, 1f);
+                String tier = slotTierId[i] != null ? slotTierId[i] : "T1";
+                fS.draw(batch, tier, tx, ty - 44f);
+                if (slotInscription[i] != null) {
+                    fS.setColor(0.5f, 0.85f, 1f, 1f);
+                    fS.draw(batch, slotInscription[i], tx, ty - 62f);
+                }
+                if (i < 2 && slotIsSkill[i]) {
+                    fS.setColor(0.7f, 0.7f, 0.7f, 1f);
+                    fS.draw(batch, i == 0 ? "[Q]" : "[E]", tx, ty - 80f);
+                }
+            }
+            fS.setColor(Color.WHITE);
+            fM.setColor(Color.WHITE);
+            batch.end();
+        }
+
+        // Bottom hint
+        batch.begin();
+        fS.setColor(0.5f, 0.5f, 0.5f, 1f);
+        fS.draw(batch, "Click  Seleccionar / Intercambiar     [ESC]  Cerrar", 320f, 134f);
+        fS.setColor(Color.WHITE);
         batch.end();
     }
 
     @Override
     public void dispose() {
-        font.dispose();
-        timerFont.dispose();
         shapeRenderer.dispose();
     }
 }

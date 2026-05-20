@@ -2,6 +2,7 @@ package com.milwar.kaosuarina;
 
 import com.badlogic.gdx.Game;
 import com.milwar.kaosuarina.screens.MainMenuScreen;
+import com.milwar.kaosuarina.ui.FontManager;
 import com.milwar.kaosuarina.utils.AnimationSheets;
 import com.milwar.kaosuarina.utils.AudioManager;
 import com.milwar.kaosuarina.utils.SharedTextures;
@@ -19,6 +20,7 @@ public class KaosuarinaGame extends Game {
         WeaponPool.init();
         InscriptionPool.init();
         AudioManager.load();
+        FontManager.get();
         DataManager.getInstance();
         setScreen(new MainMenuScreen(this));
     }
@@ -31,5 +33,6 @@ public class KaosuarinaGame extends Game {
         AnimationSheets.dispose();
         WeaponPool.dispose();
         AudioManager.dispose();
+        FontManager.disposeAll();
     }
 }
