@@ -5,11 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.milwar.kaosuarina.KaosuarinaGame;
+import com.milwar.kaosuarina.ui.FontManager;
 import com.milwar.kaosuarina.utils.Constants;
 
 public class GameOverScreen implements Screen {
@@ -20,64 +21,48 @@ public class GameOverScreen implements Screen {
     };
 
     private final KaosuarinaGame game;
-    private final SpriteBatch batch;
+    private final SpriteBatch    batch;
     private final OrthographicCamera camera;
-    private final BitmapFont titleFont;
-    private final BitmapFont font;
+    private final FitViewport    viewport;
 
-    private final int score;
-    private final int tiempoSegundos;
-    private final int level;
-    private final int waveCount;
-    private final String rolNombre;
-    private final String armasText;
-    private final int[] killsPorTipo;
+    private final int      score;
+    private final int      tiempoSegundos;
+    private final int      level;
+    private final int      waveCount;
+    private final String   rolNombre;
+    private final String   armasText;
+    private final int[]    killsPorTipo;
     private final String[] leaderboard;
 
     public GameOverScreen(KaosuarinaGame game, int score, int tiempoSegundos, int level,
                           int waveCount, int personajeId, String armasText,
                           int[] killsPorTipo, String[] leaderboard) {
-        this.game = game;
-        this.score = score;
+        this.game           = game;
+        this.score          = score;
         this.tiempoSegundos = tiempoSegundos;
-        this.level = level;
-        this.waveCount = waveCount;
-        this.rolNombre = rolNombreDe(personajeId);
-        this.armasText = armasText;
-        this.killsPorTipo = killsPorTipo;
-        this.leaderboard = leaderboard;
+        this.level          = level;
+        this.waveCount      = waveCount;
+        this.rolNombre      = rolNombreDe(personajeId);
+        this.armasText      = armasText;
+        this.killsPorTipo   = killsPorTipo;
+        this.leaderboard    = leaderboard;
 
-        batch = new SpriteBatch();
-        camera = new OrthographicCamera();
+        batch    = new SpriteBatch();
+        camera   = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
-
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(5f);
-        titleFont.setUseIntegerPositions(false);
-        titleFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-
-        font = new BitmapFont();
-        font.getData().setScale(2f);
-        font.setUseIntegerPositions(false);
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
     }
 
     private static String rolNombreDe(int id) {
         switch (id) {
-            case 1:
-                return "Caballero";
-            case 2:
-                return "Mago";
-            case 3:
-                return "Tirador";
-            default:
-                return "???";
+            case 1: return "Caballero";
+            case 2: return "Mago";
+            case 3: return "Tirador";
+            default: return "???";
         }
     }
 
-    @Override
-    public void show() {
-    }
+    @Override public void show() {}
 
     @Override
     public void render(float delta) {
@@ -98,6 +83,7 @@ public class GameOverScreen implements Screen {
         }
 
         ScreenUtils.clear(0f, 0f, 0f, 1f);
+        viewport.apply(true);
         camera.update();
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
@@ -105,40 +91,39 @@ public class GameOverScreen implements Screen {
         float cx = Constants.SCREEN_WIDTH / 2f;
         float cy = Constants.SCREEN_HEIGHT / 2f;
 
-        titleFont.setColor(0.9f, 0.1f, 0.1f, 1f);
-        titleFont.draw(batch, "GAME OVER", cx - 235, cy + 270);
+        BitmapFont fT = FontManager.get().title;
+        BitmapFont fL = FontManager.get().large;
+        BitmapFont fM = FontManager.get().medium;
+        BitmapFont fS = FontManager.get().small;
 
-        font.getData().setScale(2f);
-        font.setColor(0.85f, 0.85f, 1f, 1f);
-        font.draw(batch, "Rol: " + rolNombre, cx - 160, cy + 175);
+        fT.setColor(0.9f, 0.1f, 0.1f, 1f);
+        fT.draw(batch, "GAME OVER", cx - 245, cy + 260);
 
-        font.setColor(Color.WHITE);
-        font.draw(batch, "Score: " + score, cx - 160, cy + 133);
-        font.draw(batch, String.format("Tiempo: %02d:%02d",
-            tiempoSegundos / 60, tiempoSegundos % 60), cx - 160, cy + 91);
-        font.draw(batch, "Nivel: " + level + "    Oleada: " + waveCount, cx - 160, cy + 49);
+        fM.setColor(new Color(0.85f, 0.85f, 1f, 1f));
+        fM.draw(batch, "Rol: " + rolNombre, cx - 160, cy + 170);
 
-        font.getData().setScale(1.4f);
-        font.setColor(0.85f, 0.6f, 0.3f, 1f);
-        font.draw(batch, buildKillsTotal(), cx - 160, cy + 14);
-        font.draw(batch, buildKillsDetalle(), cx - 160, cy - 10);
+        fL.setColor(Color.WHITE);
+        fL.draw(batch, "Score: " + score,                                       cx - 160, cy + 130);
+        fL.draw(batch, String.format("Tiempo: %02d:%02d",
+            tiempoSegundos / 60, tiempoSegundos % 60),                         cx - 160, cy + 92);
+        fL.draw(batch, "Nivel: " + level + "    Oleada: " + waveCount,         cx - 160, cy + 54);
 
-        font.getData().setScale(1.5f);
-        font.setColor(0.5f, 0.9f, 1f, 1f);
-        font.draw(batch, armasText, cx - 160, cy - 40);
+        fS.setColor(new Color(0.85f, 0.6f, 0.3f, 1f));
+        fS.draw(batch, buildKillsTotal(), cx - 160, cy + 24);
+        fS.draw(batch, buildKillsDetalle(), cx - 160, cy + 6);
 
-        renderLeaderboardCompact(cx, cy - 75);
+        fM.setColor(new Color(0.5f, 0.9f, 1f, 1f));
+        fM.draw(batch, armasText, cx - 160, cy - 20);
 
-        font.getData().setScale(1.8f);
-        font.setColor(0.4f, 0.95f, 0.4f, 1f);
-        font.draw(batch, "[R]    Jugar de nuevo", cx - 160, cy - 215);
-        font.setColor(1f, 0.85f, 0.2f, 1f);
-        font.draw(batch, "[L]    Ver Records completos", cx - 160, cy - 250);
-        font.setColor(0.65f, 0.65f, 0.65f, 1f);
-        font.draw(batch, "[ESC]  Menu principal", cx - 160, cy - 285);
+        renderLeaderboardCompact(cx, cy - 58, fS);
 
-        font.getData().setScale(2f);
-        font.setColor(Color.WHITE);
+        fL.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
+        fL.draw(batch, "[R]    Jugar de nuevo",       cx - 160, cy - 210);
+        fL.setColor(new Color(1f, 0.85f, 0.2f, 1f));
+        fL.draw(batch, "[L]    Ver Records completos", cx - 160, cy - 250);
+        fL.setColor(new Color(0.65f, 0.65f, 0.65f, 1f));
+        fL.draw(batch, "[ESC]  Menu principal",        cx - 160, cy - 290);
+
         batch.end();
     }
 
@@ -163,38 +148,23 @@ public class GameOverScreen implements Screen {
         return sb.toString();
     }
 
-    private void renderLeaderboardCompact(float cx, float topY) {
+    private void renderLeaderboardCompact(float cx, float topY, BitmapFont f) {
         if (leaderboard == null || leaderboard.length == 0) return;
-        font.getData().setScale(1.2f);
-        font.setColor(1f, 0.85f, 0.2f, 1f);
-        font.draw(batch, "TOP 3", cx - 40, topY);
-        font.setColor(0.75f, 0.75f, 0.75f, 1f);
+        f.setColor(new Color(1f, 0.85f, 0.2f, 1f));
+        f.draw(batch, "TOP 3", cx - 35, topY);
+        f.setColor(new Color(0.75f, 0.75f, 0.75f, 1f));
         int n = Math.min(leaderboard.length, 3);
-        for (int i = 0; i < n; i++) {
-            font.draw(batch, leaderboard[i], cx - 170, topY - 22 - i * 22);
-        }
+        for (int i = 0; i < n; i++) f.draw(batch, leaderboard[i], cx - 170, topY - 20 - i * 20);
+        f.setColor(Color.WHITE);
     }
 
-    @Override
-    public void resize(int w, int h) {
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void hide() {
-    }
+    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
 
     @Override
     public void dispose() {
         batch.dispose();
-        titleFont.dispose();
-        font.dispose();
     }
 }
