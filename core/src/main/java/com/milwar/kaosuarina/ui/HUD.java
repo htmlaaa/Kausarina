@@ -22,8 +22,11 @@ public class HUD implements Disposable {
         public final boolean matchesRole;   // affinity matches player's role
         public final String  affinityLabel; // "Caballero", "Mago", "Shooter", "Neutro"
 
+        public final String affixLabel;  // "+8 DMG  -10% CD" o null si no tiene afijos
+
         public WeaponCard(String name, String tierId, String dmgType, int damage,
-                          String inscription, boolean matchesRole, String affinityLabel) {
+                          String inscription, boolean matchesRole, String affinityLabel,
+                          String affixLabel) {
             this.name          = name;
             this.tierId        = tierId;
             this.dmgType       = dmgType;
@@ -31,6 +34,7 @@ public class HUD implements Disposable {
             this.inscription   = inscription;
             this.matchesRole   = matchesRole;
             this.affinityLabel = affinityLabel;
+            this.affixLabel    = affixLabel;
         }
     }
 
@@ -46,6 +50,7 @@ public class HUD implements Disposable {
     private final boolean[] slotManaLocked  = new boolean[6];
     private final String[]  slotInscription = new String[6];
     private final String[]  slotTierId      = new String[6];
+    private final String[]  slotAffix       = new String[6];
     private int currentHealth;
     private int maxHealth;
     private float currentMana;
@@ -471,6 +476,10 @@ public class HUD implements Disposable {
         slotTierId[i] = tierId;
     }
 
+    public void setSlotAffix(int i, String affix) {
+        if (i >= 0 && i < 6) slotAffix[i] = affix;
+    }
+
     public void setBossHealth(int current, int max) {
         setBossHealth(current, max, 0);
     }
@@ -665,23 +674,29 @@ public class HUD implements Disposable {
             fS.setColor(tierColor(newW.tierId));
             fS.draw(batch, newW.tierId != null ? newW.tierId : "T1", lx, ty - 56f);
 
-            fS.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
-            fS.draw(batch, dmgTypeLabel(newW.dmgType) + "   " + newW.damage + " dmg", lx, ty - 74f);
+            if (newW.affixLabel != null) {
+                fS.setColor(new Color(1f, 0.85f, 0.4f, 1f));
+                fS.draw(batch, newW.affixLabel, lx, ty - 74f);
+            }
 
+            fS.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+            fS.draw(batch, dmgTypeLabel(newW.dmgType) + "   " + newW.damage + " dmg", lx, ty - (newW.affixLabel != null ? 92f : 74f));
+
+            float shift = newW.affixLabel != null ? 18f : 0f;
             if (newW.matchesRole) {
                 fS.setColor(new Color(0.3f, 1f, 0.3f, 1f));
-                fS.draw(batch, "+" + newW.affinityLabel + "  +15% dmg", lx, ty - 92f);
+                fS.draw(batch, "+" + newW.affinityLabel + "  +15% dmg", lx, ty - 92f - shift);
             } else {
                 fS.setColor(new Color(0.5f, 0.5f, 0.5f, 1f));
-                fS.draw(batch, newW.affinityLabel, lx, ty - 92f);
+                fS.draw(batch, newW.affinityLabel, lx, ty - 92f - shift);
             }
 
             if (newW.inscription != null) {
                 fS.setColor(new Color(0.5f, 0.85f, 1f, 1f));
-                fS.draw(batch, "Inscr: " + newW.inscription, lx, ty - 110f);
+                fS.draw(batch, "Inscr: " + newW.inscription, lx, ty - 110f - shift);
             } else {
                 fS.setColor(new Color(0.38f, 0.38f, 0.38f, 1f));
-                fS.draw(batch, "Sin inscripción", lx, ty - 110f);
+                fS.draw(batch, "Sin inscripción", lx, ty - 110f - shift);
             }
         }
         fS.setColor(Color.WHITE);
@@ -725,6 +740,10 @@ public class HUD implements Disposable {
             if (card.inscription != null) {
                 fS.setColor(new Color(0.5f, 0.85f, 1f, 1f));
                 fS.draw(batch, card.inscription, x, ty - 76f);
+            }
+            if (card.affixLabel != null) {
+                fS.setColor(new Color(1f, 0.85f, 0.4f, 1f));
+                fS.draw(batch, card.affixLabel, x, ty - (card.inscription != null ? 94f : 76f));
             }
         }
         fS.setColor(Color.WHITE);
@@ -878,6 +897,10 @@ public class HUD implements Disposable {
                 fS.setColor(0.6f, 0.6f, 0.6f, 1f);
                 String tier = slotTierId[i] != null ? slotTierId[i] : "T1";
                 fS.draw(batch, tier, tx, ty - 44f);
+                if (slotAffix[i] != null) {
+                    fS.setColor(1f, 0.85f, 0.4f, 1f);
+                    fS.draw(batch, slotAffix[i], tx, ty - 62f);
+                }
                 if (slotInscription[i] != null) {
                     fS.setColor(0.5f, 0.85f, 1f, 1f);
                     fS.draw(batch, slotInscription[i], tx, ty - 62f);

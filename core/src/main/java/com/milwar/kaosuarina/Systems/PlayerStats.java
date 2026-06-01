@@ -23,6 +23,10 @@ public class PlayerStats {
     public float maxMana = 0f;  // 0 = sin maná hasta que Role lo configure
     public float mana = 0f;  // maná actual
     public float manaRegen = 0f; // maná por segundo (pasivo; solo Mago lo tiene)
+    /** Bonus de regen de maná aportado por afijos de armas equipadas. Recalculado cada frame. */
+    public float weaponAffixMpRegen   = 0f;
+    /** Bonus de lifesteal aportado por afijos de armas equipadas. Recalculado cada frame. */
+    public float weaponAffixLifesteal = 0f;
 
     // ── Stats base inmutables del rol (S5-02) ─────────────────────────────────
     // Snapshotted by Player constructor. Used by recalcStats() to restore from 0.

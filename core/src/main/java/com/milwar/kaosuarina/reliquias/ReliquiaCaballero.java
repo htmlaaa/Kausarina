@@ -10,8 +10,8 @@ import com.milwar.kaosuarina.entities.Player;
 public class ReliquiaCaballero implements Reliquia {
 
     private static final int MAX_STACKS = 5;
-    private static final float DECAY_DELAY = 4f;
-    private static final float REDUCTION_PER_STACK = 0.08f;
+    private static final float DECAY_DELAY = 2.0f;      // era 4s: ahora requiere combate activo para mantener stacks
+    private static final float REDUCTION_PER_STACK = 0.07f;  // era 0.08: max 5 stacks = 35% reducción (era 40%)
 
     private int armorStacks = 0;
     private float timeSinceLastHit = 0f;

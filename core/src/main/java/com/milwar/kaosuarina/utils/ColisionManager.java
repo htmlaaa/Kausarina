@@ -27,6 +27,12 @@ public class ColisionManager {
                     enemy.recibirDanio(dmg);
                     aplicarStatusPorDanio(enemy, bala.damageType);
                     aplicarEfectosOnHit(player, enemy, dmg, bala.damageType);
+                    // Daño elemental secundario de afijos de arma (add_fire_dmg / add_poison_dmg / add_chaos_dmg)
+                    if (enemy.active) {
+                        if (bala.addFireDmg   > 0) aplicarStatusPorDanio(enemy, DamageType.FUEGO);
+                        if (bala.addPoisonDmg > 0) aplicarStatusPorDanio(enemy, DamageType.VENENO);
+                        if (bala.addChaosDmg  > 0) aplicarStatusPorDanio(enemy, DamageType.CAOS_PRIMORDIAL);
+                    }
                     Inscription ins = player.getInscriptionForWeaponType(bala.sourceWeapon);
                     if (ins != null) ins.onHit(player, enemy, dmg);
                     if (estabaVivo && !enemy.active) {
@@ -243,7 +249,10 @@ public class ColisionManager {
         if (um == null) return;
         DamageType elemental = um.getElementalOnHit();
         if (elemental != null && enemy.active) aplicarStatusPorDanio(enemy, elemental);
-        float ls = um.getLifeStealPercent();
+        // Lifesteal consolidado: upgrade VAMPIRISMO + amuletos (lifeStealPercent) + afijos de arma
+        float ls = um.getLifeStealPercent()
+                 + player.getStats().lifeStealPercent
+                 + player.getStats().weaponAffixLifesteal;
         if (ls > 0 && dmg > 0) player.curar(Math.max(1, Math.round(dmg * ls)));
     }
 

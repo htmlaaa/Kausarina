@@ -37,6 +37,10 @@ public class WeaponNormal extends Weapon {
         int extraP = inscription != null ? inscription.extraPierce() : 0;
         boolean bypassDef = inscription != null && inscription.bypassesDefense();
 
+        float secFire   = rolledInstance != null ? rolledInstance.getSumStat("add_fire_dmg")   : 0f;
+        float secPoison = rolledInstance != null ? rolledInstance.getSumStat("add_poison_dmg") : 0f;
+        float secChaos  = rolledInstance != null ? rolledInstance.getSumStat("add_chaos_dmg")  : 0f;
+
         switch (type) {
             case ESPADA_VERDUGO:
                 for (int i = -1; i <= 1; i++) {
@@ -44,14 +48,20 @@ public class WeaponNormal extends Weapon {
                     Bala b = pool.spawnReturning(p.position.x, p.position.y,
                         MathUtils.cos(a), MathUtils.sin(a),
                         dmg, extraP, 0, damageType, 800f, 250f, type);
-                    if (b != null && bypassDef) b.ignoresDefense = true;
+                    if (b != null) {
+                        if (bypassDef) b.ignoresDefense = true;
+                        b.addFireDmg = secFire; b.addPoisonDmg = secPoison; b.addChaosDmg = secChaos;
+                    }
                 }
                 break;
             case BACULO_ARCANO: {
                 Bala b = pool.spawnReturning(p.position.x, p.position.y,
                     MathUtils.cos(aimAngle), MathUtils.sin(aimAngle),
                     dmg, extraP, 0, damageType, 500f, 1500f, type);
-                if (b != null && bypassDef) b.ignoresDefense = true;
+                if (b != null) {
+                    if (bypassDef) b.ignoresDefense = true;
+                    b.addFireDmg = secFire; b.addPoisonDmg = secPoison; b.addChaosDmg = secChaos;
+                }
                 break;
             }
             case PISTOLAS_GEMELAS:
@@ -60,7 +70,10 @@ public class WeaponNormal extends Weapon {
                     Bala b = pool.spawnReturning(p.position.x, p.position.y,
                         MathUtils.cos(a), MathUtils.sin(a),
                         dmg, extraP, 0, damageType, 900f, 1500f, type);
-                    if (b != null && bypassDef) b.ignoresDefense = true;
+                    if (b != null) {
+                        if (bypassDef) b.ignoresDefense = true;
+                        b.addFireDmg = secFire; b.addPoisonDmg = secPoison; b.addChaosDmg = secChaos;
+                    }
                 }
                 break;
             default:
@@ -74,7 +87,13 @@ public class WeaponNormal extends Weapon {
         if (hasAffinityFor(p.getRole().tipo)) mult *= Constants.WEAPON_AFFINITY_DMG_MULT;
         if (rolledInstance != null) {
             float base = WeaponInstanceFactory.getInstance().rollHitDamage(rolledInstance);
-            return Math.max(1, Math.round(base * mult));
+            int dmg = Math.max(1, Math.round(base * mult));
+            float critChance = rolledInstance.critChance + rolledInstance.getSumStat("crit_chance");
+            if (critChance > 0 && MathUtils.random() * 100f < critChance) {
+                float critMult = 1f + (rolledInstance.critDmg + rolledInstance.getSumStat("crit_dmg")) / 100f;
+                dmg = Math.max(1, Math.round(dmg * critMult));
+            }
+            return dmg;
         }
         return Math.max(1, Math.round(baseDamage * mult));
     }

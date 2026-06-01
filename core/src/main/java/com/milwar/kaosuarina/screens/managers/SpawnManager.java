@@ -67,10 +67,10 @@ public class SpawnManager {
                 player.position.y + MathUtils.sin(angulo) * dist);
         }
 
-        // Elites desde oleada 4: grupo especial adicional
+        // Elites desde oleada 4: grupo especial adicional (máx 3 simultáneos para no crear picos de dificultad no intencionales)
         if (waveCount >= Constants.SPAWN_ELITE_WAVE_START) {
             int elites = 1 + (waveCount / 6);
-            elites = Math.min(elites, 5);
+            elites = Math.min(elites, 3);
             for (int i = 0; i < elites; i++) {
                 float angulo = MathUtils.random(MathUtils.PI2);
                 float dist = 600f + MathUtils.random(100f);

@@ -24,6 +24,10 @@ public class Bala {
     public float maxDst;
     /** If true, ColisionManager skips enemy defense when calculating damage. */
     public boolean ignoresDefense = false;
+    /** Daño elemental secundario de afijos de arma (+X FUEGO / VENENO / CAOS). 0 = sin efecto. */
+    public float addFireDmg   = 0f;
+    public float addPoisonDmg = 0f;
+    public float addChaosDmg  = 0f;
 
     private final Vector2 spawnPosition;
 
@@ -62,6 +66,9 @@ public class Bala {
         this.rebotesRestantes = rebotes;
         this.maxDst = maxDst;
         this.ignoresDefense = false;
+        this.addFireDmg   = 0f;
+        this.addPoisonDmg = 0f;
+        this.addChaosDmg  = 0f;
     }
 
     public void update(float delta) {

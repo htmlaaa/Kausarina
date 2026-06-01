@@ -35,7 +35,7 @@ public class Constants {
 
     // Efectos de estado sobre enemigos (FUEGO → BURN, VENENO → POISON)
     public static final float STATUS_BURN_DURATION = 3f;
-    public static final int   STATUS_BURN_DAMAGE   = 8;    // por tick (cada 0.5s) — usado por CAOS_PRIMORDIAL secuela
+    public static final int   STATUS_BURN_DAMAGE   = 5;    // por tick (cada 0.5s) — reducido: Mago sobrevive 1 proyectil CAOS + BURN completo
     public static final float STATUS_POISON_DURATION = 5f;
     public static final int   STATUS_POISON_DAMAGE   = 5;  // por tick (cada 1s)
     public static final float LIFESTEAL_BASE_PERCENT = 0.03f;
@@ -88,8 +88,8 @@ public class Constants {
 
     // Invulnerabilidad post-golpe por rol
     public static final float INVULNERABILITY_CABALLERO = 0.30f;
-    public static final float INVULNERABILITY_MAGO      = 0.30f;
-    public static final float INVULNERABILITY_SHOOTER   = 0.20f;
+    public static final float INVULNERABILITY_MAGO      = 0.42f;  // Mago necesita margen: bajo HP + gestión de maná
+    public static final float INVULNERABILITY_SHOOTER   = 0.25f;  // leve buffer para contactos accidentales
 
     // Minijefe Guardián (S6-05)
     public static final int   GUARDIAN_HP               = 900;
@@ -101,7 +101,7 @@ public class Constants {
     public static final int   MINIBOSS_WAVE_INTERVAL    = 10;
 
     // Minijefe Arquero (S7-03)
-    public static final int   ARQUERO_HP                  = 300;
+    public static final int   ARQUERO_HP                  = 400;
     public static final float ARQUERO_SPEED               = 90f;
     public static final int   ARQUERO_CONTACT_DMG         = 15;
     public static final int   ARQUERO_PROJECTILE_DMG      = 18;
@@ -120,14 +120,15 @@ public class Constants {
     public static final float PARTICLE_LIFE_IMPACT     = 0.25f;
 
     // Dificultad de oleadas (SpawnManager)
-    public static final float SPAWN_INTERVAL_BASE      = 18f;   // segundos entre oleadas al inicio
-    public static final float SPAWN_INTERVAL_MIN       = 3.5f;  // intervalo mínimo (máxima intensidad)
+    // "Kausarina Verzente": agresivo desde el inicio pero escala suave en mid-late para evitar patrones triviales
+    public static final float SPAWN_INTERVAL_BASE      = 15f;   // inicia más agresivo (era 18s)
+    public static final float SPAWN_INTERVAL_MIN       = 4.0f;  // techo de intensidad menos extremo (era 3.5s)
     public static final float DIFICULTAD_RAMP_INTERVAL = 35f;   // cada Xs escala la dificultad
-    public static final float DIFICULTAD_RAMP_FACTOR   = 0.84f; // reducción del intervalo por ramp
+    public static final float DIFICULTAD_RAMP_FACTOR   = 0.86f; // rampa más gradual en mid-late (era 0.84)
 
     // Spawn de enemigos por oleada
-    public static final int   SPAWN_BASE_COUNT         = 12;    // mínimo enemigos oleada 1
-    public static final int   SPAWN_PER_LEVEL          = 3;     // +X por nivel del jugador
+    public static final int   SPAWN_BASE_COUNT         = 7;     // wave 1 más controlada (era 12)
+    public static final int   SPAWN_PER_LEVEL          = 5;     // escala más pronunciada por nivel (era 3)
     public static final int   SPAWN_RANDOM_EXTRA       = 5;     // variación aleatoria ±
     public static final int   SPAWN_ELITE_WAVE_START   = 4;     // oleada en que empiezan elites
 

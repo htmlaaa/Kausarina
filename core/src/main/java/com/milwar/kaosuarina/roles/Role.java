@@ -44,10 +44,10 @@ public class Role {
     }
 
     /**
-     * Mago — Resonancia Caótica. HP 70, Def 5, ResMag 15, Maná 120 + regen 2/s.
+     * Mago — Resonancia Caótica. HP 85, Def 5, ResMag 15, Maná 120 + regen 2/s.
      */
     public static Role mago() {
-        PlayerStats s = new PlayerStats(270f, 0.22f, 1f, 1, 20f, 70);
+        PlayerStats s = new PlayerStats(270f, 0.22f, 1f, 1, 20f, 85);
         s.defensa = 5f;
         s.resistenciaMagica = 15f;
         s.maxMana   = Constants.MANA_MAX_MAGO_BASE;

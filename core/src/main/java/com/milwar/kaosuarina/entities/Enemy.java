@@ -118,8 +118,8 @@ public class Enemy {
                 enemyId = "EN_TANK";
                 speed = 80f;
                 size = 48f;
-                health = 200;
-                maxHealth = 200;
+                health = 145;
+                maxHealth = 145;
                 defensa = 20f;
                 color.set(0.9f, 0.2f, 0.2f, 1f);
                 break;
@@ -127,8 +127,8 @@ public class Enemy {
                 enemyId = "EN_ORBITER";
                 speed = 100f;
                 size = 32f;
-                health = 35;
-                maxHealth = 35;
+                health = 48;
+                maxHealth = 48;
                 color.set(0.95f, 0.85f, 0.2f, 1f);
                 break;
             case MALDITO:

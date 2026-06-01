@@ -134,8 +134,9 @@ public class Player {
             lastDamageReceived = 0;
         }
 
-        // Regen pasiva de maná (exclusiva del Mago; los demás tienen manaRegen=0)
-        if (stats.manaRegen > 0) stats.addMana(stats.manaRegen * delta);
+        // Regen pasiva de maná (Mago base + bonus de afijo de arma)
+        float totalMpRegen = stats.manaRegen + stats.weaponAffixMpRegen;
+        if (totalMpRegen > 0) stats.addMana(totalMpRegen * delta);
 
         reliquia.onUpdate(this, delta);
 

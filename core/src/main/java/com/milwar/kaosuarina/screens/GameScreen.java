@@ -227,6 +227,7 @@ public class GameScreen implements Screen {
             updateScrollMenu(delta);
         }
 
+        actualizarAffixBonuses();
         actualizarHudSlots();
         renderizar();
 
@@ -249,6 +250,20 @@ public class GameScreen implements Screen {
         }
     }
 
+    /** Recalcula cada frame los bonos de afijo de arma para lifesteal y mp_regen. */
+    private void actualizarAffixBonuses() {
+        float ls = 0f, mr = 0f;
+        for (int i = 0; i < 2; i++) {
+            com.milwar.kaosuarina.weapons.Weapon w = player.getWeaponAtSlot(i);
+            if (w != null && w.rolledInstance != null) {
+                ls += w.rolledInstance.getSumStat("lifesteal_pct") / 100f;
+                mr += w.rolledInstance.getSumStat("mp_regen");
+            }
+        }
+        player.getStats().weaponAffixLifesteal = ls;
+        player.getStats().weaponAffixMpRegen   = mr;
+    }
+
     private void actualizarHudSlots() {
         // Slots 0-1: activos (con cooldown y mana lock)
         for (int i = 0; i < 2; i++) {
@@ -257,14 +272,17 @@ public class GameScreen implements Screen {
             String tier = (w != null) ? w.tierId : null;
             if (w == null) {
                 hud.setWeaponSlot(i, "-", false, 0f, false, null, null);
+                hud.setSlotAffix(i, null);
             } else if (w instanceof WeaponSkill) {
                 WeaponSkill sk = (WeaponSkill) w;
                 float frac = sk.skillCooldownBase > 0 ? Math.min(1f, sk.skillCooldownTimer / sk.skillCooldownBase) : 0f;
                 boolean locked = player.getStats().mana < sk.manaCost;
                 hud.setWeaponSlot(i, specificWeaponName(w), true, frac, locked, insc, tier);
+                hud.setSlotAffix(i, buildAffixLabel(w));
             } else {
                 float frac = w.cooldownBase > 0 ? Math.min(1f, w.cooldownTimer / w.cooldownBase) : 0f;
                 hud.setWeaponSlot(i, specificWeaponName(w), false, frac, false, insc, tier);
+                hud.setSlotAffix(i, buildAffixLabel(w));
             }
         }
         // Slots 2-5: almacenamiento
@@ -273,8 +291,10 @@ public class GameScreen implements Screen {
             if (w != null) {
                 String insc = w.inscription != null ? w.inscription.getName() : null;
                 hud.setWeaponSlot(i + 2, specificWeaponName(w), false, 0f, false, insc, w.tierId);
+                hud.setSlotAffix(i + 2, buildAffixLabel(w));
             } else {
                 hud.setWeaponSlot(i + 2, "-", false, 0f, false, null, null);
+                hud.setSlotAffix(i + 2, null);
             }
         }
     }
@@ -703,7 +723,8 @@ public class GameScreen implements Screen {
         float cadMult = (upgradeManager != null) ? upgradeManager.getMultiplicadorCadencia() : 1f;
         cd /= cadMult;
         if (w.rolledInstance != null) {
-            float pct = w.rolledInstance.getSumStat("reduced_cd_pct");
+            float pct = w.rolledInstance.getSumStat("reduced_cd_pct")
+                      + w.rolledInstance.getSumStat("atk_speed_pct");
             if (pct > 0) cd *= (1f - pct / 100f);
         }
         return Math.max(Constants.MIN_WEAPON_CD, cd);
@@ -1006,7 +1027,30 @@ public class GameScreen implements Screen {
         String insc     = w.inscription != null ? w.inscription.getName() : null;
         boolean matches = w.hasAffinityFor(player.getRole().tipo);
         String affLabel = affinityLabel(w);
-        return new HUD.WeaponCard(name, w.tierId, dmgType, damage, insc, matches, affLabel);
+        return new HUD.WeaponCard(name, w.tierId, dmgType, damage, insc, matches, affLabel, buildAffixLabel(w));
+    }
+
+    private String buildAffixLabel(Weapon w) {
+        if (w == null || w.rolledInstance == null) return null;
+        StringBuilder sb = new StringBuilder();
+        for (com.milwar.kaosuarina.data.RolledAffix a : w.rolledInstance.getAffixes()) {
+            if (sb.length() > 0) sb.append("  ");
+            switch (a.stat) {
+                case "dmg_flat":       sb.append(String.format("+%.0f DMG",    a.value)); break;
+                case "dmg_pct":        sb.append(String.format("+%.0f%% DMG",  a.value)); break;
+                case "atk_speed_pct":  sb.append(String.format("+%.0f%% VEL",  a.value)); break;
+                case "crit_chance":    sb.append(String.format("+%.0f%% CRIT", a.value)); break;
+                case "crit_dmg":       sb.append(String.format("+%.0f%% xCRIT",a.value)); break;
+                case "lifesteal_pct":  sb.append(String.format("+%.0f%% VIDA", a.value)); break;
+                case "add_fire_dmg":   sb.append(String.format("+%.0f FUEGO",  a.value)); break;
+                case "add_poison_dmg": sb.append(String.format("+%.0f VEN",    a.value)); break;
+                case "add_chaos_dmg":  sb.append(String.format("+%.0f CAOS",   a.value)); break;
+                case "mp_regen":       sb.append(String.format("+%.0f MP/s",   a.value)); break;
+                case "reduced_cd_pct": sb.append(String.format("-%.0f%% CD",   a.value)); break;
+                default: break;
+            }
+        }
+        return sb.length() > 0 ? sb.toString() : null;
     }
 
     private String affinityLabel(Weapon w) {
