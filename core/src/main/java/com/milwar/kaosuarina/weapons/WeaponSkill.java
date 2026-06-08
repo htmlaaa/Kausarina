@@ -1,14 +1,14 @@
 package com.milwar.kaosuarina.weapons;
 
 import com.badlogic.gdx.math.Vector2;
-import com.milwar.kaosuarina.entities.Bala;
+import com.milwar.kaosuarina.entities.Bullet;
 import com.milwar.kaosuarina.entities.Player;
-import com.milwar.kaosuarina.entities.PoolBalas;
-import com.milwar.kaosuarina.entities.PoolEnemigos;
+import com.milwar.kaosuarina.entities.BulletPool;
+import com.milwar.kaosuarina.entities.EnemyPool;
 import com.milwar.kaosuarina.roles.Role;
 import com.milwar.kaosuarina.data.WeaponInstanceFactory;
 import com.milwar.kaosuarina.systems.UpgradeManager;
-import com.milwar.kaosuarina.utils.ColisionManager;
+import com.milwar.kaosuarina.utils.CollisionManager;
 import com.milwar.kaosuarina.utils.Constants;
 import com.milwar.kaosuarina.utils.DamageType;
 
@@ -18,10 +18,12 @@ import com.milwar.kaosuarina.utils.DamageType;
  */
 public class WeaponSkill extends Weapon {
 
-    public final int   manaCost;
+    public final int manaCost;
     public final float skillCooldownBase;
-    /** Mutable: decremented each frame by GameScreen. */
-    public       float skillCooldownTimer;
+    /**
+     * Mutable: decremented each frame by GameScreen.
+     */
+    public float skillCooldownTimer;
 
     public WeaponSkill(WeaponType type, DamageType damageType,
                        int baseDamage,
@@ -29,9 +31,9 @@ public class WeaponSkill extends Weapon {
                        int hpBonus, int defBonus, int resMagBonus, int manaMaxBonus,
                        float moveSpeedMult, Role.Tipo affinity) {
         super(type, WeaponCategory.SKILL, damageType, baseDamage, 0f,
-              hpBonus, defBonus, resMagBonus, manaMaxBonus, moveSpeedMult, affinity);
-        this.manaCost           = manaCost;
-        this.skillCooldownBase  = skillCooldownBase;
+            hpBonus, defBonus, resMagBonus, manaMaxBonus, moveSpeedMult, affinity);
+        this.manaCost = manaCost;
+        this.skillCooldownBase = skillCooldownBase;
         this.skillCooldownTimer = 0f;
     }
 
@@ -39,7 +41,7 @@ public class WeaponSkill extends Weapon {
      * Executes the skill effect at targetPos (cursor world position).
      * Caller must verify mana and cooldown before calling this.
      */
-    public void activate(Player p, PoolBalas pool, PoolEnemigos poolEnemigos, Vector2 targetPos) {
+    public void activate(Player p, BulletPool pool, EnemyPool enemyPool, Vector2 targetPos) {
         int dmg = calcDamage(p);
         if (inscription != null) dmg = Math.max(1, Math.round(dmg * inscription.damageMult()));
         int extraP = inscription != null ? inscription.extraPierce() : 0;
@@ -47,15 +49,15 @@ public class WeaponSkill extends Weapon {
 
         switch (type) {
             case MARTILLO_JUICIO:
-                ColisionManager.comprobarBlast(p, targetPos, 200f, dmg, DamageType.FISICO, poolEnemigos);
+                CollisionManager.checkBlast(p, targetPos, 200f, dmg, DamageType.FISICO, enemyPool);
                 break;
             case TOMO_CAOS:
-                ColisionManager.comprobarBlast(p, targetPos, 250f, dmg, DamageType.CAOS_PRIMORDIAL, poolEnemigos);
+                CollisionManager.checkBlast(p, targetPos, 250f, dmg, DamageType.CAOS_PRIMORDIAL, enemyPool);
                 break;
             case RIFLE_PRECISION: {
                 float dx = targetPos.x - p.position.x;
                 float dy = targetPos.y - p.position.y;
-                Bala b = pool.spawnReturning(p.position.x, p.position.y,
+                Bullet b = pool.spawnReturning(p.position.x, p.position.y,
                     dx, dy, dmg, 999 + extraP, 0, damageType, 2000f, 2200f, type);
                 if (b != null && bypassDef) b.ignoresDefense = true;
                 break;
@@ -65,9 +67,19 @@ public class WeaponSkill extends Weapon {
         }
     }
 
+    @Override
+    public Weapon clonar() {
+        WeaponSkill w = new WeaponSkill(type, damageType, baseDamage, manaCost, skillCooldownBase,
+            hpBonus, defBonus, resMagBonus, manaMaxBonus, moveSpeedMult, affinity);
+        w.rolledInstance = rolledInstance;
+        w.tierId = tierId;
+        w.inscription = inscription;
+        return w;
+    }
+
     private int calcDamage(Player p) {
         UpgradeManager um = p.getUpgradeManager();
-        float mult = (um != null) ? um.getMultiplicadorDanio() : 1f;
+        float mult = (um != null) ? um.getDamageMultiplier() : 1f;
         if (hasAffinityFor(p.getRole().tipo)) mult *= Constants.WEAPON_AFFINITY_DMG_MULT;
         if (rolledInstance != null) {
             float base = WeaponInstanceFactory.getInstance().rollHitDamage(rolledInstance);

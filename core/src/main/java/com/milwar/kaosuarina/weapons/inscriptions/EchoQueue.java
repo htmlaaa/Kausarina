@@ -1,10 +1,13 @@
 package com.milwar.kaosuarina.weapons.inscriptions;
 
 import com.milwar.kaosuarina.entities.Enemy;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
-/** Static queue for InscripcionDelEco delayed hits. Ticked by GameScreen each frame. */
+/**
+ * Static queue for InscripcionDelEco delayed hits. Ticked by GameScreen each frame.
+ */
 public class EchoQueue {
 
     private static final ArrayList<PendingHit> queue = new ArrayList<>();
@@ -19,7 +22,7 @@ public class EchoQueue {
             PendingHit h = it.next();
             h.timer -= delta;
             if (h.timer <= 0) {
-                if (h.target.active) h.target.recibirDanio(Math.max(1, (int) h.damage));
+                if (h.target.active) h.target.takeDamage(Math.max(1, (int) h.damage));
                 it.remove();
             }
         }
@@ -33,6 +36,11 @@ public class EchoQueue {
         final Enemy target;
         final float damage;
         float timer;
-        PendingHit(Enemy t, float d, float timer) { target = t; damage = d; this.timer = timer; }
+
+        PendingHit(Enemy t, float d, float timer) {
+            target = t;
+            damage = d;
+            this.timer = timer;
+        }
     }
 }

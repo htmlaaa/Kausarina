@@ -18,10 +18,15 @@ public class InscriptionPool {
         InscripcionVampiricaMana.class
     };
 
-    /** Call once at startup — registers types without allocating instances. */
-    public static void init() {}
+    /**
+     * Call once at startup — registers types without allocating instances.
+     */
+    public static void init() {
+    }
 
-    /** Returns a fresh instance of a random inscription. Safe to call mid-game (scroll pickup only). */
+    /**
+     * Returns a fresh instance of a random inscription. Safe to call mid-game (scroll pickup only).
+     */
     public static Inscription getRandom() {
         int idx = MathUtils.random(TYPES.length - 1);
         try {

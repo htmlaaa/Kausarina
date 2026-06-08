@@ -24,5 +24,7 @@ public class InscripcionResonante implements Inscription {
     }
 
     @Override
-    public String getName() { return "RES"; }
+    public String getName() {
+        return "RES";
+    }
 }

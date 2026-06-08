@@ -1,0 +1,44 @@
+[
+  {
+    "trigger_id": "W_SHORTSWORD",
+    "catalyst_id": "W_SHORTSWORD",
+    "result_id": "W_LONGSWORD",
+    "type": "duplicate",
+    "bonus_desc": "Alcance +30u, daño amplificado"
+  },
+  {
+    "trigger_id": "W_DUAL_PISTOLS",
+    "catalyst_id": "W_DUAL_PISTOLS",
+    "result_id": "W_CUATRO_PISTOLAS",
+    "type": "duplicate",
+    "bonus_desc": "+2 balas por disparo, cadencia mayor"
+  },
+  {
+    "trigger_id": "W_APP_STAFF",
+    "catalyst_id": "W_APP_STAFF",
+    "result_id": "W_ARCANE_CANON",
+    "type": "duplicate",
+    "bonus_desc": "Proyectil más grande, mayor daño mágico"
+  },
+  {
+    "trigger_id": "W_FLAMEBLADE",
+    "catalyst_id": "W_FLAMEBLADE",
+    "result_id": "W_INFERNO_BLADE",
+    "type": "duplicate",
+    "bonus_desc": "Daño de fuego masivo, área de llamas"
+  },
+  {
+    "trigger_id": "W_HUNTBOW",
+    "catalyst_id": "W_HUNTBOW",
+    "result_id": "W_WARBOW",
+    "type": "duplicate",
+    "bonus_desc": "Alcance máximo, flecha perforante"
+  },
+  {
+    "trigger_id": "W_CHAOS_WAND",
+    "catalyst_id": "W_CHAOS_WAND",
+    "result_id": "W_VOID_CANNON",
+    "type": "duplicate",
+    "bonus_desc": "Caos primordial, ignora defensa"
+  }
+]

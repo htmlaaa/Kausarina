@@ -14,27 +14,27 @@ public class HUD implements Disposable {
 
     // ── WeaponCard DTO — filled by GameScreen, rendered here ───────────────────
     public static class WeaponCard {
-        public final String  name;          // pre-formatted ("Espada Verdugo")
-        public final String  tierId;        // "T1"-"T5" or null
-        public final String  dmgType;       // DamageType.name() e.g. "FISICO"
-        public final int     damage;        // baseDamage value
-        public final String  inscription;   // inscription name or null
+        public final String name;          // pre-formatted ("Espada Verdugo")
+        public final String tierId;        // "T1"-"T5" or null
+        public final String dmgType;       // DamageType.name() e.g. "FISICO"
+        public final int damage;        // baseDamage value
+        public final String inscription;   // inscription name or null
         public final boolean matchesRole;   // affinity matches player's role
-        public final String  affinityLabel; // "Caballero", "Mago", "Shooter", "Neutro"
+        public final String affinityLabel; // "Caballero", "Mago", "Shooter", "Neutro"
 
         public final String affixLabel;  // "+8 DMG  -10% CD" o null si no tiene afijos
 
         public WeaponCard(String name, String tierId, String dmgType, int damage,
                           String inscription, boolean matchesRole, String affinityLabel,
                           String affixLabel) {
-            this.name          = name;
-            this.tierId        = tierId;
-            this.dmgType       = dmgType;
-            this.damage        = damage;
-            this.inscription   = inscription;
-            this.matchesRole   = matchesRole;
+            this.name = name;
+            this.tierId = tierId;
+            this.dmgType = dmgType;
+            this.damage = damage;
+            this.inscription = inscription;
+            this.matchesRole = matchesRole;
             this.affinityLabel = affinityLabel;
-            this.affixLabel    = affixLabel;
+            this.affixLabel = affixLabel;
         }
     }
 
@@ -44,13 +44,13 @@ public class HUD implements Disposable {
     private final int screenWidth;
     private final int screenHeight;
     // Slots 0-1 = activos (armas equipadas), 2-5 = almacenamiento
-    private final String[]  slotName        = {"-","-","-","-","-","-"};
-    private final boolean[] slotIsSkill     = new boolean[6];
-    private final float[]   slotCdFraction  = new float[6];
-    private final boolean[] slotManaLocked  = new boolean[6];
-    private final String[]  slotInscription = new String[6];
-    private final String[]  slotTierId      = new String[6];
-    private final String[]  slotAffix       = new String[6];
+    private final String[] slotName = {"-", "-", "-", "-", "-", "-"};
+    private final boolean[] slotIsSkill = new boolean[6];
+    private final float[] slotCdFraction = new float[6];
+    private final boolean[] slotManaLocked = new boolean[6];
+    private final String[] slotInscription = new String[6];
+    private final String[] slotTierId = new String[6];
+    private final String[] slotAffix = new String[6];
     private int currentHealth;
     private int maxHealth;
     private float currentMana;
@@ -65,12 +65,26 @@ public class HUD implements Disposable {
     private String relicLabel = "";
     private int relicStacks = 0;
 
+    // MEC-03 — Combo floater y flash al llegar a máximo
+    private String comboFloaterText = "";
+    private float comboFloaterTimer = 0f;
+    private float comboFlashTimer = 0f;
+    private static final float COMBO_FLOATER_DURATION = 1.2f;
+    private static final float COMBO_FLASH_DURATION = 0.5f;
+
+    // CNT-05 — Notificación de evolución de arma
+    private String evolutionText = "";
+    private float evolutionTimer = 0f;
+    private static final float EVOLUTION_DURATION = 2.5f;
+
     private int bossCurrentHealth = 0;
     private int bossMaxHealth = 0;
     private int bossType = 0;
 
     private boolean hudHasSedDeSangre = false;
     private boolean hudHasGuardianArena = false;
+    // MEC-01 — Amulet slots (3 slots visibles)
+    private final String[] amuletSlotName = {"", "", ""};
 
     private String chestPickupPrompt = null;
 
@@ -102,6 +116,29 @@ public class HUD implements Disposable {
     public void update(float delta) {
         survivalTime += delta;
         if (manaFeedbackTimer > 0) manaFeedbackTimer -= delta;
+        if (comboFloaterTimer > 0) comboFloaterTimer -= delta;
+        if (comboFlashTimer > 0) comboFlashTimer -= delta;
+        if (evolutionTimer > 0) evolutionTimer -= delta;
+    }
+
+    public void showEvolutionNotification(String weaponName) {
+        evolutionText = "¡EVOLUCIÓN! " + weaponName;
+        evolutionTimer = EVOLUTION_DURATION;
+    }
+
+    /**
+     * Muestra texto "+COMBO xN" flotando sobre la barra de combo.
+     */
+    public void showComboFloater(int count) {
+        comboFloaterText = "+COMBO x" + count;
+        comboFloaterTimer = COMBO_FLOATER_DURATION;
+    }
+
+    /**
+     * Activa el flash dorado de la barra al llegar al combo máximo.
+     */
+    public void flashComboMax() {
+        comboFlashTimer = COMBO_FLASH_DURATION;
     }
 
     public void setChestPickupPrompt(String weaponName) {
@@ -127,7 +164,9 @@ public class HUD implements Disposable {
         if (maxMana > 0) renderManaBar();
         renderExperienceBar();
         renderWeaponSlots();
+        renderAmuletSlots();
         if (bossMaxHealth > 0) renderBossBar();
+        renderRelicBar();
 
         BitmapFont fLarge = FontManager.get().large;
         BitmapFont fMedium = FontManager.get().medium;
@@ -202,6 +241,29 @@ public class HUD implements Disposable {
         fSmall.setColor(0.45f, 0.45f, 0.45f, 1f);
         fSmall.draw(batch, "[TAB]", LSLOT_X, lslotY(5) + LSLOT_SIZE + 16f);
         fSmall.setColor(Color.WHITE);
+
+        // ── Amulet slot labels (MEC-01) ───────────────────────────────────
+        renderAmuletLabels(batch);
+
+        // ── Evolución de arma (CNT-05) ────────────────────────────────────
+        if (evolutionTimer > 0 && !evolutionText.isEmpty()) {
+            float alpha = Math.min(1f, evolutionTimer / (EVOLUTION_DURATION * 0.3f));
+            float pulse = 0.8f + 0.2f * com.badlogic.gdx.math.MathUtils.sin(evolutionTimer * 10f);
+            fMedium.setColor(1f, pulse * 0.85f, 0.1f * pulse, alpha);
+            fMedium.draw(batch, evolutionText,
+                screenWidth / 2f - 180f, screenHeight / 2f - 40f);
+            fMedium.setColor(Color.WHITE);
+        }
+
+        // ── Combo floater (MEC-03) ────────────────────────────────────────
+        if (comboFloaterTimer > 0 && !comboFloaterText.isEmpty()) {
+            float alpha = Math.min(1f, comboFloaterTimer / (COMBO_FLOATER_DURATION * 0.4f));
+            float barY = screenHeight - 110f;
+            float ty = barY + 18f + 8f * (1f - (comboFloaterTimer / COMBO_FLOATER_DURATION));
+            fSmall.setColor(1f, 0.65f, 0.1f, alpha);
+            fSmall.draw(batch, comboFloaterText, 20f, ty);
+            fSmall.setColor(Color.WHITE);
+        }
 
         // ── Chest pickup prompt ───────────────────────────────────────────
         if (chestPickupPrompt != null) {
@@ -279,10 +341,11 @@ public class HUD implements Disposable {
     }
 
     // ── Left-panel slot layout constants ─────────────────────────────────────
-    private static final float LSLOT_X    = 10f;
+    private static final float LSLOT_X = 10f;
     private static final float LSLOT_SIZE = 46f;
-    private static final float LSLOT_GAP  = 8f;
-    private static final float LSLOT_SEP  = 14f; // extra gap between active/storage groups
+    private static final float LSLOT_GAP = 8f;
+    private static final float LSLOT_SEP = 14f; // extra gap between active/storage groups
+
     // active slots at bottom (y=66, y=120); storage above (y=200..344)
     private static float lslotY(int i) {
         if (i == 0) return 66f;
@@ -292,12 +355,12 @@ public class HUD implements Disposable {
 
     private void renderWeaponSlots() {
         for (int i = 0; i < 6; i++) {
-            float x  = LSLOT_X;
-            float y  = lslotY(i);
+            float x = LSLOT_X;
+            float y = lslotY(i);
             float cx = x + LSLOT_SIZE / 2f;
             float cy = y + LSLOT_SIZE / 2f;
-            boolean active  = i < 2;
-            boolean manaLk  = active && slotManaLocked[i];
+            boolean active = i < 2;
+            boolean manaLk = active && slotManaLocked[i];
 
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(active ? 0.20f : 0.12f, active ? 0.20f : 0.12f, active ? 0.20f : 0.12f, 1f);
@@ -311,9 +374,10 @@ public class HUD implements Disposable {
 
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             Gdx.gl.glLineWidth(active ? 2 : 1);
-            if (manaLk)        shapeRenderer.setColor(0.9f, 0.15f, 0.15f, 1f);
-            else if (active)   shapeRenderer.setColor(0.75f, 0.75f, 0.75f, 1f);
-            else               shapeRenderer.setColor(0.38f, 0.38f, 0.38f, 1f);
+            if (manaLk) shapeRenderer.setColor(0.9f, 0.15f, 0.15f, 1f);
+            else if (active && slotIsSkill[i]) shapeRenderer.setColor(1.0f, 0.85f, 0.0f, 0.9f);
+            else if (active) shapeRenderer.setColor(0.75f, 0.75f, 0.75f, 1f);
+            else shapeRenderer.setColor(0.38f, 0.38f, 0.38f, 1f);
             shapeRenderer.rect(x, y, LSLOT_SIZE, LSLOT_SIZE);
             shapeRenderer.end();
             Gdx.gl.glLineWidth(1);
@@ -324,6 +388,56 @@ public class HUD implements Disposable {
         float sepY = 66f + 2 * (LSLOT_SIZE + LSLOT_GAP) + 3f;
         shapeRenderer.rect(LSLOT_X, sepY, LSLOT_SIZE, 2f);
         shapeRenderer.end();
+    }
+
+    private void renderAmuletSlots() {
+        float slotW = 40f, slotH = 18f, gap = 4f;
+        float startX = LSLOT_X;
+        // Place amulet row below the storage group + a small margin
+        float rowY = lslotY(5) - slotH - 10f;
+
+        BitmapFont fS = FontManager.get().small;
+        for (int i = 0; i < 3; i++) {
+            float x = startX + i * (slotW + gap);
+            boolean filled = !amuletSlotName[i].isEmpty();
+
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(filled ? 0.18f : 0.10f, filled ? 0.18f : 0.08f, filled ? 0.08f : 0.06f, 1f);
+            shapeRenderer.rect(x, rowY, slotW, slotH);
+            shapeRenderer.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            shapeRenderer.setColor(filled ? 0.85f : 0.40f, filled ? 0.65f : 0.40f, 0.10f, 1f);
+            shapeRenderer.rect(x, rowY, slotW, slotH);
+            shapeRenderer.end();
+
+            if (filled) {
+                BitmapFont font = FontManager.get().small;
+                com.badlogic.gdx.graphics.g2d.SpriteBatch sb = null;
+                // We need a batch — use the batch already started in render(); render amulet text
+                // deferred to the batch section below; store position for later
+            }
+        }
+        // Draw labels in a separate batch block
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.end(); // flush
+    }
+
+    private void renderAmuletLabels(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        float slotW = 40f, slotH = 18f, gap = 4f;
+        float startX = LSLOT_X;
+        float rowY = lslotY(5) - slotH - 10f;
+        BitmapFont fS = FontManager.get().small;
+        for (int i = 0; i < 3; i++) {
+            if (amuletSlotName[i].isEmpty()) continue;
+            float x = startX + i * (slotW + gap);
+            fS.setColor(0.95f, 0.75f, 0.25f, 1f);
+            fS.draw(batch, amuletSlotName[i], x + 2f, rowY + slotH - 2f);
+        }
+        fS.setColor(Color.WHITE);
     }
 
     private void renderBossBar() {
@@ -431,6 +545,44 @@ public class HUD implements Disposable {
     public void setAmuletFlags(boolean sds, boolean gda) {
         hudHasSedDeSangre = sds;
         hudHasGuardianArena = gda;
+    }
+
+    public void setAmuletSlots(com.milwar.kaosuarina.items.AmuletType[] slots) {
+        for (int i = 0; i < 3; i++) {
+            amuletSlotName[i] = (slots != null && i < slots.length && slots[i] != null)
+                ? amuletShortName(slots[i]) : "";
+        }
+    }
+
+    private static String amuletShortName(com.milwar.kaosuarina.items.AmuletType t) {
+        switch (t) {
+            case SED_DE_SANGRE:
+                return "Sed";
+            case GUARDIAN_DE_LA_ARENA:
+                return "Guarda";
+            case PIEL_DE_PIEDRA:
+                return "+40HP";
+            case BOTAS_RAPIDAS:
+                return "Botas";
+            case COLLAR_VAMPIRICO:
+                return "Vampiro";
+            case TOTEM_REGEN:
+                return "Regen";
+            case TALISMAN_MANA:
+                return "+25MP";
+            case AMULETO_CRITICO:
+                return "+Crit";
+            case AMULETO_EXPLOSION:
+                return "Explo";
+            case AMULETO_ESPECTROS:
+                return "Espect";
+            case AMULETO_TIEMPO:
+                return "Tiempo";
+            case AMULETO_ARMADURA:
+                return "+DEF";
+            default:
+                return t.name();
+        }
     }
 
     public void addExperience(float exp) {
@@ -703,9 +855,9 @@ public class HUD implements Disposable {
         fM.setColor(Color.WHITE);
 
         // ── Right: slot mini-cards ───────────────────────────────────────────
-        float rx    = divX + 14f;
+        float rx = divX + 14f;
         float cardW = (px + pw - rx - 14f) / 2f - 6f;
-        drawMiniCard(batch, slot0, rx,           ty, "[1]", fM, fS);
+        drawMiniCard(batch, slot0, rx, ty, "[1]", fM, fS);
         drawMiniCard(batch, slot1, rx + cardW + 12f, ty, "[2]", fM, fS);
 
         // ── Footer ───────────────────────────────────────────────────────────
@@ -717,7 +869,7 @@ public class HUD implements Disposable {
     }
 
     private void drawMiniCard(SpriteBatch batch, WeaponCard card, float x, float ty,
-                               String key, BitmapFont fM, BitmapFont fS) {
+                              String key, BitmapFont fM, BitmapFont fS) {
         fS.setColor(new Color(0.7f, 0.85f, 1f, 1f));
         fS.draw(batch, key + "  Reemplazar:", x, ty);
 
@@ -752,14 +904,22 @@ public class HUD implements Disposable {
     private static String dmgTypeLabel(String name) {
         if (name == null) return "Físico";
         switch (name) {
-            case "FISICO":          return "Físico";
-            case "MAGICO":          return "Mágico";
-            case "A_DISTANCIA":     return "A Dist.";
-            case "FUEGO":           return "Fuego";
-            case "VENENO":          return "Veneno";
-            case "CAOS":            return "Caos";
-            case "CAOS_PRIMORDIAL": return "Primordial";
-            default:                return name;
+            case "FISICO":
+                return "Físico";
+            case "MAGICO":
+                return "Mágico";
+            case "A_DISTANCIA":
+                return "A Dist.";
+            case "FUEGO":
+                return "Fuego";
+            case "VENENO":
+                return "Veneno";
+            case "CAOS":
+                return "Caos";
+            case "CAOS_PRIMORDIAL":
+                return "Primordial";
+            default:
+                return name;
         }
     }
 
@@ -801,7 +961,9 @@ public class HUD implements Disposable {
 
     // ── 6-slot inventory overlay ──────────────────────────────────────────────
 
-    /** Card rect for inventory slot i: {x, y, w, h} in HUD coordinates. */
+    /**
+     * Card rect for inventory slot i: {x, y, w, h} in HUD coordinates.
+     */
     private static float[] inventoryCardRect(int slot) {
         float cardW = 290f, cardH = 108f, colGap = 20f, rowGap = 14f;
         float panelX = (1280f - 2 * cardW - colGap) / 2f;
@@ -852,29 +1014,29 @@ public class HUD implements Disposable {
 
         for (int i = 0; i < 6; i++) {
             float[] r = inventoryCardRect(i);
-            boolean active   = i < 2;
-            boolean hovered  = i == hoveredSlot;
+            boolean active = i < 2;
+            boolean hovered = i == hoveredSlot;
             boolean selected = i == selectedSlot;
-            boolean empty    = slotName[i].equals("-");
+            boolean empty = slotName[i].equals("-");
 
             // Card background
             Gdx.gl.glEnable(GL20.GL_BLEND);
             Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            if      (selected) shapeRenderer.setColor(0.35f, 0.25f, 0.02f, 1f);
-            else if (hovered)  shapeRenderer.setColor(0.22f, 0.22f, 0.32f, 1f);
-            else if (active)   shapeRenderer.setColor(0.18f, 0.18f, 0.26f, 1f);
-            else               shapeRenderer.setColor(0.10f, 0.10f, 0.14f, 1f);
+            if (selected) shapeRenderer.setColor(0.35f, 0.25f, 0.02f, 1f);
+            else if (hovered) shapeRenderer.setColor(0.22f, 0.22f, 0.32f, 1f);
+            else if (active) shapeRenderer.setColor(0.18f, 0.18f, 0.26f, 1f);
+            else shapeRenderer.setColor(0.10f, 0.10f, 0.14f, 1f);
             shapeRenderer.rect(r[0], r[1], r[2], r[3]);
             shapeRenderer.end();
             Gdx.gl.glDisable(GL20.GL_BLEND);
 
             shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
             Gdx.gl.glLineWidth(selected ? 3 : hovered ? 2 : 1);
-            if      (selected) shapeRenderer.setColor(Color.GOLD);
-            else if (hovered)  shapeRenderer.setColor(Color.WHITE);
-            else if (active)   shapeRenderer.setColor(0.6f, 0.6f, 0.8f, 1f);
-            else               shapeRenderer.setColor(0.35f, 0.35f, 0.35f, 1f);
+            if (selected) shapeRenderer.setColor(Color.GOLD);
+            else if (hovered) shapeRenderer.setColor(Color.WHITE);
+            else if (active) shapeRenderer.setColor(0.6f, 0.6f, 0.8f, 1f);
+            else shapeRenderer.setColor(0.35f, 0.35f, 0.35f, 1f);
             shapeRenderer.rect(r[0], r[1], r[2], r[3]);
             shapeRenderer.end();
             Gdx.gl.glLineWidth(1);
@@ -921,6 +1083,55 @@ public class HUD implements Disposable {
         fS.draw(batch, "Click  Seleccionar / Intercambiar     [ESC]  Cerrar", 320f, 134f);
         fS.setColor(Color.WHITE);
         batch.end();
+    }
+
+    private void renderRelicBar() {
+        if (relicLabel.isEmpty() || relicStacks <= 0) return;
+        int maxStacks;
+        float r1, g1, b1, r2, g2, b2;
+        if (relicLabel.equals("Combo")) {
+            maxStacks = 10;
+            r1 = 0.2f;
+            g1 = 0.9f;
+            b1 = 0.2f;
+            r2 = 1.0f;
+            g2 = 0.6f;
+            b2 = 0.0f;
+        } else if (relicLabel.equals("Armadura")) {
+            maxStacks = 5;
+            r1 = 0.4f;
+            g1 = 0.7f;
+            b1 = 1.0f;
+            r2 = 0.4f;
+            g2 = 0.7f;
+            b2 = 1.0f;
+        } else {
+            return;
+        }
+        float segW = 8f, segH = 6f, gap = 2f;
+        float startX = 20f;
+        float barY = screenHeight - 110f;
+        boolean flashing = relicLabel.equals("Combo") && comboFlashTimer > 0;
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (int s = 0; s < maxStacks; s++) {
+            float t = maxStacks > 1 ? (float) s / (maxStacks - 1) : 1f;
+            float r, g, b;
+            if (flashing) {
+                float pulse = 0.5f + 0.5f * com.badlogic.gdx.math.MathUtils.sin(
+                    comboFlashTimer * 25f);
+                r = 1f;
+                g = 0.75f + 0.25f * pulse;
+                b = 0f;
+            } else {
+                r = r1 + (r2 - r1) * t;
+                g = g1 + (g2 - g1) * t;
+                b = b1 + (b2 - b1) * t;
+            }
+            if (s < relicStacks) shapeRenderer.setColor(r, g, b, 1f);
+            else shapeRenderer.setColor(0.15f, 0.15f, 0.15f, 0.8f);
+            shapeRenderer.rect(startX + s * (segW + gap), barY, segW, segH);
+        }
+        shapeRenderer.end();
     }
 
     @Override

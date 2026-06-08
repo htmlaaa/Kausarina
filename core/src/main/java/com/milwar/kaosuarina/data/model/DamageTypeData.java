@@ -5,7 +5,9 @@ public class DamageTypeData {
     public String name;
     public String family;
     public String scalingStat;
-    /** Empty string means no resistance stat (e.g. DMG_CHAOS ignores resistances). */
+    /**
+     * Empty string means no resistance stat (e.g. DMG_CHAOS ignores resistances).
+     */
     public String resistStat;
     public String description;
 }

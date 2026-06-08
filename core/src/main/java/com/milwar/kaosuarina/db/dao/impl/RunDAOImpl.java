@@ -18,8 +18,8 @@ public class RunDAOImpl implements RunDAO {
     @Override
     public int guardar(RunVO run) throws SQLException {
         String sql = "INSERT INTO run (personaje_id, score, tiempo_segundos, " +
-                     "nivel_alcanzado, mana_total_gastado, completada, fecha_fin) " +
-                     "VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)";
+            "nivel_alcanzado, mana_total_gastado, completada, fecha_fin) " +
+            "VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)";
         try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, run.personajeId);
             ps.setInt(2, run.score);
@@ -82,20 +82,20 @@ public class RunDAOImpl implements RunDAO {
     @Override
     public List<RunVO> obtenerTop10() throws SQLException {
         String sql = "SELECT id, personaje_id, score, tiempo_segundos, nivel_alcanzado, " +
-                     "mana_total_gastado FROM run WHERE completada = 1 " +
-                     "ORDER BY score DESC LIMIT 10";
+            "mana_total_gastado FROM run WHERE completada = 1 " +
+            "ORDER BY score DESC LIMIT 10";
         List<RunVO> lista = new ArrayList<>();
         try (Statement st = connection.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
                 RunVO vo = new RunVO();
-                vo.id             = rs.getInt("id");
-                vo.personajeId    = rs.getInt("personaje_id");
-                vo.score          = rs.getInt("score");
+                vo.id = rs.getInt("id");
+                vo.personajeId = rs.getInt("personaje_id");
+                vo.score = rs.getInt("score");
                 vo.tiempoSegundos = rs.getInt("tiempo_segundos");
                 vo.nivelAlcanzado = rs.getInt("nivel_alcanzado");
-                vo.manaTotal      = rs.getInt("mana_total_gastado");
-                vo.completada     = true;
+                vo.manaTotal = rs.getInt("mana_total_gastado");
+                vo.completada = true;
                 lista.add(vo);
             }
         }
@@ -112,14 +112,17 @@ public class RunDAOImpl implements RunDAO {
                 ps.setInt(2, i);
                 ps.setString(3, armas[i]);
                 String ins = (inscripciones != null && i < inscripciones.length) ? inscripciones[i] : null;
-                if (ins != null) ps.setString(4, ins); else ps.setNull(4, Types.VARCHAR);
+                if (ins != null) ps.setString(4, ins);
+                else ps.setNull(4, Types.VARCHAR);
                 ps.addBatch();
             }
             ps.executeBatch();
         }
     }
 
-    /** Resuelve el ID de un catálogo (tipo_enemigo o tipo_upgrade) por nombre. */
+    /**
+     * Resuelve el ID de un catálogo (tipo_enemigo o tipo_upgrade) por nombre.
+     */
     private int resolverIdCatalogo(String tabla, String nombre) throws SQLException {
         String sql = "SELECT id FROM " + tabla + " WHERE nombre = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

@@ -33,9 +33,9 @@ public class Role {
      */
     public static Role caballero() {
         PlayerStats s = new PlayerStats(250f, 0.25f, 1.5f, 1, 15f, 200);
-        s.defensa = 20f;
+        s.physicalDefense = 20f;
         s.maxMana = Constants.MANA_MAX_CABALLERO_BASE;
-        s.mana    = Constants.MANA_MAX_CABALLERO_BASE;
+        s.mana = Constants.MANA_MAX_CABALLERO_BASE;
         s.lightAttackCooldown = 0.20f;
         s.heavyAttackCooldown = 1.0f;
         s.meleeLightDamage = 38;
@@ -48,10 +48,10 @@ public class Role {
      */
     public static Role mago() {
         PlayerStats s = new PlayerStats(270f, 0.22f, 1f, 1, 20f, 85);
-        s.defensa = 5f;
-        s.resistenciaMagica = 15f;
-        s.maxMana   = Constants.MANA_MAX_MAGO_BASE;
-        s.mana      = Constants.MANA_MAX_MAGO_BASE;
+        s.physicalDefense = 5f;
+        s.magicResistance = 15f;
+        s.maxMana = Constants.MANA_MAX_MAGO_BASE;
+        s.mana = Constants.MANA_MAX_MAGO_BASE;
         s.manaRegen = Constants.MAGE_PASSIVE_REGEN;
         s.lightAttackCooldown = 0.28f;
         s.heavyAttackCooldown = 1.5f;
@@ -67,9 +67,9 @@ public class Role {
      */
     public static Role shooter() {
         PlayerStats s = new PlayerStats(340f, 0.16f, 1.2f, 2, 12f, 80);
-        s.defensa = 5f;
+        s.physicalDefense = 5f;
         s.maxMana = Constants.MANA_MAX_TIRADOR_BASE;
-        s.mana    = Constants.MANA_MAX_TIRADOR_BASE;
+        s.mana = Constants.MANA_MAX_TIRADOR_BASE;
         return new Role(Tipo.SHOOTER, "Tirador", s, new ReliquiaTirador());
     }
 

@@ -19,19 +19,24 @@ public class FontManager {
     public final BitmapFont small;    // 14px regular — hints, slot labels, inscriptions
 
     private FontManager() {
-        FreeTypeFontGenerator genReg  = new FreeTypeFontGenerator(Gdx.files.internal("fonts/regular.ttf"));
+        FreeTypeFontGenerator genReg = new FreeTypeFontGenerator(Gdx.files.internal("fonts/regular.ttf"));
         FreeTypeFontGenerator genBold = new FreeTypeFontGenerator(Gdx.files.internal("fonts/bold.ttf"));
 
         FreeTypeFontParameter p = new FreeTypeFontParameter();
-        p.minFilter  = Texture.TextureFilter.Linear;
-        p.magFilter  = Texture.TextureFilter.Linear;
+        p.minFilter = Texture.TextureFilter.Linear;
+        p.magFilter = Texture.TextureFilter.Linear;
         p.characters = FreeTypeFontGenerator.DEFAULT_CHARS + EXTRA_CHARS;
 
-        p.size = 68; title   = genBold.generateFont(p);
-        p.size = 40; heading = genBold.generateFont(p);
-        p.size = 28; large   = genReg.generateFont(p);
-        p.size = 20; medium  = genReg.generateFont(p);
-        p.size = 14; small   = genReg.generateFont(p);
+        p.size = 68;
+        title = genBold.generateFont(p);
+        p.size = 40;
+        heading = genBold.generateFont(p);
+        p.size = 28;
+        large = genReg.generateFont(p);
+        p.size = 20;
+        medium = genReg.generateFont(p);
+        p.size = 14;
+        small = genReg.generateFont(p);
 
         genReg.dispose();
         genBold.dispose();

@@ -7,12 +7,12 @@ import com.badlogic.gdx.audio.Sound;
 /**
  * Static audio facade. All methods are no-ops if the audio file is missing,
  * so the game runs without assets. Place files at:
- *   assets/audio/shot.wav
- *   assets/audio/hit.wav
- *   assets/audio/death.wav
- *   assets/audio/levelup.wav
- *   assets/audio/boss.wav
- *   assets/audio/music.ogg
+ * assets/audio/shot.wav
+ * assets/audio/hit.wav
+ * assets/audio/death.wav
+ * assets/audio/levelup.wav
+ * assets/audio/boss.wav
+ * assets/audio/music.ogg
  */
 public class AudioManager {
 
@@ -26,12 +26,12 @@ public class AudioManager {
     private static float masterVolume = 0.7f;
 
     public static void load() {
-        shotSound   = tryLoadSound("audio/shot.wav");
-        hitSound    = tryLoadSound("audio/hit.wav");
-        deathSound  = tryLoadSound("audio/death.wav");
+        shotSound = tryLoadSound("audio/shot.wav");
+        hitSound = tryLoadSound("audio/hit.wav");
+        deathSound = tryLoadSound("audio/death.wav");
         levelUpSound = tryLoadSound("audio/levelup.wav");
-        bossSound   = tryLoadSound("audio/boss.wav");
-        bgMusic     = tryLoadMusic("audio/music.ogg");
+        bossSound = tryLoadSound("audio/Fati_Finis.mp3");
+        bgMusic = tryLoadMusic("audio/Beyond_the_Final_Barrier.mp3");
         if (bgMusic != null) {
             bgMusic.setLooping(true);
             bgMusic.setVolume(masterVolume * 0.5f);
@@ -46,11 +46,25 @@ public class AudioManager {
         if (bgMusic != null) bgMusic.stop();
     }
 
-    public static void playShot()    { play(shotSound,    0.25f); }
-    public static void playHit()     { play(hitSound,     0.4f);  }
-    public static void playDeath()   { play(deathSound,   0.5f);  }
-    public static void playLevelUp() { play(levelUpSound, 0.8f);  }
-    public static void playBoss()    { play(bossSound,    0.9f);  }
+    public static void playShot() {
+        play(shotSound, 0.25f);
+    }
+
+    public static void playHit() {
+        play(hitSound, 0.4f);
+    }
+
+    public static void playDeath() {
+        play(deathSound, 0.5f);
+    }
+
+    public static void playLevelUp() {
+        play(levelUpSound, 0.8f);
+    }
+
+    public static void playBoss() {
+        play(bossSound, 0.9f);
+    }
 
     public static void dispose() {
         disposeSound(shotSound);
@@ -58,7 +72,10 @@ public class AudioManager {
         disposeSound(deathSound);
         disposeSound(levelUpSound);
         disposeSound(bossSound);
-        if (bgMusic != null) { bgMusic.dispose(); bgMusic = null; }
+        if (bgMusic != null) {
+            bgMusic.dispose();
+            bgMusic = null;
+        }
     }
 
     private static Sound tryLoadSound(String path) {

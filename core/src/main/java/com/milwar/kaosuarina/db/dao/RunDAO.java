@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface RunDAO {
 
-    /** Inserta la run y devuelve el ID generado, o -1 si falla. */
+    /**
+     * Inserta la run y devuelve el ID generado, o -1 si falla.
+     */
     int guardar(RunVO run) throws SQLException;
 
     /**
@@ -24,7 +26,9 @@ public interface RunDAO {
      */
     void guardarUpgrades(int runId, String[] tiposUpgrade, int[] niveles) throws SQLException;
 
-    /** Registra la reliquia activa en la run. */
+    /**
+     * Registra la reliquia activa en la run.
+     */
     void guardarReliquia(int runId, int reliquiaId) throws SQLException;
 
     /**
@@ -34,6 +38,8 @@ public interface RunDAO {
      */
     void guardarArmas(int runId, String[] armas, String[] inscripciones) throws SQLException;
 
-    /** Top 10 runs por score. */
+    /**
+     * Top 10 runs por score.
+     */
     List<RunVO> obtenerTop10() throws SQLException;
 }

@@ -24,27 +24,27 @@ public class DataManager {
         .create();
 
     // Weapons catalogs
-    private final Map<String, CharacterData>      characters    = new HashMap<>();
-    private final Map<String, WeaponTypeData>      weaponTypes   = new HashMap<>();
-    private final Map<String, DamageTypeData>      damageTypes   = new HashMap<>();
-    private final Map<String, TierData>            tiers         = new HashMap<>();
-    private final Map<String, WeaponData>          weapons       = new HashMap<>();
-    private final Map<String, SkillData>           skills        = new HashMap<>();
-    private final Map<String, EffectData>          effects       = new HashMap<>();
-    private final Map<String, WeaponAffixData>     affixes       = new HashMap<>();
-    private final List<WeaponAffixData>            affixList     = new ArrayList<>();
+    private final Map<String, CharacterData> characters = new HashMap<>();
+    private final Map<String, WeaponTypeData> weaponTypes = new HashMap<>();
+    private final Map<String, DamageTypeData> damageTypes = new HashMap<>();
+    private final Map<String, TierData> tiers = new HashMap<>();
+    private final Map<String, WeaponData> weapons = new HashMap<>();
+    private final Map<String, SkillData> skills = new HashMap<>();
+    private final Map<String, EffectData> effects = new HashMap<>();
+    private final Map<String, WeaponAffixData> affixes = new HashMap<>();
+    private final List<WeaponAffixData> affixList = new ArrayList<>();
     private final Map<String, PlayerAttributeData> playerAttribs = new HashMap<>();
 
     // Enemy catalogs
-    private final Map<String, EnemyData>           enemies          = new HashMap<>();
-    private final List<EnemyResistanceData>        resistances      = new ArrayList<>();
-    private final Map<String, EnemyAttackData>     enemyAttacks     = new HashMap<>();
-    private final List<EnemyAttackPoolData>        attackPool       = new ArrayList<>();
-    private final List<EnemyImmunityData>          immunities       = new ArrayList<>();
-    private final List<BossPhaseData>              bossPhases       = new ArrayList<>();
-    private final List<LootTableEntryData>         lootTableEntries = new ArrayList<>();
-    private final Map<String, EnemyLootData>       enemyLoot        = new HashMap<>();
-    private final List<DepthScalingData>           depthScaling     = new ArrayList<>();
+    private final Map<String, EnemyData> enemies = new HashMap<>();
+    private final List<EnemyResistanceData> resistances = new ArrayList<>();
+    private final Map<String, EnemyAttackData> enemyAttacks = new HashMap<>();
+    private final List<EnemyAttackPoolData> attackPool = new ArrayList<>();
+    private final List<EnemyImmunityData> immunities = new ArrayList<>();
+    private final List<BossPhaseData> bossPhases = new ArrayList<>();
+    private final List<LootTableEntryData> lootTableEntries = new ArrayList<>();
+    private final Map<String, EnemyLootData> enemyLoot = new HashMap<>();
+    private final List<DepthScalingData> depthScaling = new ArrayList<>();
 
     private DataManager() {
         loadWeapons();
@@ -114,26 +114,69 @@ public class DataManager {
     // Getters — weapons
     // -------------------------------------------------------------------------
 
-    public WeaponData          getWeapon(String id)       { return weapons.get(id); }
-    public TierData            getTier(String id)         { return tiers.get(id); }
-    public WeaponAffixData     getAffix(String id)        { return affixes.get(id); }
-    public List<WeaponAffixData> getAffixList()           { return Collections.unmodifiableList(affixList); }
-    public SkillData           getSkill(String id)        { return skills.get(id); }
-    public EffectData          getEffect(String id)       { return effects.get(id); }
-    public CharacterData       getCharacter(String id)    { return characters.get(id); }
-    public WeaponTypeData      getWeaponType(String id)   { return weaponTypes.get(id); }
-    public DamageTypeData      getDamageType(String id)   { return damageTypes.get(id); }
-    public PlayerAttributeData getPlayerAttrib(String id) { return playerAttribs.get(id); }
-    public Collection<WeaponData> getAllWeapons()         { return Collections.unmodifiableCollection(weapons.values()); }
-    public Collection<TierData>   getAllTiers()           { return Collections.unmodifiableCollection(tiers.values()); }
+    public WeaponData getWeapon(String id) {
+        return weapons.get(id);
+    }
+
+    public TierData getTier(String id) {
+        return tiers.get(id);
+    }
+
+    public WeaponAffixData getAffix(String id) {
+        return affixes.get(id);
+    }
+
+    public List<WeaponAffixData> getAffixList() {
+        return Collections.unmodifiableList(affixList);
+    }
+
+    public SkillData getSkill(String id) {
+        return skills.get(id);
+    }
+
+    public EffectData getEffect(String id) {
+        return effects.get(id);
+    }
+
+    public CharacterData getCharacter(String id) {
+        return characters.get(id);
+    }
+
+    public WeaponTypeData getWeaponType(String id) {
+        return weaponTypes.get(id);
+    }
+
+    public DamageTypeData getDamageType(String id) {
+        return damageTypes.get(id);
+    }
+
+    public PlayerAttributeData getPlayerAttrib(String id) {
+        return playerAttribs.get(id);
+    }
+
+    public Collection<WeaponData> getAllWeapons() {
+        return Collections.unmodifiableCollection(weapons.values());
+    }
+
+    public Collection<TierData> getAllTiers() {
+        return Collections.unmodifiableCollection(tiers.values());
+    }
 
     // -------------------------------------------------------------------------
     // Getters — enemies
     // -------------------------------------------------------------------------
 
-    public EnemyData      getEnemy(String id)        { return enemies.get(id); }
-    public EnemyAttackData getEnemyAttack(String id) { return enemyAttacks.get(id); }
-    public EnemyLootData  getEnemyLoot(String id)    { return enemyLoot.get(id); }
+    public EnemyData getEnemy(String id) {
+        return enemies.get(id);
+    }
+
+    public EnemyAttackData getEnemyAttack(String id) {
+        return enemyAttacks.get(id);
+    }
+
+    public EnemyLootData getEnemyLoot(String id) {
+        return enemyLoot.get(id);
+    }
 
     public int getResistPct(String enemyId, String dmgId) {
         for (EnemyResistanceData r : resistances)

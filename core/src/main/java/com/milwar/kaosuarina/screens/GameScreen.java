@@ -20,7 +20,7 @@ import com.milwar.kaosuarina.systems.UpgradeManager;
 import com.milwar.kaosuarina.roles.Role;
 import com.milwar.kaosuarina.ui.HUD;
 import com.milwar.kaosuarina.utils.AudioManager;
-import com.milwar.kaosuarina.utils.ColisionManager;
+import com.milwar.kaosuarina.utils.CollisionManager;
 import com.milwar.kaosuarina.utils.Constants;
 import com.badlogic.gdx.graphics.Color;
 import com.milwar.kaosuarina.data.DataManager;
@@ -34,31 +34,36 @@ import com.milwar.kaosuarina.weapons.WeaponType;
 import com.milwar.kaosuarina.utils.SharedTextures;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import com.badlogic.gdx.utils.viewport.FitViewport;
+
 import java.util.List;
 
 public class GameScreen implements Screen {
 
     private static final Map<String, String> WEAPON_NAMES = new HashMap<>();
+
     static {
-        WEAPON_NAMES.put("W_SHORTSWORD",   "Espada_Corta");
-        WEAPON_NAMES.put("W_FLAMEBLADE",   "Hoja_Llameante");
-        WEAPON_NAMES.put("W_HEAVYBLADE",   "Mandoble");
-        WEAPON_NAMES.put("W_VAMP_DAGGER",  "Daga_Vampirica");
-        WEAPON_NAMES.put("W_HUNTBOW",      "Arco_de_Caza");
-        WEAPON_NAMES.put("W_POISON_BOW",   "Arco_Venenoso");
-        WEAPON_NAMES.put("W_BALLISTA",     "Ballesta");
+        WEAPON_NAMES.put("W_SHORTSWORD", "Espada_Corta");
+        WEAPON_NAMES.put("W_FLAMEBLADE", "Hoja_Llameante");
+        WEAPON_NAMES.put("W_HEAVYBLADE", "Mandoble");
+        WEAPON_NAMES.put("W_VAMP_DAGGER", "Daga_Vampirica");
+        WEAPON_NAMES.put("W_HUNTBOW", "Arco_de_Caza");
+        WEAPON_NAMES.put("W_POISON_BOW", "Arco_Venenoso");
+        WEAPON_NAMES.put("W_BALLISTA", "Ballesta");
         WEAPON_NAMES.put("W_DUAL_PISTOLS", "Pistolas_Gemelas");
-        WEAPON_NAMES.put("W_APP_STAFF",    "Baculo_Aprendiz");
-        WEAPON_NAMES.put("W_FIRE_STAFF",   "Baculo_de_Fuego");
-        WEAPON_NAMES.put("W_CHAOS_WAND",   "Vara_del_Caos");
-        WEAPON_NAMES.put("W_PLAGUE_GRIM",  "Grimorio_Plaga");
+        WEAPON_NAMES.put("W_APP_STAFF", "Baculo_Aprendiz");
+        WEAPON_NAMES.put("W_FIRE_STAFF", "Baculo_de_Fuego");
+        WEAPON_NAMES.put("W_CHAOS_WAND", "Vara_del_Caos");
+        WEAPON_NAMES.put("W_PLAGUE_GRIM", "Grimorio_Plaga");
     }
 
     private final KaosuarinaGame game;
     private final Role roleInicial;
+    private final Difficulty difficulty;
 
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
@@ -66,15 +71,15 @@ public class GameScreen implements Screen {
     private FitViewport gameViewport;
 
     private Player player;
-    private PoolBalas poolBalas;
-    private PoolEnemigos poolEnemigos;
-    private PoolBalasEnemigas poolBalasEnemigas;
+    private BulletPool poolBalas;
+    private EnemyPool poolEnemigos;
+    private EnemyBulletPool poolBalasEnemigas;
 
     private HUD hud;
     private UpgradeManager upgradeManager;
     private LevelUpScreen levelUpScreen;
 
-    private BossManager  bossManager;
+    private BossManager bossManager;
     private SpawnManager spawnManager;
 
     private int nivelAnterior;
@@ -82,53 +87,61 @@ public class GameScreen implements Screen {
     private float aimAngle;
     private boolean leftClickJust;
     private boolean rightClickJust;
-    private int   lastMouseX, lastMouseY;
+    private int lastMouseX, lastMouseY;
     private float mouseActiveTimer = 0f;
     private static final float MOUSE_ACTIVE_DURATION = 1.5f;
-    private float   tiempoSupervivencia;
+    private float tiempoSupervivencia;
     private boolean runGuardada;
     private boolean gameWon;
 
-    private int     nextChestWave;
-    private float   chestX, chestY;
+    private int lastComboCount = 0;
+
+    private int nextChestWave;
+    private float chestX, chestY;
     private boolean chestActive;
-    private Weapon  chestWeapon;
-    private Weapon  pendingPickupWeapon;
+    private Weapon chestWeapon;
+    private Weapon pendingPickupWeapon;
     private boolean swapMenuActive;
-    private float   swapMenuTimer;
+    private float swapMenuTimer;
     private boolean pauseMenuActive;
-    private int     currentDepthForDrops = 1;
-    private float   hpRegenAccum         = 0f;
+    private int currentDepthForDrops = 1;
+    private float hpRegenAccum = 0f;
 
     // Inventario de 6 slots (TAB)
-    private boolean inventoryOpen     = false;
-    private int     inventorySelected = -1;
+    private boolean inventoryOpen = false;
+    private int inventorySelected = -1;
 
     // Pool de drops de arma en mundo (enemy loot)
     private static final int DROP_POOL = 8;
-    private final float[]   dropX      = new float[DROP_POOL];
-    private final float[]   dropY      = new float[DROP_POOL];
-    private final Weapon[]  dropWeapon = new Weapon[DROP_POOL];
+    private final float[] dropX = new float[DROP_POOL];
+    private final float[] dropY = new float[DROP_POOL];
+    private final Weapon[] dropWeapon = new Weapon[DROP_POOL];
     private final boolean[] dropActive = new boolean[DROP_POOL];
 
     // S6-02 — Scroll de Inscripción
-    private int     nextScrollWave;
-    private float   scrollX, scrollY;
+    private int nextScrollWave;
+    private float scrollX, scrollY;
     private boolean scrollActive;
     private com.milwar.kaosuarina.weapons.Inscription pendingInscription;
     private boolean scrollMenuActive;
-    private float   scrollMenuTimer;
+    private float scrollMenuTimer;
 
     // S6-03 — Amuletos
-    private int     nextAmuletWave;
-    private float   amuletX, amuletY;
+    private int nextAmuletWave;
+    private float amuletX, amuletY;
     private com.milwar.kaosuarina.items.AmuletType amuletType;
     private boolean amuletActive;
     private boolean damageTakenThisWave;
+    // MEC-01 — Amulet swap menu (when slots full)
+    private com.milwar.kaosuarina.items.AmuletType pendingAmuletType;
+    private boolean amuletSwapMenuActive;
+    private float amuletSwapMenuTimer;
+    private int amuletSwapSelected = 0;
 
-    public GameScreen(KaosuarinaGame game, Role role) {
+    public GameScreen(KaosuarinaGame game, Role role, Difficulty difficulty) {
         this.game = game;
         this.roleInicial = role;
+        this.difficulty = difficulty;
     }
 
     @Override
@@ -144,9 +157,9 @@ public class GameScreen implements Screen {
         gameViewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
 
         player = new Player(0, 0, roleInicial);
-        poolBalas = new PoolBalas();
-        poolEnemigos = new PoolEnemigos();
-        poolBalasEnemigas = new PoolBalasEnemigas();
+        poolBalas = new BulletPool();
+        poolEnemigos = new EnemyPool();
+        poolBalasEnemigas = new EnemyBulletPool();
         hud = new HUD(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
         upgradeManager = new UpgradeManager();
@@ -160,8 +173,10 @@ public class GameScreen implements Screen {
         runGuardada = false;
         gameWon = false;
 
-        bossManager  = new BossManager(player, poolEnemigos, hud);
-        spawnManager = new SpawnManager(player, poolEnemigos);
+        bossManager = new BossManager(player, poolEnemigos, hud);
+        spawnManager = new SpawnManager(player, poolEnemigos,
+            difficulty.eliteWaveStart, difficulty.intensityMult);
+        currentDepthForDrops = difficulty.initialDepth;
 
         nextChestWave = MathUtils.random(Constants.CHEST_SPAWN_INTERVAL_MIN, Constants.CHEST_SPAWN_INTERVAL_MAX);
         chestActive = false;
@@ -183,6 +198,11 @@ public class GameScreen implements Screen {
         nextAmuletWave = Constants.AMULET_SPAWN_INTERVAL_MIN;
         amuletActive = false;
         damageTakenThisWave = false;
+        amuletSwapMenuActive = false;
+        amuletSwapMenuTimer = 0f;
+        amuletSwapSelected = 0;
+        pendingAmuletType = null;
+        lastComboCount = 0;
     }
 
     @Override
@@ -211,11 +231,15 @@ public class GameScreen implements Screen {
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            if (inventoryOpen) { inventoryOpen = false; inventorySelected = -1; }
-            else if (!swapMenuActive && !scrollMenuActive) { pauseMenuActive = !pauseMenuActive; }
+            if (inventoryOpen) {
+                inventoryOpen = false;
+                inventorySelected = -1;
+            } else if (!swapMenuActive && !scrollMenuActive) {
+                pauseMenuActive = !pauseMenuActive;
+            }
         }
 
-        boolean anyOverlay = pauseMenuActive || swapMenuActive || scrollMenuActive || inventoryOpen;
+        boolean anyOverlay = pauseMenuActive || swapMenuActive || scrollMenuActive || inventoryOpen || amuletSwapMenuActive;
         if (!anyOverlay) {
             procesarInput();
             actualizarJuego(delta);
@@ -250,7 +274,9 @@ public class GameScreen implements Screen {
         }
     }
 
-    /** Recalcula cada frame los bonos de afijo de arma para lifesteal y mp_regen. */
+    /**
+     * Recalcula cada frame los bonos de afijo de arma para lifesteal y mp_regen.
+     */
     private void actualizarAffixBonuses() {
         float ls = 0f, mr = 0f;
         for (int i = 0; i < 2; i++) {
@@ -261,7 +287,7 @@ public class GameScreen implements Screen {
             }
         }
         player.getStats().weaponAffixLifesteal = ls;
-        player.getStats().weaponAffixMpRegen   = mr;
+        player.getStats().weaponAffixMpRegen = mr;
     }
 
     private void actualizarHudSlots() {
@@ -325,10 +351,17 @@ public class GameScreen implements Screen {
     }
 
     private void procesarLevelUp() {
+        levelUpScreen.setRerollsLeft(upgradeManager.getRerollsLeft());
         levelUpScreen.handleInput();
+        // MEC-02 — Reroll
+        if (levelUpScreen.isRerollRequested()) {
+            com.badlogic.gdx.utils.Array<Upgrade> nuevas = upgradeManager.reroll(3);
+            if (nuevas != null && nuevas.size > 0) levelUpScreen.show(nuevas);
+            return;
+        }
         Upgrade seleccionado = levelUpScreen.getSelectedUpgrade();
         if (seleccionado != null) {
-            upgradeManager.aplicarUpgrade(seleccionado);
+            upgradeManager.applyUpgrade(seleccionado);
             aplicarBonusUpgrade(seleccionado);
             levelUpScreen.hide();
         }
@@ -338,34 +371,86 @@ public class GameScreen implements Screen {
         com.milwar.kaosuarina.systems.PlayerStats st = player.getStats();
         switch (u.tipo) {
             case VIDA_MAXIMA_UP:
-                player.aumentarVidaMaxima(20); break;
+                player.increaseMaxHealth(20);
+                break;
             case GOLPE_PESADO:
                 st.meleeLightDamage = Math.round(st.meleeLightDamage * 1.30f);
-                st.meleeHeavyDamage = Math.round(st.meleeHeavyDamage * 1.30f); break;
+                st.meleeHeavyDamage = Math.round(st.meleeHeavyDamage * 1.30f);
+                break;
             case DEFENSA:
-                st.defensa  += 8f;
-                st.defBase  += 8f; break;
+                st.physicalDefense += 8f;
+                st.defBase += 8f;
+                break;
             case MANA_MAXIMO_UP:
-                st.maxMana      += 30f;
-                st.manaMaxBase  += 30f; break;
+                st.maxMana += 30f;
+                st.manaMaxBase += 30f;
+                break;
             case RESONANCIA:
-                st.blastRadiusMult *= 1.40f; break;
+                st.blastRadiusMult *= 1.40f;
+                break;
             case CADENCIA_MAGICA:
-                st.lightAttackCooldown = Math.max(0.10f, st.lightAttackCooldown * 0.80f); break;
+                st.lightAttackCooldown = Math.max(0.10f, st.lightAttackCooldown * 0.80f);
+                break;
             case RECARGA_RAPIDA:
-                st.baseShootCooldown = Math.max(0.08f, st.baseShootCooldown * 0.85f); break;
-            default: break;
+                st.baseShootCooldown = Math.max(0.08f, st.baseShootCooldown * 0.85f);
+                break;
+            // ── CNT-03 Genéricos ─────────────────────────────────────────────
+            case REGENERACION:
+                // +1 HP/s stacks; tracked via amuletRegenBonus alternative — use dedicated field
+                st.hpRegenPerSec += 1f;
+                break;
+            case AURA_VENENO:
+                st.hasAuraVeneno = true;
+                break;
+            case CRITICO_ENCADENADO:
+                st.hasCriticoEncadenado = true;
+                break;
+            case PESO_MUERTO:
+                st.hasPesoMuerto = true;
+                break;
+            // ── CNT-03 Caballero ─────────────────────────────────────────────
+            case CONTRAGOLPE:
+                st.contragolpeNivel++;
+                break;
+            case AURA_INTIMIDACION:
+                st.hasAuraIntimidacion = true;
+                break;
+            case GOLPE_TIERRA:
+                st.hasGolpeTierra = true;
+                break;
+            // ── CNT-03 Mago ──────────────────────────────────────────────────
+            case MANA_SOBRECARGA:
+                st.hasManaOvercharge = true;
+                break;
+            case BARRERA_MAGICA:
+                st.barreraMagicaNivel++;
+                break;
+            case HECHIZO_ESFERAS:
+                st.hasHechizoesferas = true;
+                break;
+            // ── CNT-03 Tirador ───────────────────────────────────────────────
+            case BALA_EXPLOSIVA:
+                st.hasBalaExplosiva = true;
+                break;
+            case MUNICION_ENVENENADA:
+                st.hasMunicionEnvenenada = true;
+                break;
+            case DISPARO_TENSO:
+                st.hasDisparoTenso = true;
+                break;
+            default:
+                break;
         }
     }
 
     private void procesarInput() {
         player.velocity.set(0, 0);
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) player.velocity.y = player.getVelocidadActual();
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) player.velocity.y = -player.getVelocidadActual();
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) player.velocity.x = -player.getVelocidadActual();
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) player.velocity.x = player.getVelocidadActual();
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) player.velocity.y = player.getCurrentSpeed();
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) player.velocity.y = -player.getCurrentSpeed();
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) player.velocity.x = -player.getCurrentSpeed();
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) player.velocity.x = player.getCurrentSpeed();
 
-        if (player.velocity.len2() > 0) player.velocity.nor().scl(player.getVelocidadActual());
+        if (player.velocity.len2() > 0) player.velocity.nor().scl(player.getCurrentSpeed());
 
         int curMouseX = Gdx.input.getX();
         int curMouseY = Gdx.input.getY();
@@ -397,7 +482,7 @@ public class GameScreen implements Screen {
         if (regenRate > 0) {
             hpRegenAccum += regenRate * delta;
             if (hpRegenAccum >= 1f) {
-                player.curar((int) hpRegenAccum);
+                player.heal((int) hpRegenAccum);
                 hpRegenAccum -= (int) hpRegenAccum;
             }
         }
@@ -413,7 +498,7 @@ public class GameScreen implements Screen {
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
             Weapon w = player.getWeaponAtSlot(i);
             if (w != null && w.category == WeaponCategory.NORMAL && w.cooldownTimer <= 0) {
-                ((WeaponNormal) w).shoot(player, poolBalas, aimAngle);
+                ((WeaponNormal) w).shoot(player, poolBalas, poolEnemigos, aimAngle, i);
                 w.cooldownTimer = calcCooldownEfectivo(w);
             }
         }
@@ -440,6 +525,7 @@ public class GameScreen implements Screen {
         poolBalas.update(delta);
         poolBalasEnemigas.update(delta);
         poolEnemigos.update(delta, player.position, poolBalasEnemigas);
+        procesarSeñalesEnemigosSprint4(delta);
         hud.update(delta);
 
         // Wave spawning + difficulty scaling
@@ -459,15 +545,19 @@ public class GameScreen implements Screen {
         checkPlayerScrollCollision();
         updateScrollMenu(delta);
         checkPlayerAmuletCollision();
+        updateAmuletSwapMenu(delta);
 
         // Boss lifecycle (delegated to BossManager)
         bossManager.update(delta);
         if (bossManager.damageTakenThisFrame) damageTakenThisWave = true;
-        if (bossManager.victoryTriggered)     gameWon = true;
-        if (bossManager.guardianDied)         spawnScrollAt(bossManager.guardianDeathX, bossManager.guardianDeathY);
-        if (bossManager.arqueroDied)          spawnChestAt(bossManager.arqueroDeathX, bossManager.arqueroDeathY);
+        if (bossManager.victoryTriggered) gameWon = true;
+        if (bossManager.guardianDied) spawnScrollAt(bossManager.guardianDeathX, bossManager.guardianDeathY);
+        if (bossManager.arqueroDied) spawnChestAt(bossManager.arqueroDeathX, bossManager.arqueroDeathY);
 
-        // Amuleto icons HUD (S6-03)
+        // Amuleto slots HUD (MEC-01)
+        com.milwar.kaosuarina.items.AmuletType[] slots = new com.milwar.kaosuarina.items.AmuletType[3];
+        for (int i = 0; i < 3; i++) slots[i] = player.getAmuletAtSlot(i);
+        hud.setAmuletSlots(slots);
         hud.setAmuletFlags(player.getStats().hasSedDeSangre, player.getStats().hasGuardianArena);
 
         // Relic display HUD
@@ -476,7 +566,9 @@ public class GameScreen implements Screen {
 
     }
 
-    /** Called by SpawnManager when a wave fires. Handles collectibles and arena bonus. */
+    /**
+     * Called by SpawnManager when a wave fires. Handles collectibles and arena bonus.
+     */
     private void onWaveFired() {
         if (player.getStats().hasGuardianArena && !damageTakenThisWave && spawnManager.getWaveCount() > 1) {
             player.getStats().addMana(Constants.GUARDIAN_ARENA_GAIN);
@@ -499,18 +591,19 @@ public class GameScreen implements Screen {
     }
 
     private void procesarColisiones() {
-        recompensarKills(ColisionManager.comprobarBalasVsEnemigos(player, poolBalas, poolEnemigos));
-        recompensarKills(ColisionManager.comprobarExplosionesMALDITO(poolEnemigos));
+        CollisionManager.rebuildGrid(poolEnemigos);
+        recompensarKills(CollisionManager.checkBulletsVsEnemies(player, poolBalas, poolEnemigos));
+        recompensarKills(CollisionManager.checkMalditoExplosions(poolEnemigos));
 
-        int contactDmg = ColisionManager.comprobarJugadorVsEnemigos(player, poolEnemigos);
+        int contactDmg = CollisionManager.checkPlayerVsEnemies(player, poolEnemigos);
         if (contactDmg > 0) {
             int hpBefore = player.getCurrentHealth();
-            player.recibirDanio(contactDmg);
+            player.takeDamage(contactDmg);
             if (player.getCurrentHealth() < hpBefore) damageTakenThisWave = true;
         }
 
         int hpBefore = player.getCurrentHealth();
-        ColisionManager.comprobarBalasEnemigas(poolBalasEnemigas, player);
+        CollisionManager.checkEnemyBullets(poolBalasEnemigas, player);
         if (player.getCurrentHealth() < hpBefore) damageTakenThisWave = true;
     }
 
@@ -534,9 +627,14 @@ public class GameScreen implements Screen {
             nivelAnterior = nivelActual;
         }
         if (pendingLevelUps > 0 && !levelUpScreen.isActive()) {
+            com.badlogic.gdx.utils.Array<com.milwar.kaosuarina.systems.Upgrade> opts =
+                upgradeManager.getRandomUpgrades(3);
             pendingLevelUps--;
-            AudioManager.playLevelUp();
-            levelUpScreen.show(upgradeManager.getUpgradesAleatorios(3));
+            if (opts.size > 0) {
+                AudioManager.playLevelUp();
+                levelUpScreen.show(opts);
+            }
+            // opts vacío = todos los upgrades al máximo; consumir el pending en silencio
         }
     }
 
@@ -581,6 +679,66 @@ public class GameScreen implements Screen {
         }
         shapeRenderer.end();
 
+        // ── Enemy AoE zone visuals ────────────────────────────────────────────
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (Enemy e : poolEnemigos.getEnemies()) {
+            if (!e.active) continue;
+            switch (e.tipo) {
+                case ELITE_ZONE:
+                    shapeRenderer.setColor(0.55f, 0f, 0.85f, 0.18f);
+                    shapeRenderer.circle(e.position.x, e.position.y, Constants.ELITE_ZONE_RADIUS, 48);
+                    break;
+                case HEALER:
+                    shapeRenderer.setColor(0.1f, 0.9f, 0.25f, 0.10f);
+                    shapeRenderer.circle(e.position.x, e.position.y, Constants.HEALER_HEAL_RADIUS, 32);
+                    break;
+                case BERSERKER:
+                    if (e.berserkActive) {
+                        shapeRenderer.setColor(1f, 0.05f, 0.05f, 0.20f);
+                        shapeRenderer.circle(e.position.x, e.position.y, 55f, 24);
+                    }
+                    break;
+                case MALDITO:
+                    shapeRenderer.setColor(0.1f, 0.85f, 0.1f, 0.07f);
+                    shapeRenderer.circle(e.position.x, e.position.y, Constants.MALDITO_EXPLOSION_RADIUS, 32);
+                    break;
+                default:
+                    break;
+            }
+        }
+        shapeRenderer.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glLineWidth(2);
+        for (Enemy e : poolEnemigos.getEnemies()) {
+            if (!e.active) continue;
+            switch (e.tipo) {
+                case ELITE_ZONE:
+                    shapeRenderer.setColor(0.75f, 0.1f, 1f, 0.65f);
+                    shapeRenderer.circle(e.position.x, e.position.y, Constants.ELITE_ZONE_RADIUS, 48);
+                    break;
+                case HEALER:
+                    shapeRenderer.setColor(0.1f, 0.9f, 0.25f, 0.35f);
+                    shapeRenderer.circle(e.position.x, e.position.y, Constants.HEALER_HEAL_RADIUS, 32);
+                    break;
+                case ELITE_CHARGE:
+                    if (e.chargeState == 1) {
+                        shapeRenderer.setColor(1f, 0.35f, 0f, 0.85f);
+                        shapeRenderer.line(e.position.x, e.position.y,
+                            e.position.x + e.chargeDirX * 300f,
+                            e.position.y + e.chargeDirY * 300f);
+                        shapeRenderer.circle(e.position.x, e.position.y, 38f, 24);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        Gdx.gl.glLineWidth(1);
+        shapeRenderer.end();
+
         // Boss blast rings + spiral (delegated to BossManager)
         bossManager.renderEffects(shapeRenderer);
 
@@ -600,9 +758,9 @@ public class GameScreen implements Screen {
 
         hud.render(batch);
         if (swapMenuActive && pendingPickupWeapon != null) {
-            HUD.WeaponCard newCard  = buildWeaponCard(pendingPickupWeapon);
-            HUD.WeaponCard card0    = buildWeaponCard(player.getWeaponAtSlot(0));
-            HUD.WeaponCard card1    = buildWeaponCard(player.getWeaponAtSlot(1));
+            HUD.WeaponCard newCard = buildWeaponCard(pendingPickupWeapon);
+            HUD.WeaponCard card0 = buildWeaponCard(player.getWeaponAtSlot(0));
+            HUD.WeaponCard card1 = buildWeaponCard(player.getWeaponAtSlot(1));
             hud.renderSwapMenuCards(batch, newCard, card0, card1, swapMenuTimer);
         }
         if (scrollMenuActive && pendingInscription != null) {
@@ -616,29 +774,31 @@ public class GameScreen implements Screen {
         if (runGuardada) return;
         runGuardada = true;
         DBManager.guardarRun(construirRunData());
-        String[] lb         = buildLeaderboard(DBManager.getTop10());
-        int      scoreVal   = hud.getScore();
-        int      tiempo     = (int) tiempoSupervivencia;
-        int      levelVal   = hud.getLevel();
-        int      pid        = personajeIdDe(player.getRole().tipo);
-        String   armas      = hud.getArmasText();
-        int[]    kills      = poolEnemigos.getKillsByType().clone();
-        int      waves      = spawnManager.getWaveCount();
+        int scoreVal = hud.getScore();
+        int levelVal = hud.getLevel();
+        int waves = spawnManager.getWaveCount();
+        int tokens = DBManager.calcularTokens(scoreVal, levelVal, waves);
+        int tokensTotal = DBManager.addTokens(tokens);
+        String[] lb = buildLeaderboard(DBManager.getTop10());
+        int tiempo = (int) tiempoSupervivencia;
+        int pid = personajeIdDe(player.getRole().tipo);
+        String armas = hud.getArmasText();
+        int[] kills = poolEnemigos.getKillsByType().clone();
         liberarRecursos();
-        game.setScreen(new GameOverScreen(game, scoreVal, tiempo, levelVal, waves, pid, armas, kills, lb));
+        game.setScreen(new GameOverScreen(game, scoreVal, tiempo, levelVal, waves, pid, armas, kills, lb, tokens, tokensTotal));
     }
 
     private void renderVictoria() {
         if (runGuardada) return;
         runGuardada = true;
         DBManager.guardarRun(construirRunData());
-        String[] lb       = buildLeaderboard(DBManager.getTop10());
-        int      scoreVal = hud.getScore();
-        int      tiempo   = (int) tiempoSupervivencia;
-        int      levelVal = hud.getLevel();
-        int      pid      = personajeIdDe(player.getRole().tipo);
-        String   armas    = hud.getArmasText();
-        int      waves    = spawnManager.getWaveCount();
+        String[] lb = buildLeaderboard(DBManager.getTop10());
+        int scoreVal = hud.getScore();
+        int tiempo = (int) tiempoSupervivencia;
+        int levelVal = hud.getLevel();
+        int pid = personajeIdDe(player.getRole().tipo);
+        String armas = hud.getArmasText();
+        int waves = spawnManager.getWaveCount();
         liberarRecursos();
         game.setScreen(new WinScreen(game, scoreVal, tiempo, levelVal, waves, pid, armas, lb));
     }
@@ -658,37 +818,41 @@ public class GameScreen implements Screen {
 
     private static String rolAbrev(int id) {
         switch (id) {
-            case 1:  return "CAB";
-            case 2:  return "MAG";
-            case 3:  return "SHT";
-            default: return "???";
+            case 1:
+                return "CAB";
+            case 2:
+                return "MAG";
+            case 3:
+                return "SHT";
+            default:
+                return "???";
         }
     }
 
     private DBManager.RunData construirRunData() {
         DBManager.RunData d = new DBManager.RunData();
-        d.personajeId    = personajeIdDe(player.getRole().tipo);
-        d.score          = hud.getScore();
+        d.personajeId = personajeIdDe(player.getRole().tipo);
+        d.score = hud.getScore();
         d.tiempoSegundos = (int) tiempoSupervivencia;
         d.nivelAlcanzado = hud.getLevel();
-        d.manaTotal      = (int) player.getStats().manaGastadoTotal;
-        d.killsPorTipo   = poolEnemigos.getKillsByType();
-        d.reliquiaId     = personajeIdDe(player.getRole().tipo);
+        d.manaTotal = (int) player.getStats().totalManaSpent;
+        d.killsPorTipo = poolEnemigos.getKillsByType();
+        d.reliquiaId = personajeIdDe(player.getRole().tipo);
 
-        List<Upgrade> aplicados = upgradeManager.getUpgradesAplicados();
-        d.upgradesTipos   = new String[aplicados.size()];
+        List<Upgrade> aplicados = upgradeManager.getAppliedUpgrades();
+        d.upgradesTipos = new String[aplicados.size()];
         d.upgradesNiveles = new int[aplicados.size()];
         for (int i = 0; i < aplicados.size(); i++) {
-            d.upgradesTipos[i]   = aplicados.get(i).tipo.name();
+            d.upgradesTipos[i] = aplicados.get(i).tipo.name();
             d.upgradesNiveles[i] = aplicados.get(i).nivel;
         }
 
-        d.armasEquipadas         = new String[Constants.WEAPON_SLOTS];
+        d.armasEquipadas = new String[Constants.WEAPON_SLOTS];
         d.inscripcionesEquipadas = new String[Constants.WEAPON_SLOTS];
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
             Weapon w = player.getWeaponAtSlot(i);
             if (w != null) {
-                d.armasEquipadas[i]         = w.type.name();
+                d.armasEquipadas[i] = w.type.name();
                 d.inscripcionesEquipadas[i] = (w.inscription != null) ? w.inscription.getName() : null;
             }
         }
@@ -716,15 +880,17 @@ public class GameScreen implements Screen {
         }
     }
 
-    /** cd_efectivo = max(cd_base × affinityMult / multiplicadorCadencia × (1-afijo%), MIN_WEAPON_CD) */
+    /**
+     * cd_efectivo = max(cd_base × affinityMult / multiplicadorCadencia × (1-afijo%), MIN_WEAPON_CD)
+     */
     private float calcCooldownEfectivo(Weapon w) {
         float cd = w.cooldownBase;
         if (w.hasAffinityFor(player.getRole().tipo)) cd *= Constants.WEAPON_AFFINITY_CD_MULT;
-        float cadMult = (upgradeManager != null) ? upgradeManager.getMultiplicadorCadencia() : 1f;
+        float cadMult = (upgradeManager != null) ? upgradeManager.getAttackSpeedMultiplier() : 1f;
         cd /= cadMult;
         if (w.rolledInstance != null) {
             float pct = w.rolledInstance.getSumStat("reduced_cd_pct")
-                      + w.rolledInstance.getSumStat("atk_speed_pct");
+                + w.rolledInstance.getSumStat("atk_speed_pct");
             if (pct > 0) cd *= (1f - pct / 100f);
         }
         return Math.max(Constants.MIN_WEAPON_CD, cd);
@@ -732,10 +898,14 @@ public class GameScreen implements Screen {
 
     private static int personajeIdDe(Role.Tipo tipo) {
         switch (tipo) {
-            case CABALLERO: return 1;
-            case MAGO:      return 2;
-            case SHOOTER:   return 3;
-            default:        return 0;
+            case CABALLERO:
+                return 1;
+            case MAGO:
+                return 2;
+            case SHOOTER:
+                return 3;
+            default:
+                return 0;
         }
     }
 
@@ -790,8 +960,85 @@ public class GameScreen implements Screen {
         }
     }
 
+    // ── Sprint 4 — Procesado de señales de nuevos enemigos ────────────────────
+
+    private void procesarSeñalesEnemigosSprint4(float delta) {
+        com.badlogic.gdx.utils.Array<com.milwar.kaosuarina.entities.Enemy> lista = poolEnemigos.getEnemies();
+        for (int i = 0; i < lista.size; i++) {
+            com.milwar.kaosuarina.entities.Enemy e = lista.get(i);
+
+            // TANQUE stomp: AoE ground pound damages player
+            if (e.stompThisFrame) {
+                e.stompThisFrame = false;
+                float sd = e.position.dst(player.position);
+                if (sd <= com.milwar.kaosuarina.utils.Constants.TANQUE_STOMP_RADIUS) {
+                    player.takeDamage(com.milwar.kaosuarina.utils.Constants.TANQUE_STOMP_DMG);
+                    damageTakenThisWave = true;
+                }
+            }
+
+            // SPLITTER: spawn 2 copias al morir
+            if (e.pendingSplit) {
+                e.pendingSplit = false;
+                int splitHp = Math.max(1, (int) (e.maxHealth * 0.40f));
+                for (int s = 0; s < 2; s++) {
+                    float ox = com.badlogic.gdx.math.MathUtils.random(-30f, 30f);
+                    float oy = com.badlogic.gdx.math.MathUtils.random(-30f, 30f);
+                    poolEnemigos.spawnAt(e.position.x + ox, e.position.y + oy,
+                        com.milwar.kaosuarina.entities.Enemy.Tipo.BASICO);
+                }
+            }
+
+            if (!e.active) continue;
+
+            // HEALER: cura aliados en radio 150u cada segundo
+            if (e.healThisFrame) {
+                e.healThisFrame = false;
+                for (int j = 0; j < lista.size; j++) {
+                    com.milwar.kaosuarina.entities.Enemy ally = lista.get(j);
+                    if (!ally.active || ally == e) continue;
+                    float dx = ally.position.x - e.position.x;
+                    float dy = ally.position.y - e.position.y;
+                    float r2 = com.milwar.kaosuarina.utils.Constants.HEALER_HEAL_RADIUS;
+                    if (dx * dx + dy * dy <= r2 * r2) {
+                        ally.health = Math.min(ally.maxHealth,
+                            ally.health + (int) com.milwar.kaosuarina.utils.Constants.HEALER_HEAL_PER_SEC);
+                    }
+                }
+            }
+
+            // ELITE_SUMMON: invocar 3 BASICO
+            if (e.summonThisFrame) {
+                e.summonThisFrame = false;
+                for (int s = 0; s < 3; s++) {
+                    float ang = com.badlogic.gdx.math.MathUtils.random(com.badlogic.gdx.math.MathUtils.PI2);
+                    poolEnemigos.spawnAt(
+                        e.position.x + com.badlogic.gdx.math.MathUtils.cos(ang) * 80f,
+                        e.position.y + com.badlogic.gdx.math.MathUtils.sin(ang) * 80f,
+                        com.milwar.kaosuarina.entities.Enemy.Tipo.BASICO);
+                }
+            }
+
+            if (e.slowZoneActive) {
+                player.getStats().baseSpeed = player.getStats().baseSpeedBase + player.getStats().amuletSpeedBonus;
+                float dx = player.position.x - e.position.x;
+                float dy = player.position.y - e.position.y;
+                float zr = com.milwar.kaosuarina.utils.Constants.ELITE_ZONE_RADIUS;
+                if (dx * dx + dy * dy <= zr * zr) {
+                    player.getStats().baseSpeed = player.getStats().baseSpeedBase
+                        * com.milwar.kaosuarina.utils.Constants.ELITE_ZONE_SLOW_MULT;
+                }
+            }
+
+            // FRAGMENTADO: update HUD boss bar
+            if (e.tipo == com.milwar.kaosuarina.entities.Enemy.Tipo.FRAGMENTADO) {
+                hud.setBossHealth(e.health, e.maxHealth, 3);
+            }
+        }
+    }
+
     private void procesarLootDrops() {
-        for (Enemy e : poolEnemigos.getEnemigos()) {
+        for (Enemy e : poolEnemigos.getEnemies()) {
             if (!e.pendingLootDrop) continue;
             e.pendingLootDrop = false;
 
@@ -800,8 +1047,8 @@ public class GameScreen implements Screen {
 
             for (int i = 0; i < DROP_POOL; i++) {
                 if (!dropActive[i]) {
-                    dropX[i]      = e.position.x;
-                    dropY[i]      = e.position.y;
+                    dropX[i] = e.position.x;
+                    dropY[i] = e.position.y;
                     dropWeapon[i] = WeaponDropper.generate(currentDepthForDrops, player.getRole().tipo);
                     dropActive[i] = true;
                     break;
@@ -812,9 +1059,15 @@ public class GameScreen implements Screen {
 
     private float dropChancePor(Enemy.Tipo tipo) {
         switch (tipo) {
-            case GUARDIAN: case ARQUERO: case DEVASTADOR: return 1.0f;
-            case TANQUE:   case ESPECTRAL:                return 0.50f;
-            default:                                      return 0.12f;
+            case GUARDIAN:
+            case ARQUERO:
+            case DEVASTADOR:
+                return 1.0f;
+            case TANQUE:
+            case ESPECTRAL:
+                return 0.50f;
+            default:
+                return 0.12f;
         }
     }
 
@@ -835,21 +1088,51 @@ public class GameScreen implements Screen {
     private Color tierColor(Weapon w) {
         if (w == null || w.tierId == null) return Color.WHITE;
         switch (w.tierId) {
-            case "T2": return Color.GREEN;
-            case "T3": return Color.CYAN;
-            case "T4": return new Color(0.7f, 0.3f, 1f, 1f);
-            case "T5": return Color.GOLD;
-            default:   return Color.WHITE;
+            case "T2":
+                return Color.GREEN;
+            case "T3":
+                return Color.CYAN;
+            case "T4":
+                return new Color(0.7f, 0.3f, 1f, 1f);
+            case "T5":
+                return Color.GOLD;
+            default:
+                return Color.WHITE;
         }
     }
 
     private void triggerWeaponPickup(Weapon w) {
         if (player.getRole().tipo == com.milwar.kaosuarina.roles.Role.Tipo.SHOOTER
-                && w.type == com.milwar.kaosuarina.weapons.WeaponType.PISTOLAS_GEMELAS) return;
+            && w.type == com.milwar.kaosuarina.weapons.WeaponType.PISTOLAS_GEMELAS) return;
+
+        // ── CNT-05 — Evolution check ──────────────────────────────────────────
+        if (w.rolledInstance != null) {
+            String incomingId = w.rolledInstance.weaponId;
+            if (com.milwar.kaosuarina.weapons.WeaponEvolutionCatalog.hasEvolution(incomingId)) {
+                for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
+                    Weapon eq = player.getWeaponAtSlot(i);
+                    if (eq != null && eq.rolledInstance != null
+                        && eq.rolledInstance.weaponId.equals(incomingId)) {
+                        String resultId = com.milwar.kaosuarina.weapons.WeaponEvolutionCatalog.getEvolution(incomingId);
+                        Weapon evolved = com.milwar.kaosuarina.weapons.WeaponDropper.generateById(
+                            resultId, Math.min(currentDepthForDrops + 2, 14));
+                        if (evolved != null) {
+                            evolved.inscription = eq.inscription; // hereda inscripción
+                            player.equipWeapon(i, evolved);
+                            hud.showEvolutionNotification(specificWeaponName(evolved));
+                        }
+                        return; // consumed as evolution
+                    }
+                }
+            }
+        }
 
         // Try active slots first
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
-            if (player.getWeaponAtSlot(i) == null) { player.equipWeapon(i, w); return; }
+            if (player.getWeaponAtSlot(i) == null) {
+                player.equipWeapon(i, w);
+                return;
+            }
         }
         // Try storage slots
         if (player.storeWeapon(w)) return;
@@ -964,35 +1247,35 @@ public class GameScreen implements Screen {
         float dy = player.position.y - amuletY;
         if (dx * dx + dy * dy < Constants.AMULET_PICKUP_RADIUS * Constants.AMULET_PICKUP_RADIUS) {
             amuletActive = false;
-            aplicarAmuleto(amuletType);
+            if (!player.equipAmulet(amuletType)) {
+                // Slots llenos → menú de swap (MEC-01)
+                pendingAmuletType = amuletType;
+                amuletSwapMenuActive = true;
+                amuletSwapMenuTimer = Constants.AMULET_SWAP_TIMEOUT;
+                amuletSwapSelected = 0;
+            }
         }
     }
 
-    private void aplicarAmuleto(com.milwar.kaosuarina.items.AmuletType t) {
-        switch (t) {
-            case SED_DE_SANGRE:
-                player.getStats().hasSedDeSangre = true;
-                break;
-            case GUARDIAN_DE_LA_ARENA:
-                player.getStats().hasGuardianArena = true;
-                break;
-            case PIEL_DE_PIEDRA:
-                player.aumentarVidaMaxima(40);
-                break;
-            case BOTAS_RAPIDAS:
-                player.getStats().baseSpeed *= 1.20f;
-                break;
-            case COLLAR_VAMPIRICO:
-                player.getStats().lifeStealPercent += 0.024f;
-                break;
-            case TOTEM_REGEN:
-                player.getStats().hpRegenPerSec += 2f;
-                break;
-            case TALISMAN_MANA:
-                player.getStats().maxMana    += 25f;
-                player.getStats().manaMaxBase += 25f;
-                break;
+    private void updateAmuletSwapMenu(float delta) {
+        if (!amuletSwapMenuActive) return;
+        amuletSwapMenuTimer -= delta;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.A) || Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
+            amuletSwapSelected = (amuletSwapSelected + 2) % 3;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.D) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
+            amuletSwapSelected = (amuletSwapSelected + 1) % 3;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            player.swapAmulet(amuletSwapSelected, pendingAmuletType);
+            closeAmuletSwapMenu();
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.X) || amuletSwapMenuTimer <= 0) {
+            closeAmuletSwapMenu(); // timeout = descarta el nuevo amuleto
         }
+    }
+
+    private void closeAmuletSwapMenu() {
+        amuletSwapMenuActive = false;
+        pendingAmuletType = null;
+        amuletSwapMenuTimer = 0f;
     }
 
     // ── Relic display en HUD ─────────────────────────────────────────────────
@@ -1002,11 +1285,19 @@ public class GameScreen implements Screen {
             case CABALLERO:
                 hud.setRelicDisplay("Armadura", player.getReliquiaStacks());
                 break;
-            case SHOOTER:
-                hud.setRelicDisplay("Combo", player.getComboCount());
+            case SHOOTER: {
+                int combo = player.getComboCount();
+                hud.setRelicDisplay("Combo", combo);
+                if (combo > lastComboCount) {
+                    hud.showComboFloater(combo);
+                    if (combo == 10) hud.flashComboMax();
+                }
+                lastComboCount = combo;
                 break;
+            }
             default:
                 hud.setRelicDisplay("", 0);
+                lastComboCount = 0;
                 break;
         }
     }
@@ -1021,10 +1312,10 @@ public class GameScreen implements Screen {
 
     private HUD.WeaponCard buildWeaponCard(Weapon w) {
         if (w == null) return null;
-        String name     = HUD.formatWeaponName(specificWeaponName(w));
-        String dmgType  = w.damageType != null ? w.damageType.name() : "FISICO";
-        int    damage   = w.baseDamage;
-        String insc     = w.inscription != null ? w.inscription.getName() : null;
+        String name = HUD.formatWeaponName(specificWeaponName(w));
+        String dmgType = w.damageType != null ? w.damageType.name() : "FISICO";
+        int damage = w.baseDamage;
+        String insc = w.inscription != null ? w.inscription.getName() : null;
         boolean matches = w.hasAffinityFor(player.getRole().tipo);
         String affLabel = affinityLabel(w);
         return new HUD.WeaponCard(name, w.tierId, dmgType, damage, insc, matches, affLabel, buildAffixLabel(w));
@@ -1036,18 +1327,41 @@ public class GameScreen implements Screen {
         for (com.milwar.kaosuarina.data.RolledAffix a : w.rolledInstance.getAffixes()) {
             if (sb.length() > 0) sb.append("  ");
             switch (a.stat) {
-                case "dmg_flat":       sb.append(String.format("+%.0f DMG",    a.value)); break;
-                case "dmg_pct":        sb.append(String.format("+%.0f%% DMG",  a.value)); break;
-                case "atk_speed_pct":  sb.append(String.format("+%.0f%% VEL",  a.value)); break;
-                case "crit_chance":    sb.append(String.format("+%.0f%% CRIT", a.value)); break;
-                case "crit_dmg":       sb.append(String.format("+%.0f%% xCRIT",a.value)); break;
-                case "lifesteal_pct":  sb.append(String.format("+%.0f%% VIDA", a.value)); break;
-                case "add_fire_dmg":   sb.append(String.format("+%.0f FUEGO",  a.value)); break;
-                case "add_poison_dmg": sb.append(String.format("+%.0f VEN",    a.value)); break;
-                case "add_chaos_dmg":  sb.append(String.format("+%.0f CAOS",   a.value)); break;
-                case "mp_regen":       sb.append(String.format("+%.0f MP/s",   a.value)); break;
-                case "reduced_cd_pct": sb.append(String.format("-%.0f%% CD",   a.value)); break;
-                default: break;
+                case "dmg_flat":
+                    sb.append(String.format("+%.0f DMG", a.value));
+                    break;
+                case "dmg_pct":
+                    sb.append(String.format("+%.0f%% DMG", a.value));
+                    break;
+                case "atk_speed_pct":
+                    sb.append(String.format("+%.0f%% VEL", a.value));
+                    break;
+                case "crit_chance":
+                    sb.append(String.format("+%.0f%% CRIT", a.value));
+                    break;
+                case "crit_dmg":
+                    sb.append(String.format("+%.0f%% xCRIT", a.value));
+                    break;
+                case "lifesteal_pct":
+                    sb.append(String.format("+%.0f%% VIDA", a.value));
+                    break;
+                case "add_fire_dmg":
+                    sb.append(String.format("+%.0f FUEGO", a.value));
+                    break;
+                case "add_poison_dmg":
+                    sb.append(String.format("+%.0f VEN", a.value));
+                    break;
+                case "add_chaos_dmg":
+                    sb.append(String.format("+%.0f CAOS", a.value));
+                    break;
+                case "mp_regen":
+                    sb.append(String.format("+%.0f MP/s", a.value));
+                    break;
+                case "reduced_cd_pct":
+                    sb.append(String.format("-%.0f%% CD", a.value));
+                    break;
+                default:
+                    break;
             }
         }
         return sb.length() > 0 ? sb.toString() : null;
@@ -1055,8 +1369,8 @@ public class GameScreen implements Screen {
 
     private String affinityLabel(Weapon w) {
         if (w.hasAffinityFor(Role.Tipo.CABALLERO)) return "Caballero";
-        if (w.hasAffinityFor(Role.Tipo.MAGO))      return "Mago";
-        if (w.hasAffinityFor(Role.Tipo.SHOOTER))   return "Shooter";
+        if (w.hasAffinityFor(Role.Tipo.MAGO)) return "Mago";
+        if (w.hasAffinityFor(Role.Tipo.SHOOTER)) return "Shooter";
         return "Neutro";
     }
 
@@ -1072,8 +1386,8 @@ public class GameScreen implements Screen {
         poolBalasEnemigas.dispose();
         hud.dispose();
         levelUpScreen.dispose();
-        shapeRenderer.dispose();
-        batch.dispose();
+        if (shapeRenderer != null) { shapeRenderer.dispose(); shapeRenderer = null; }
+        if (batch != null) { batch.dispose(); batch = null; }
     }
 
     @Override

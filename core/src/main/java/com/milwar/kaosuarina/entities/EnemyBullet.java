@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.milwar.kaosuarina.utils.SharedTextures;
 
-public class BalaEnemiga {
+public class EnemyBullet {
     private static final float SPEED = 450f;
     private static final float SIZE = 10f;
     private static final float MAX_DST = 1500f;
@@ -17,7 +17,7 @@ public class BalaEnemiga {
 
     private final Vector2 spawnPosition;
 
-    public BalaEnemiga() {
+    public EnemyBullet() {
         position = new Vector2();
         velocity = new Vector2();
         spawnPosition = new Vector2();
@@ -40,9 +40,7 @@ public class BalaEnemiga {
     public void update(float delta) {
         if (!active) return;
         position.add(velocity.x * delta, velocity.y * delta);
-        if (position.dst(spawnPosition) > MAX_DST) {
-            active = false;
-        }
+        if (position.dst(spawnPosition) > MAX_DST) active = false;
     }
 
     public void render(SpriteBatch batch) {

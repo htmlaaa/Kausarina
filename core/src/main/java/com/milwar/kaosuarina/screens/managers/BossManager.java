@@ -5,49 +5,48 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.milwar.kaosuarina.entities.Enemy;
 import com.milwar.kaosuarina.entities.Player;
-import com.milwar.kaosuarina.entities.PoolEnemigos;
+import com.milwar.kaosuarina.entities.EnemyPool;
 import com.milwar.kaosuarina.ui.HUD;
 import com.milwar.kaosuarina.utils.Constants;
 import com.milwar.kaosuarina.utils.ParticlePool;
 
-/** Controls the full lifecycle of Guardian / Arquero / Devastador bosses. */
+/**
+ * Controls the full lifecycle of Guardian / Arquero / Devastador bosses.
+ */
 public class BossManager {
 
-    private final Player       player;
-    private final PoolEnemigos poolEnemigos;
-    private final HUD          hud;
-
+    private final Player player;
+    private final EnemyPool poolEnemigos;
+    private final HUD hud;
+    // per-frame event flags — GameScreen reads these after update(), then reacts
+    public boolean victoryTriggered = false;
+    public boolean guardianDied = false;
+    public float guardianDeathX, guardianDeathY;
+    public boolean arqueroDied = false;
+    public float arqueroDeathX, arqueroDeathY;
+    public boolean damageTakenThisFrame = false;
     private Enemy guardianRef;
     private Enemy arqueroRef;
     private Enemy devastadorRef;
-
     // visual effect state (blast ring + spiral)
-    private float   blastEffectTimer;
-    private float   blastEffectX, blastEffectY, blastEffectRadius;
+    private float blastEffectTimer;
+    private float blastEffectX, blastEffectY, blastEffectRadius;
     private boolean blastEffectIsCaos;
     private boolean blastEffectIsDevastador;
-    private float   spiralEffectTimer;
-    private float   spiralEffectX, spiralEffectY;
+    private float spiralEffectTimer;
+    private float spiralEffectX, spiralEffectY;
 
-    // per-frame event flags — GameScreen reads these after update(), then reacts
-    public boolean victoryTriggered     = false;
-    public boolean guardianDied         = false;
-    public float   guardianDeathX, guardianDeathY;
-    public boolean arqueroDied          = false;
-    public float   arqueroDeathX, arqueroDeathY;
-    public boolean damageTakenThisFrame = false;
-
-    public BossManager(Player player, PoolEnemigos poolEnemigos, HUD hud) {
-        this.player       = player;
+    public BossManager(Player player, EnemyPool poolEnemigos, HUD hud) {
+        this.player = player;
         this.poolEnemigos = poolEnemigos;
-        this.hud          = hud;
+        this.hud = hud;
     }
 
     public void update(float delta) {
-        guardianDied         = false;
-        arqueroDied          = false;
+        guardianDied = false;
+        arqueroDied = false;
         damageTakenThisFrame = false;
-        victoryTriggered     = false;
+        victoryTriggered = false;
 
         if (blastEffectTimer > 0) blastEffectTimer -= delta;
         if (spiralEffectTimer > 0) spiralEffectTimer -= delta;
@@ -77,7 +76,7 @@ public class BossManager {
             hud.addExperience(Constants.DEVASTADOR_XP);
             ParticlePool.spawn(devastadorRef.position.x, devastadorRef.position.y,
                 30, 200f, 0.8f, 0.55f, 0f, 0.15f);
-            devastadorRef    = null;
+            devastadorRef = null;
             victoryTriggered = true;
             return;
         }
@@ -101,21 +100,21 @@ public class BossManager {
             float ddy = player.position.y - devastadorRef.position.y;
             if (ddx * ddx + ddy * ddy <=
                 Constants.DEVASTADOR_SHOCKWAVE_RADIUS * Constants.DEVASTADOR_SHOCKWAVE_RADIUS) {
-                player.recibirDanio(Constants.DEVASTADOR_SHOCKWAVE_DMG);
+                player.takeDamage(Constants.DEVASTADOR_SHOCKWAVE_DMG);
                 damageTakenThisFrame = true;
             }
-            blastEffectX            = devastadorRef.position.x;
-            blastEffectY            = devastadorRef.position.y;
-            blastEffectRadius       = Constants.DEVASTADOR_SHOCKWAVE_RADIUS;
+            blastEffectX = devastadorRef.position.x;
+            blastEffectY = devastadorRef.position.y;
+            blastEffectRadius = Constants.DEVASTADOR_SHOCKWAVE_RADIUS;
             blastEffectIsDevastador = true;
-            blastEffectIsCaos       = false;
-            blastEffectTimer        = 0.4f;
+            blastEffectIsCaos = false;
+            blastEffectTimer = 0.4f;
         }
 
         if (devastadorRef.spiralThisFrame) {
             devastadorRef.spiralThisFrame = false;
-            spiralEffectX     = devastadorRef.position.x;
-            spiralEffectY     = devastadorRef.position.y;
+            spiralEffectX = devastadorRef.position.x;
+            spiralEffectY = devastadorRef.position.y;
             spiralEffectTimer = 0.2f;
         }
     }
@@ -126,10 +125,10 @@ public class BossManager {
         if (guardianRef == null) return;
 
         if (!guardianRef.active) {
-            guardianDied   = true;
+            guardianDied = true;
             guardianDeathX = guardianRef.position.x;
             guardianDeathY = guardianRef.position.y;
-            guardianRef    = null;
+            guardianRef = null;
             return;
         }
 
@@ -139,15 +138,15 @@ public class BossManager {
             float dy = player.position.y - guardianRef.position.y;
             if (dx * dx + dy * dy <
                 Constants.GUARDIAN_SHOCKWAVE_RADIUS * Constants.GUARDIAN_SHOCKWAVE_RADIUS) {
-                player.recibirDanio(Constants.GUARDIAN_SHOCKWAVE_DMG);
+                player.takeDamage(Constants.GUARDIAN_SHOCKWAVE_DMG);
                 damageTakenThisFrame = true;
             }
-            blastEffectX            = guardianRef.position.x;
-            blastEffectY            = guardianRef.position.y;
-            blastEffectRadius       = Constants.GUARDIAN_SHOCKWAVE_RADIUS;
+            blastEffectX = guardianRef.position.x;
+            blastEffectY = guardianRef.position.y;
+            blastEffectRadius = Constants.GUARDIAN_SHOCKWAVE_RADIUS;
             blastEffectIsDevastador = false;
-            blastEffectIsCaos       = false;
-            blastEffectTimer        = 0.3f;
+            blastEffectIsCaos = false;
+            blastEffectTimer = 0.3f;
         }
     }
 
@@ -156,21 +155,23 @@ public class BossManager {
         if (ar != null) arqueroRef = ar;
 
         if (arqueroRef != null && !arqueroRef.active) {
-            arqueroDied   = true;
+            arqueroDied = true;
             arqueroDeathX = arqueroRef.position.x;
             arqueroDeathY = arqueroRef.position.y;
-            arqueroRef    = null;
+            arqueroRef = null;
         }
     }
 
-    /** Called from activarSkill() when a skill blast (Martillo / Tomo) fires. */
+    /**
+     * Called from activarSkill() when a skill blast (Martillo / Tomo) fires.
+     */
     public void notifySkillBlast(float x, float y, float radius, boolean isCaos) {
-        blastEffectX            = x;
-        blastEffectY            = y;
-        blastEffectRadius       = radius;
-        blastEffectIsCaos       = isCaos;
+        blastEffectX = x;
+        blastEffectY = y;
+        blastEffectRadius = radius;
+        blastEffectIsCaos = isCaos;
         blastEffectIsDevastador = false;
-        blastEffectTimer        = 0.3f;
+        blastEffectTimer = 0.3f;
     }
 
     public void renderEffects(ShapeRenderer sr) {

@@ -11,11 +11,17 @@ public class InscripcionDeVacio implements Inscription {
     }
 
     @Override
-    public float damageMult() { return 0.75f; }
+    public float damageMult() {
+        return 0.75f;
+    }
 
     @Override
-    public boolean bypassesDefense() { return true; }
+    public boolean bypassesDefense() {
+        return true;
+    }
 
     @Override
-    public String getName() { return "VAC"; }
+    public String getName() {
+        return "VAC";
+    }
 }

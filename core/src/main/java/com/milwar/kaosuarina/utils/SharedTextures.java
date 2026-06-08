@@ -115,7 +115,7 @@ public class SharedTextures {
         p.fill();
         int cx = size / 2, cy = size / 2;
         float outerR = size / 2f - 1f;
-        float midR   = outerR * 0.72f;
+        float midR = outerR * 0.72f;
         float innerR = outerR * 0.38f;
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
@@ -139,13 +139,13 @@ public class SharedTextures {
         }
         // Cross / rune marks on middle ring (4 tick marks)
         p.setColor(1f, 0.5f, 0.2f, 1f);
-        int armLen = (int)(outerR * 0.22f);
-        int armW   = 2;
+        int armLen = (int) (outerR * 0.22f);
+        int armW = 2;
         // N/S/E/W marks
-        p.fillRectangle(cx - armW / 2, cy - (int)outerR + 2,         armW, armLen);
-        p.fillRectangle(cx - armW / 2, cy + (int)outerR - 2 - armLen, armW, armLen);
-        p.fillRectangle(cx - (int)outerR + 2,         cy - armW / 2, armLen, armW);
-        p.fillRectangle(cx + (int)outerR - 2 - armLen, cy - armW / 2, armLen, armW);
+        p.fillRectangle(cx - armW / 2, cy - (int) outerR + 2, armW, armLen);
+        p.fillRectangle(cx - armW / 2, cy + (int) outerR - 2 - armLen, armW, armLen);
+        p.fillRectangle(cx - (int) outerR + 2, cy - armW / 2, armLen, armW);
+        p.fillRectangle(cx + (int) outerR - 2 - armLen, cy - armW / 2, armLen, armW);
         Texture t = new Texture(p);
         t.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         p.dispose();
@@ -183,7 +183,9 @@ public class SharedTextures {
         return t;
     }
 
-    /** Rombo (diamante) para representar drops de arma en el suelo. */
+    /**
+     * Rombo (diamante) para representar drops de arma en el suelo.
+     */
     private static Texture diamond(int size, float r, float g, float b) {
         Pixmap p = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         p.setColor(0, 0, 0, 0);

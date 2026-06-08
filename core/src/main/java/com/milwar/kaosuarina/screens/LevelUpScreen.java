@@ -16,39 +16,60 @@ import com.milwar.kaosuarina.ui.FontManager;
 
 public class LevelUpScreen implements Disposable {
 
-    private final ShapeRenderer   shapeRenderer;
+    private final ShapeRenderer shapeRenderer;
     private final OrthographicCamera camera;
-    private final FitViewport     viewport;
+    private final FitViewport viewport;
 
     private Array<Upgrade> options;
-    private int  selectedIndex;
+    private int selectedIndex;
     private boolean isActive;
 
     private final int screenWidth;
     private final int screenHeight;
 
     public LevelUpScreen(int screenWidth, int screenHeight) {
-        this.screenWidth  = screenWidth;
+        this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
 
         shapeRenderer = new ShapeRenderer();
-        camera        = new OrthographicCamera();
+        camera = new OrthographicCamera();
         camera.setToOrtho(false, screenWidth, screenHeight);
-        viewport      = new FitViewport(screenWidth, screenHeight, camera);
+        viewport = new FitViewport(screenWidth, screenHeight, camera);
 
-        options       = new Array<>();
+        options = new Array<>();
         selectedIndex = 0;
-        isActive      = false;
+        isActive = false;
     }
+
+    private boolean rerollRequested = false;
+    private int rerollsLeft = 1;
 
     public void show(Array<Upgrade> upgrades) {
-        this.options       = upgrades;
+        this.options = upgrades;
         this.selectedIndex = 0;
-        this.isActive      = true;
+        this.isActive = true;
+        this.rerollRequested = false;
     }
 
-    public void hide()      { this.isActive = false; }
-    public boolean isActive() { return isActive; }
+    public void setRerollsLeft(int n) {
+        this.rerollsLeft = n;
+    }
+
+    public boolean isRerollRequested() {
+        if (rerollRequested) {
+            rerollRequested = false;
+            return true;
+        }
+        return false;
+    }
+
+    public void hide() {
+        this.isActive = false;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
 
     public void handleInput() {
         if (!isActive) return;
@@ -56,9 +77,12 @@ public class LevelUpScreen implements Disposable {
             selectedIndex = Math.max(0, selectedIndex - 1);
         if (Gdx.input.isKeyJustPressed(Input.Keys.D) || Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
             selectedIndex = Math.min(options.size - 1, selectedIndex + 1);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R) && rerollsLeft > 0)
+            rerollRequested = true;
     }
 
     public Upgrade getSelectedUpgrade() {
+        if (options.size == 0) return null;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
             return options.get(selectedIndex);
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1) && options.size >= 1) return options.get(0);
@@ -99,23 +123,32 @@ public class LevelUpScreen implements Disposable {
         fSmall.draw(batch,
             "A/D  Navegar   |   ENTER/SPACE  Confirmar   |   1 / 2 / 3  Elegir directo",
             60, 36);
+
+        // Reroll token (MEC-02)
+        if (rerollsLeft > 0) {
+            fSmall.setColor(new Color(0.9f, 0.75f, 0.2f, 1f));
+            fSmall.draw(batch, "[R]  Mezclar", screenWidth - 180f, 36);
+        } else {
+            fSmall.setColor(new Color(0.35f, 0.35f, 0.35f, 1f));
+            fSmall.draw(batch, "[R]  Agotado", screenWidth - 180f, 36);
+        }
         fSmall.setColor(Color.WHITE);
 
         batch.end();
     }
 
     private void renderCards(SpriteBatch batch) {
-        float cardW   = 340f;
-        float cardH   = 460f;
+        float cardW = 340f;
+        float cardH = 460f;
         float spacing = 36f;
-        float totalW  = (cardW * options.size) + (spacing * (options.size - 1));
-        float startX  = (screenWidth - totalW) / 2f;
-        float cardY   = (screenHeight - cardH) / 2f - 10f;
+        float totalW = (cardW * options.size) + (spacing * (options.size - 1));
+        float startX = (screenWidth - totalW) / 2f;
+        float cardY = (screenHeight - cardH) / 2f - 10f;
 
         BitmapFont fHeading = FontManager.get().heading;
-        BitmapFont fLarge   = FontManager.get().large;
-        BitmapFont fMedium  = FontManager.get().medium;
-        BitmapFont fSmall   = FontManager.get().small;
+        BitmapFont fLarge = FontManager.get().large;
+        BitmapFont fMedium = FontManager.get().medium;
+        BitmapFont fSmall = FontManager.get().small;
 
         for (int i = 0; i < options.size; i++) {
             float cardX = startX + i * (cardW + spacing);
@@ -170,7 +203,9 @@ public class LevelUpScreen implements Disposable {
         }
     }
 
-    public void resize(int w, int h) { viewport.update(w, h, true); }
+    public void resize(int w, int h) {
+        viewport.update(w, h, true);
+    }
 
     @Override
     public void dispose() {

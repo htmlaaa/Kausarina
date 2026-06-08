@@ -10,12 +10,12 @@ import java.util.List;
 
 /**
  * Rolls a WeaponInstance given a weapon_id and tier_id.
- *
+ * <p>
  * Per-hit damage formula (from README):
- *   base = random(effectiveDmgMin, effectiveDmgMax)   // tier.dmgMult already applied
- *   dmg  = base + sum(affix dmg_flat)
- *   dmg *= (1 + sum(affix dmg_pct) / 100)
- *   // player stat scaling, crit, enemy resist handled externally in combat
+ * base = random(effectiveDmgMin, effectiveDmgMax)   // tier.dmgMult already applied
+ * dmg  = base + sum(affix dmg_flat)
+ * dmg *= (1 + sum(affix dmg_pct) / 100)
+ * // player stat scaling, crit, enemy resist handled externally in combat
  */
 public class WeaponInstanceFactory {
 
@@ -34,18 +34,18 @@ public class WeaponInstanceFactory {
 
     public WeaponInstance roll(String weaponId, String tierId) {
         WeaponData weapon = dm.getWeapon(weaponId);
-        TierData   tier   = dm.getTier(tierId);
+        TierData tier = dm.getTier(tierId);
         if (weapon == null) throw new IllegalArgumentException("Unknown weapon: " + weaponId);
-        if (tier   == null) throw new IllegalArgumentException("Unknown tier: "   + tierId);
+        if (tier == null) throw new IllegalArgumentException("Unknown tier: " + tierId);
 
         List<WeaponAffixData> eligible = eligibleAffixes(tier);
-        List<RolledAffix>     affixes  = rollAffixes(eligible, tier.affixSlots);
+        List<RolledAffix> affixes = rollAffixes(eligible, tier.affixSlots);
 
-        float dmgMin  = weapon.baseDmgMin  * tier.dmgMult;
-        float dmgMax  = weapon.baseDmgMax  * tier.dmgMult;
-        float speed   = weapon.baseAttackSpeed * tier.speedMult;
-        float crit    = weapon.baseCritChance  * tier.critMult;
-        float critDmg = weapon.baseCritDmg     * tier.critMult;
+        float dmgMin = weapon.baseDmgMin * tier.dmgMult;
+        float dmgMax = weapon.baseDmgMax * tier.dmgMult;
+        float speed = weapon.baseAttackSpeed * tier.speedMult;
+        float crit = weapon.baseCritChance * tier.critMult;
+        float critDmg = weapon.baseCritDmg * tier.critMult;
 
         return new WeaponInstance(weaponId, tierId, dmgMin, dmgMax, speed, crit, critDmg, affixes);
     }
@@ -73,8 +73,8 @@ public class WeaponInstanceFactory {
     }
 
     private List<RolledAffix> rollAffixes(List<WeaponAffixData> eligible, int slots) {
-        List<RolledAffix>     result = new ArrayList<>();
-        List<WeaponAffixData> pool   = new ArrayList<>(eligible);
+        List<RolledAffix> result = new ArrayList<>();
+        List<WeaponAffixData> pool = new ArrayList<>(eligible);
         for (int i = 0; i < slots && !pool.isEmpty(); i++) {
             WeaponAffixData picked = weightedPick(pool);
             pool.remove(picked);

@@ -14,21 +14,23 @@ import com.milwar.kaosuarina.utils.Constants;
 public class CreditsScreen implements Screen {
 
     private final KaosuarinaGame game;
-    private final SpriteBatch    batch;
-    private final FitViewport    viewport;
+    private final SpriteBatch batch;
+    private final FitViewport viewport;
 
     public CreditsScreen(KaosuarinaGame game) {
         this.game = game;
-        batch    = new SpriteBatch();
+        batch = new SpriteBatch();
         viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
     }
 
-    @Override public void show() {}
+    @Override
+    public void show() {
+    }
 
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) ||
-            Gdx.input.isKeyJustPressed(Input.Keys.ENTER)  ||
+            Gdx.input.isKeyJustPressed(Input.Keys.ENTER) ||
             Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             dispose();
             game.setScreen(new MainMenuScreen(game));
@@ -42,7 +44,7 @@ public class CreditsScreen implements Screen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        float cx  = Constants.SCREEN_WIDTH  / 2f;
+        float cx = Constants.SCREEN_WIDTH / 2f;
         float top = Constants.SCREEN_HEIGHT - 40f;
 
         // Título
@@ -55,14 +57,14 @@ public class CreditsScreen implements Screen {
         float y = top - 150f;
         section(cx, y, "DESARROLLO");
         float ly = y - 40f;
-        line(cx, ly,      "Autor:      Milwar Chapi");
+        line(cx, ly, "Autor:      Milwar Chapi");
         line(cx, ly - 32f, "Proyecto:   TFG — GS Desarrollo de Aplicaciones Multiplataforma");
         line(cx, ly - 64f, "Curso:      2025 / 2026");
 
         y -= 180f;
         section(cx, y, "TECNOLOGIAS");
         ly = y - 40f;
-        line(cx, ly,       "Motor:      LibGDX 1.14.0  /  Java 8  /  LWJGL3");
+        line(cx, ly, "Motor:      LibGDX 1.14.0  /  Java 8  /  LWJGL3");
         line(cx, ly - 32f, "Graficos:   Procedural (Pixmap)  +  PixelLab MCP");
         line(cx, ly - 64f, "Base datos: MySQL  (patron DAO + JDBC)");
         line(cx, ly - 96f, "Build:      Gradle  /  gdx-liftoff");
@@ -70,7 +72,7 @@ public class CreditsScreen implements Screen {
         y -= 200f;
         section(cx, y, "AGRADECIMIENTOS");
         ly = y - 40f;
-        line(cx, ly,       "Kenney.nl  —  assets de audio CC0");
+        line(cx, ly, "Kenney.nl  —  assets de audio CC0");
         line(cx, ly - 32f, "LibGDX community  —  documentacion y ejemplos");
 
         FontManager.get().small.setColor(Color.GRAY);
@@ -89,10 +91,22 @@ public class CreditsScreen implements Screen {
         FontManager.get().large.draw(batch, text, cx - 310f, y);
     }
 
-    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resize(int w, int h) {
+        viewport.update(w, h, true);
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {

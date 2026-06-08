@@ -15,5 +15,7 @@ public class InscripcionIgnea implements Inscription {
     }
 
     @Override
-    public String getName() { return "IGN"; }
+    public String getName() {
+        return "IGN";
+    }
 }

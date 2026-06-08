@@ -15,47 +15,53 @@ import com.milwar.kaosuarina.utils.Constants;
 
 public class WinScreen implements Screen {
 
-    private final KaosuarinaGame  game;
-    private final SpriteBatch     batch;
+    private final KaosuarinaGame game;
+    private final SpriteBatch batch;
     private final OrthographicCamera camera;
-    private final FitViewport     viewport;
+    private final FitViewport viewport;
 
-    private final int      score;
-    private final int      tiempoSegundos;
-    private final int      level;
-    private final int      waveCount;
-    private final String   rolNombre;
-    private final String   reliquiaNombre;
-    private final String   armasText;
+    private final int score;
+    private final int tiempoSegundos;
+    private final int level;
+    private final int waveCount;
+    private final String rolNombre;
+    private final String reliquiaNombre;
+    private final String armasText;
     private final String[] leaderboard;
 
     public WinScreen(KaosuarinaGame game, int score, int tiempoSegundos, int level,
                      int waveCount, int personajeId, String armasText, String[] leaderboard) {
-        this.game           = game;
-        this.score          = score;
+        this.game = game;
+        this.score = score;
         this.tiempoSegundos = tiempoSegundos;
-        this.level          = level;
-        this.waveCount      = waveCount;
-        this.rolNombre      = rolNombreDe(personajeId);
+        this.level = level;
+        this.waveCount = waveCount;
+        this.rolNombre = rolNombreDe(personajeId);
         this.reliquiaNombre = reliquiaNombreDe(personajeId);
-        this.armasText      = armasText;
-        this.leaderboard    = leaderboard;
+        this.armasText = armasText;
+        this.leaderboard = leaderboard;
 
-        batch    = new SpriteBatch();
-        camera   = new OrthographicCamera();
+        batch = new SpriteBatch();
+        camera = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
         viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
     }
 
-    @Override public void show() {}
+    @Override
+    public void show() {
+    }
 
     @Override
     public void render(float delta) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            dispose(); game.setScreen(new CharacterSelectScreen(game)); return;
+            dispose();
+            game.setScreen(new CharacterSelectScreen(game));
+            return;
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            dispose(); game.setScreen(new MainMenuScreen(game)); return;
+            dispose();
+            game.setScreen(new MainMenuScreen(game));
+            return;
         }
 
         ScreenUtils.clear(0.02f, 0f, 0.08f, 1f);
@@ -64,14 +70,14 @@ public class WinScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        float cx = Constants.SCREEN_WIDTH  / 2f;
+        float cx = Constants.SCREEN_WIDTH / 2f;
         float cy = Constants.SCREEN_HEIGHT / 2f;
 
-        BitmapFont fTitle   = FontManager.get().title;
+        BitmapFont fTitle = FontManager.get().title;
         BitmapFont fHeading = FontManager.get().heading;
-        BitmapFont fLarge   = FontManager.get().large;
-        BitmapFont fMedium  = FontManager.get().medium;
-        BitmapFont fSmall   = FontManager.get().small;
+        BitmapFont fLarge = FontManager.get().large;
+        BitmapFont fMedium = FontManager.get().medium;
+        BitmapFont fSmall = FontManager.get().small;
 
         fTitle.setColor(1f, 0.85f, 0.2f, 1f);
         fTitle.draw(batch, "¡VICTORIA!", cx - 270, cy + 290);
@@ -80,9 +86,9 @@ public class WinScreen implements Screen {
         fHeading.draw(batch, rolNombre + "  —  " + reliquiaNombre, cx - 270, cy + 218);
 
         fLarge.setColor(Color.WHITE);
-        fLarge.draw(batch, "Score:    " + score,                                              cx - 200, cy + 168);
+        fLarge.draw(batch, "Score:    " + score, cx - 200, cy + 168);
         fLarge.draw(batch, String.format("Tiempo:   %02d:%02d", tiempoSegundos / 60, tiempoSegundos % 60), cx - 200, cy + 130);
-        fLarge.draw(batch, "Nivel:    " + level + "     Oleada: " + waveCount,                cx - 200, cy + 92);
+        fLarge.draw(batch, "Nivel:    " + level + "     Oleada: " + waveCount, cx - 200, cy + 92);
 
         fMedium.setColor(new Color(0.5f, 0.9f, 1f, 1f));
         fMedium.draw(batch, armasText, cx - 200, cy + 56);
@@ -90,9 +96,9 @@ public class WinScreen implements Screen {
         renderLeaderboard(cx, cy - 8);
 
         fLarge.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
-        fLarge.draw(batch, "[R]      Jugar de nuevo",   cx - 200, cy - 220);
+        fLarge.draw(batch, "[R]      Jugar de nuevo", cx - 200, cy - 220);
         fLarge.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
-        fLarge.draw(batch, "[ESC]  Menu principal",     cx - 200, cy - 258);
+        fLarge.draw(batch, "[ESC]  Menu principal", cx - 200, cy - 258);
 
         fLarge.setColor(Color.WHITE);
         fTitle.setColor(Color.WHITE);
@@ -114,26 +120,46 @@ public class WinScreen implements Screen {
 
     private static String rolNombreDe(int id) {
         switch (id) {
-            case 1:  return "Caballero";
-            case 2:  return "Mago";
-            case 3:  return "Tirador";
-            default: return "???";
+            case 1:
+                return "Caballero";
+            case 2:
+                return "Mago";
+            case 3:
+                return "Tirador";
+            default:
+                return "???";
         }
     }
 
     private static String reliquiaNombreDe(int id) {
         switch (id) {
-            case 1:  return "Fortaleza Reactiva";
-            case 2:  return "Resonancia Caotica";
-            case 3:  return "Momentum de Combate";
-            default: return "-";
+            case 1:
+                return "Fortaleza Reactiva";
+            case 2:
+                return "Resonancia Caotica";
+            case 3:
+                return "Momentum de Combate";
+            default:
+                return "-";
         }
     }
 
-    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resize(int w, int h) {
+        viewport.update(w, h, true);
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {

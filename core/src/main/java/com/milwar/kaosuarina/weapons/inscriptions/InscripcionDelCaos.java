@@ -21,7 +21,7 @@ public class InscripcionDelCaos implements Inscription {
                     Constants.STATUS_POISON_DURATION, Constants.STATUS_POISON_DAMAGE);
                 break;
             case 2:
-                p.curar(5);
+                p.heal(5);
                 break;
             case 3:
                 p.getStats().addMana(5);
@@ -30,5 +30,7 @@ public class InscripcionDelCaos implements Inscription {
     }
 
     @Override
-    public String getName() { return "CAO"; }
+    public String getName() {
+        return "CAO";
+    }
 }

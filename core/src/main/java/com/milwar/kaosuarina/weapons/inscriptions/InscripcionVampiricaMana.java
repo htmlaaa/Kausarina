@@ -11,5 +11,7 @@ public class InscripcionVampiricaMana implements Inscription {
     }
 
     @Override
-    public String getName() { return "VMN"; }
+    public String getName() {
+        return "VMN";
+    }
 }

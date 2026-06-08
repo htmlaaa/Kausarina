@@ -14,5 +14,7 @@ public class InscripcionSismica implements Inscription {
     }
 
     @Override
-    public String getName() { return "SIS"; }
+    public String getName() {
+        return "SIS";
+    }
 }

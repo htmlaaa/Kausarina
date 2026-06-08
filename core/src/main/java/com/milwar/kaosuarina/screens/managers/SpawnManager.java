@@ -2,7 +2,7 @@ package com.milwar.kaosuarina.screens.managers;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.milwar.kaosuarina.entities.Player;
-import com.milwar.kaosuarina.entities.PoolEnemigos;
+import com.milwar.kaosuarina.entities.EnemyPool;
 import com.milwar.kaosuarina.utils.AudioManager;
 import com.milwar.kaosuarina.utils.Constants;
 
@@ -12,18 +12,28 @@ import com.milwar.kaosuarina.utils.Constants;
 public class SpawnManager {
 
     private final Player player;
-    private final PoolEnemigos poolEnemigos;
+    private final EnemyPool poolEnemigos;
+    private final int eliteWaveStart;
 
     private float timerSpawn;
     private float intervaloSpawnBase;
     private float timerDificultad;
     private int waveCount;
 
-    public SpawnManager(Player player, PoolEnemigos poolEnemigos) {
+    public SpawnManager(Player player, EnemyPool poolEnemigos) {
+        this(player, poolEnemigos, Constants.SPAWN_ELITE_WAVE_START, 1.0f);
+    }
+
+    /**
+     * @param eliteWaveStart wave number at which elites begin (1 = from wave 1 in Brutal/Caos)
+     * @param intensityMult  spawn rate multiplier (1.2 = 20% faster in Caos)
+     */
+    public SpawnManager(Player player, EnemyPool poolEnemigos, int eliteWaveStart, float intensityMult) {
         this.player = player;
         this.poolEnemigos = poolEnemigos;
+        this.eliteWaveStart = eliteWaveStart;
         timerSpawn = 0f;
-        intervaloSpawnBase = Constants.SPAWN_INTERVAL_BASE;
+        intervaloSpawnBase = Constants.SPAWN_INTERVAL_BASE / intensityMult;
         timerDificultad = 0f;
         waveCount = 0;
     }
@@ -67,8 +77,7 @@ public class SpawnManager {
                 player.position.y + MathUtils.sin(angulo) * dist);
         }
 
-        // Elites desde oleada 4: grupo especial adicional (máx 3 simultáneos para no crear picos de dificultad no intencionales)
-        if (waveCount >= Constants.SPAWN_ELITE_WAVE_START) {
+        if (waveCount >= eliteWaveStart) {
             int elites = 1 + (waveCount / 6);
             elites = Math.min(elites, 3);
             for (int i = 0; i < elites; i++) {
@@ -85,19 +94,27 @@ public class SpawnManager {
     private com.milwar.kaosuarina.entities.Enemy.Tipo eliteTipo(int wave) {
         float r = MathUtils.random(100f);
         if (wave < 8) {
-            // Oleadas 4-7: TANQUE y MALDITO
             return r < 55f ? com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE
                 : com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
         } else if (wave < 15) {
-            // Oleadas 8-14: añade ESPECTRAL y más MALDITO
-            if (r < 35f) return com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE;
-            if (r < 65f) return com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
-            return com.milwar.kaosuarina.entities.Enemy.Tipo.ESPECTRAL;
-        } else {
-            // Oleada 15+: mix completo de elites
             if (r < 30f) return com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE;
             if (r < 55f) return com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
             if (r < 75f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ESPECTRAL;
+            return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_CHARGE;
+        } else if (wave < 25) {
+            if (r < 20f) return com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE;
+            if (r < 38f) return com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
+            if (r < 54f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ESPECTRAL;
+            if (r < 70f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_CHARGE;
+            if (r < 85f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_SUMMON;
+            return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_ZONE;
+        } else {
+            if (r < 15f) return com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE;
+            if (r < 30f) return com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
+            if (r < 44f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ESPECTRAL;
+            if (r < 58f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_CHARGE;
+            if (r < 72f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_SUMMON;
+            if (r < 86f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_ZONE;
             return com.milwar.kaosuarina.entities.Enemy.Tipo.SHOOTER;
         }
     }
@@ -115,6 +132,13 @@ public class SpawnManager {
             poolEnemigos.spawnArquero(
                 player.position.x + MathUtils.cos(angle) * 550f,
                 player.position.y + MathUtils.sin(angle) * 550f);
+            AudioManager.playBoss();
+        }
+        if (waveCount % Constants.FRAGMENTADO_WAVE == 0 && waveCount > 0) {
+            float angle = MathUtils.random(MathUtils.PI2);
+            poolEnemigos.spawnFragmentado(
+                player.position.x + MathUtils.cos(angle) * 650f,
+                player.position.y + MathUtils.sin(angle) * 650f);
             AudioManager.playBoss();
         }
         if (waveCount % Constants.DEVASTADOR_FINAL_WAVE == 0 && waveCount > 0) {

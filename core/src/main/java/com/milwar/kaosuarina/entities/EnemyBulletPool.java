@@ -3,44 +3,44 @@ package com.milwar.kaosuarina.entities;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
-public class PoolBalasEnemigas {
+public class EnemyBulletPool {
     private static final int POOL_SIZE = 200;
-    public Array<BalaEnemiga> balas;
+    public Array<EnemyBullet> bullets;
 
-    public PoolBalasEnemigas() {
-        balas = new Array<>(POOL_SIZE);
+    public EnemyBulletPool() {
+        bullets = new Array<>(POOL_SIZE);
         for (int i = 0; i < POOL_SIZE; i++) {
-            balas.add(new BalaEnemiga());
+            bullets.add(new EnemyBullet());
         }
     }
 
     public void spawn(float x, float y, float dirX, float dirY) {
-        for (BalaEnemiga bala : balas) {
-            if (!bala.active) {
-                bala.activate(x, y, dirX, dirY);
+        for (EnemyBullet b : bullets) {
+            if (!b.active) {
+                b.activate(x, y, dirX, dirY);
                 return;
             }
         }
     }
 
     public void spawnWithDamage(float x, float y, float dirX, float dirY, int damage) {
-        for (BalaEnemiga bala : balas) {
-            if (!bala.active) {
-                bala.activate(x, y, dirX, dirY, damage);
+        for (EnemyBullet b : bullets) {
+            if (!b.active) {
+                b.activate(x, y, dirX, dirY, damage);
                 return;
             }
         }
     }
 
     public void update(float delta) {
-        for (BalaEnemiga bala : balas) bala.update(delta);
+        for (EnemyBullet b : bullets) b.update(delta);
     }
 
     public void render(SpriteBatch batch) {
-        for (BalaEnemiga bala : balas) bala.render(batch);
+        for (EnemyBullet b : bullets) b.render(batch);
     }
 
     public void dispose() {
-        for (BalaEnemiga bala : balas) bala.dispose();
+        for (EnemyBullet b : bullets) b.dispose();
     }
 }

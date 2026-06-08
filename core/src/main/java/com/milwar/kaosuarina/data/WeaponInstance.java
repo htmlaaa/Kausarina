@@ -6,7 +6,9 @@ import java.util.List;
 public class WeaponInstance {
     public final String weaponId;
     public final String tierId;
-    /** Base damage range after tier dmg_mult applied. Affix flat/pct bonuses are added per-hit. */
+    /**
+     * Base damage range after tier dmg_mult applied. Affix flat/pct bonuses are added per-hit.
+     */
     public final float effectiveDmgMin;
     public final float effectiveDmgMax;
     public final float attackSpeed;
@@ -33,7 +35,9 @@ public class WeaponInstance {
         return Collections.unmodifiableList(affixes);
     }
 
-    /** Sum of all rolled values for a given stat key (e.g. "dmg_flat", "dmg_pct", "atk_speed_pct"). */
+    /**
+     * Sum of all rolled values for a given stat key (e.g. "dmg_flat", "dmg_pct", "atk_speed_pct").
+     */
     public float getSumStat(String stat) {
         float sum = 0;
         for (RolledAffix a : affixes) {

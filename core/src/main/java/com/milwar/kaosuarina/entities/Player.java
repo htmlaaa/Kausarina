@@ -10,7 +10,8 @@ import com.milwar.kaosuarina.reliquias.Reliquia;
 import com.milwar.kaosuarina.roles.Role;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.milwar.kaosuarina.utils.AnimationSheets;
-import com.milwar.kaosuarina.utils.ColisionManager;
+import com.milwar.kaosuarina.utils.AudioManager;
+import com.milwar.kaosuarina.utils.CollisionManager;
 import com.milwar.kaosuarina.utils.Constants;
 import com.milwar.kaosuarina.utils.DamageType;
 import com.milwar.kaosuarina.utils.SharedTextures;
@@ -67,7 +68,12 @@ public class Player {
 
     // ── Weapon slots (S5-02, ADR-006) ────────────────────────────────────────
     private final Weapon[] equippedWeapons = new Weapon[Constants.WEAPON_SLOTS];
-    private final Weapon[] storageWeapons  = new Weapon[4];
+    private final Weapon[] storageWeapons = new Weapon[4];
+
+    // ── Amulet slots (MEC-01) ─────────────────────────────────────────────────
+    private static final int AMULET_SLOTS = 3;
+    private final com.milwar.kaosuarina.items.AmuletType[] equippedAmulets =
+        new com.milwar.kaosuarina.items.AmuletType[AMULET_SLOTS];
 
     private UpgradeManager upgradeManager;
 
@@ -76,20 +82,35 @@ public class Player {
         this.stats = role.stats;
         this.reliquia = role.reliquia;
         // Snapshot immutable base stats so recalcStats() can always derive from zero
-        stats.hpBase      = stats.maxHealth;
-        stats.defBase     = stats.defensa;
-        stats.resMagBase  = stats.resistenciaMagica;
+        stats.hpBase = stats.maxHealth;
+        stats.defBase = stats.physicalDefense;
+        stats.resMagBase = stats.magicResistance;
         stats.manaMaxBase = stats.maxMana;
+        stats.baseSpeedBase = stats.baseSpeed;
         switch (role.tipo) {
-            case CABALLERO: roleAccent = new Color(0f, 0.898f, 0.8f, 1f); break;
-            case MAGO:      roleAccent = new Color(0.608f, 0.188f, 1f, 1f); break;
-            case SHOOTER:   roleAccent = new Color(1f, 0.722f, 0f, 1f); break;
-            default:        roleAccent = Color.WHITE.cpy(); break;
+            case CABALLERO:
+                roleAccent = new Color(0f, 0.898f, 0.8f, 1f);
+                break;
+            case MAGO:
+                roleAccent = new Color(0.608f, 0.188f, 1f, 1f);
+                break;
+            case SHOOTER:
+                roleAccent = new Color(1f, 0.722f, 0f, 1f);
+                break;
+            default:
+                roleAccent = Color.WHITE.cpy();
+                break;
         }
         switch (role.tipo) {
-            case CABALLERO: invulnerabilityTime = Constants.INVULNERABILITY_CABALLERO; break;
-            case SHOOTER:   invulnerabilityTime = Constants.INVULNERABILITY_SHOOTER;   break;
-            default:        invulnerabilityTime = Constants.INVULNERABILITY_MAGO;      break;
+            case CABALLERO:
+                invulnerabilityTime = Constants.INVULNERABILITY_CABALLERO;
+                break;
+            case SHOOTER:
+                invulnerabilityTime = Constants.INVULNERABILITY_SHOOTER;
+                break;
+            default:
+                invulnerabilityTime = Constants.INVULNERABILITY_MAGO;
+                break;
         }
         position = new Vector2(x, y);
         velocity = new Vector2();
@@ -104,9 +125,11 @@ public class Player {
         this.upgradeManager = manager;
     }
 
-    /** Returns the inscription on the weapon matching type t, or null. */
+    /**
+     * Returns the inscription on the weapon matching type t, or null.
+     */
     public com.milwar.kaosuarina.weapons.Inscription getInscriptionForWeaponType(
-            com.milwar.kaosuarina.weapons.WeaponType t) {
+        com.milwar.kaosuarina.weapons.WeaponType t) {
         if (t == null) return null;
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
             Weapon w = equippedWeapons[i];
@@ -119,12 +142,12 @@ public class Player {
         return upgradeManager;
     }
 
-    public void aumentarVidaMaxima(int bonus) {
+    public void increaseMaxHealth(int bonus) {
         maxHealth += bonus;
         currentHealth = Math.min(currentHealth + bonus, maxHealth);
     }
 
-    public void update(float delta, PoolBalas poolBalas, float aimAngle) {
+    public void update(float delta, BulletPool bulletPool, float aimAngle) {
         if (!alive) return;
 
         boolean wasInvul = invulnerabilityTimer > 0;
@@ -170,7 +193,7 @@ public class Player {
 
     }
 
-    public void recibirDanio(int damage) {
+    public void takeDamage(int damage) {
         if (!alive || invulnerabilityTimer > 0) return;
 
         // El core reduce el daño (p.ej. CaballeroCore con stacks de armadura)
@@ -185,8 +208,17 @@ public class Player {
         invulnerabilityTimer = invulnerabilityTime;
 
         if (currentHealth <= 0) {
-            currentHealth = 0;
-            alive = false;
+            // ESCUDO_TEMPORAL: absorbe el golpe mortal una vez por run
+            if (!stats.escudoTemporalConsumed
+                && upgradeManager != null
+                && upgradeManager.hasUpgrade(com.milwar.kaosuarina.systems.Upgrade.Tipo.ESCUDO_TEMPORAL)) {
+                currentHealth = 1;
+                stats.escudoTemporalConsumed = true;
+                invulnerabilityTimer = 1.5f;
+            } else {
+                currentHealth = 0;
+                alive = false;
+            }
         }
     }
 
@@ -197,14 +229,14 @@ public class Player {
     /**
      * Cura al jugador. No supera maxHealth.
      */
-    public void curar(int amount) {
+    public void heal(int amount) {
         currentHealth = Math.min(maxHealth, currentHealth + amount);
     }
 
     /**
      * Aplica veneno de contacto (de MALDITO). Extiende duración si ya está envenenado.
      */
-    public void aplicarVeneno(float duration, int dps) {
+    public void applyPoison(float duration, int dps) {
         if (duration > poisonTimer) poisonTimer = duration;
         poisonDps = dps;
         if (poisonTickTimer <= 0) poisonTickTimer = POISON_TICK_INTERVAL;
@@ -215,18 +247,18 @@ public class Player {
     /**
      * Dispara ataque ligero. Devuelve kills para que GameScreen actualice HUD.
      */
-    public int triggerLightAttack(PoolBalas poolBalas, float aimAngle, PoolEnemigos poolEnemigos) {
+    public int triggerLightAttack(BulletPool bulletPool, float aimAngle, EnemyPool enemyPool) {
         if (!alive || lightCooldownTimer > 0) return 0;
         int kills = 0;
         switch (role.tipo) {
             case CABALLERO:
-                kills = ColisionManager.comprobarMelee(this, position, aimAngle,
+                kills = CollisionManager.checkMelee(this, position, aimAngle,
                     MathUtils.degreesToRadians * Constants.MELEE_LIGHT_ARC_DEG,
-                    Constants.MELEE_LIGHT_RADIUS, stats.meleeLightDamage, DamageType.FISICO, poolEnemigos);
+                    Constants.MELEE_LIGHT_RADIUS, stats.meleeLightDamage, DamageType.FISICO, enemyPool);
                 break;
             case MAGO:
-                if (stats.consumirMana(stats.magicLightManaCost))
-                    lanzarBoltMago(poolBalas, aimAngle, poolEnemigos, false);
+                if (stats.consumeMana(stats.magicLightManaCost))
+                    lanzarBoltMago(bulletPool, aimAngle, enemyPool, false);
                 break;
             default:
                 break;
@@ -239,20 +271,20 @@ public class Player {
     /**
      * Dispara ataque pesado. Devuelve kills.
      */
-    public int triggerHeavyAttack(PoolBalas poolBalas, float aimAngle, PoolEnemigos poolEnemigos) {
+    public int triggerHeavyAttack(BulletPool bulletPool, float aimAngle, EnemyPool enemyPool) {
         if (!alive || heavyCooldownTimer > 0) return 0;
         int kills = 0;
         switch (role.tipo) {
             case CABALLERO:
-                kills = ColisionManager.comprobarMelee(this, position, aimAngle,
+                kills = CollisionManager.checkMelee(this, position, aimAngle,
                     MathUtils.degreesToRadians * Constants.MELEE_HEAVY_ARC_DEG,
-                    Constants.MELEE_HEAVY_RADIUS, stats.meleeHeavyDamage, DamageType.FISICO, poolEnemigos);
+                    Constants.MELEE_HEAVY_RADIUS, stats.meleeHeavyDamage, DamageType.FISICO, enemyPool);
                 break;
             case MAGO:
-                if (stats.consumirMana(stats.magicHeavyManaCost)) {
+                if (stats.consumeMana(stats.magicHeavyManaCost)) {
                     float blastR = Constants.MAGIC_BLAST_RADIUS * stats.blastRadiusMult;
-                    kills = ColisionManager.comprobarBlast(this, position, blastR,
-                        stats.magicHeavyDamage, DamageType.MAGICO, poolEnemigos);
+                    kills = CollisionManager.checkBlast(this, position, blastR,
+                        stats.magicHeavyDamage, DamageType.MAGICO, enemyPool);
                 }
                 break;
             default:
@@ -263,24 +295,25 @@ public class Player {
         return kills;
     }
 
-    private void lanzarBoltMago(PoolBalas poolBalas, float aimAngle, PoolEnemigos poolEnemigos, boolean heavy) {
+    private void lanzarBoltMago(BulletPool bulletPool, float aimAngle, EnemyPool enemyPool, boolean heavy) {
         // Auto-aim: si hay enemigo en rango, apunta a él; si no, usa el ratón
-        Enemy nearest = ColisionManager.nearestEnemy(poolEnemigos, position, Constants.MAGIC_LIGHT_RANGE);
+        Enemy nearest = CollisionManager.nearestEnemy(enemyPool, position, Constants.MAGIC_LIGHT_RANGE);
         float shootAngle = (nearest != null)
             ? (float) Math.atan2(nearest.position.y - position.y, nearest.position.x - position.x)
             : aimAngle;
         int dmg = heavy ? stats.magicHeavyDamage : stats.magicLightDamage;
-        poolBalas.spawn(position.x, position.y,
+        bulletPool.spawn(position.x, position.y,
             MathUtils.cos(shootAngle), MathUtils.sin(shootAngle),
-            dmg, 0, 0, DamageType.MAGICO);
+            dmg, 0, 0, DamageType.MAGICO, Constants.BALA_SPEED_MAGICO, stats.rango, null);
+        AudioManager.playShot();
     }
 
     /**
      * Shooter auto-fire: autoaim al enemigo más cercano dentro de SHOOTER_AUTO_RANGE.
      * Si el ratón se ha movido recientemente (mouseActive=true), apunta al cursor en su lugar.
      */
-    public void updateShooterAutoFire(float delta, PoolBalas poolBalas, PoolEnemigos poolEnemigos,
-                                       float mouseAngle, boolean mouseActive) {
+    public void updateShooterAutoFire(float delta, BulletPool bulletPool, EnemyPool enemyPool,
+                                      float mouseAngle, boolean mouseActive) {
         shooterCooldown -= delta;
         if (shooterCooldown > 0) return;
 
@@ -288,22 +321,23 @@ public class Player {
         if (mouseActive) {
             angle = mouseAngle;
         } else {
-            Enemy nearest = ColisionManager.nearestEnemy(poolEnemigos, position, Constants.SHOOTER_AUTO_RANGE);
+            Enemy nearest = CollisionManager.nearestEnemy(enemyPool, position, Constants.SHOOTER_AUTO_RANGE);
             if (nearest == null) return;
             angle = MathUtils.atan2(nearest.position.y - position.y, nearest.position.x - position.x);
         }
 
-        float mult   = (upgradeManager != null) ? upgradeManager.getMultiplicadorDanio() : 1f;
-        int   dmg    = Math.max(1, Math.round(Constants.SHOOTER_AUTO_DAMAGE * mult));
-        int   pierce = (upgradeManager != null) ? upgradeManager.getNivelPerforation() : 0;
-        int   extra  = (upgradeManager != null) ? upgradeManager.getBalasExtra() : 0;
-        int   total  = 2 + extra;
+        float mult = (upgradeManager != null) ? upgradeManager.getDamageMultiplier() : 1f;
+        int dmg = Math.max(1, Math.round(Constants.SHOOTER_AUTO_DAMAGE * mult));
+        int pierce = (upgradeManager != null) ? upgradeManager.getPerforationLevel() : 0;
+        int extra = (upgradeManager != null) ? upgradeManager.getExtraBullets() : 0;
+        int total = 2 + extra;
         float spread = 6f * MathUtils.degreesToRadians;
 
+        AudioManager.playShot();
         for (int b = 0; b < total; b++) {
-            float t = (total > 1) ? (b / (float)(total - 1) - 0.5f) * 2f : 0f;
+            float t = (total > 1) ? (b / (float) (total - 1) - 0.5f) * 2f : 0f;
             float a = angle + t * spread;
-            poolBalas.spawnReturning(position.x, position.y,
+            bulletPool.spawnReturning(position.x, position.y,
                 MathUtils.cos(a), MathUtils.sin(a),
                 dmg, pierce, 0, DamageType.A_DISTANCIA, 900f, stats.rango, WeaponType.PISTOLAS_GEMELAS);
         }
@@ -446,14 +480,18 @@ public class Player {
         return stats.maxMana;
     }
 
-    /** Adds mana without exceeding the current maximum. */
+    /**
+     * Adds mana without exceeding the current maximum.
+     */
     public void gainMana(float amount) {
         stats.addMana(amount);
     }
 
-    /** Consumes mana. Returns true if there was enough; false if mana was insufficient. */
+    /**
+     * Consumes mana. Returns true if there was enough; false if mana was insufficient.
+     */
     public boolean consumeMana(float cost) {
-        return stats.consumirMana(cost);
+        return stats.consumeMana(cost);
     }
 
     public boolean isAlive() {
@@ -472,9 +510,9 @@ public class Player {
         return stats;
     }
 
-    public float getVelocidadActual() {
+    public float getCurrentSpeed() {
         float speed = upgradeManager != null
-            ? stats.baseSpeed * upgradeManager.getMultiplicadorVelocidad()
+            ? stats.baseSpeed * upgradeManager.getSpeedMultiplier()
             : stats.baseSpeed;
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
             if (equippedWeapons[i] != null) speed *= equippedWeapons[i].moveSpeedMult;
@@ -501,15 +539,22 @@ public class Player {
         recalcStats();
     }
 
-    /** Returns the weapon in the given slot, or null if empty. */
+    /**
+     * Returns the weapon in the given slot, or null if empty.
+     */
     public Weapon getWeaponAtSlot(int slot) {
         return equippedWeapons[slot];
     }
 
-    /** Stores a weapon in the first free storage slot. Returns true if stored. */
+    /**
+     * Stores a weapon in the first free storage slot. Returns true if stored.
+     */
     public boolean storeWeapon(Weapon w) {
         for (int i = 0; i < storageWeapons.length; i++) {
-            if (storageWeapons[i] == null) { storageWeapons[i] = w; return true; }
+            if (storageWeapons[i] == null) {
+                storageWeapons[i] = w;
+                return true;
+            }
         }
         return false;
     }
@@ -519,9 +564,13 @@ public class Player {
         return true;
     }
 
-    public Weapon getStorageWeapon(int slot) { return storageWeapons[slot]; }
+    public Weapon getStorageWeapon(int slot) {
+        return storageWeapons[slot];
+    }
 
-    /** Swaps an active slot (0-1) with a storage slot (0-3). */
+    /**
+     * Swaps an active slot (0-1) with a storage slot (0-3).
+     */
     public void swapActiveWithStorage(int activeSlot, int storageSlot) {
         Weapon tmp = equippedWeapons[activeSlot];
         equippedWeapons[activeSlot] = storageWeapons[storageSlot];
@@ -529,7 +578,9 @@ public class Player {
         recalcStats();
     }
 
-    /** Swaps two storage slots. */
+    /**
+     * Swaps two storage slots.
+     */
     public void swapStorageSlots(int a, int b) {
         Weapon tmp = storageWeapons[a];
         storageWeapons[a] = storageWeapons[b];
@@ -544,22 +595,123 @@ public class Player {
         int hpSum = 0, defSum = 0, resMagSum = 0, manaMaxSum = 0;
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
             if (equippedWeapons[i] != null) {
-                hpSum      += equippedWeapons[i].hpBonus;
-                defSum     += equippedWeapons[i].defBonus;
-                resMagSum  += equippedWeapons[i].resMagBonus;
+                hpSum += equippedWeapons[i].hpBonus;
+                defSum += equippedWeapons[i].defBonus;
+                resMagSum += equippedWeapons[i].resMagBonus;
                 manaMaxSum += equippedWeapons[i].manaMaxBonus;
             }
         }
-        maxHealth             = stats.hpBase      + hpSum;
-        stats.defensa         = stats.defBase     + (float) defSum;
-        stats.resistenciaMagica = stats.resMagBase + (float) resMagSum;
-        stats.maxMana         = stats.manaMaxBase + (float) manaMaxSum;
-        // Clamp current values so they never exceed the new maxima
-        currentHealth         = Math.min(currentHealth, maxHealth);
-        stats.mana            = Math.min(stats.mana, stats.maxMana);
+        recalcAmuletBonuses();
+        maxHealth = stats.hpBase + hpSum + stats.amuletHpBonus;
+        stats.physicalDefense = stats.defBase + defSum + stats.amuletDefBonus;
+        stats.magicResistance = stats.resMagBase + resMagSum;
+        stats.maxMana = stats.manaMaxBase + manaMaxSum + stats.amuletManaBonus;
+        stats.baseSpeed = stats.baseSpeedBase + stats.amuletSpeedBonus;
+        int regenFromUpgrades = upgradeManager != null
+            ? upgradeManager.getUpgradeLevel(com.milwar.kaosuarina.systems.Upgrade.Tipo.REGENERACION) : 0;
+        stats.hpRegenPerSec = stats.amuletRegenBonus + regenFromUpgrades;
+        stats.lifeStealPercent = stats.amuletLifesteal + stats.weaponAffixLifesteal;
+        currentHealth = Math.min(currentHealth, maxHealth);
+        stats.mana = Math.min(stats.mana, stats.maxMana);
     }
 
-    /** Returns the armor stack count for CABALLERO's Fortaleza Reactiva, or 0 for other roles. */
+    private void recalcAmuletBonuses() {
+        stats.amuletHpBonus = 0;
+        stats.amuletSpeedBonus = 0f;
+        stats.amuletManaBonus = 0f;
+        stats.amuletRegenBonus = 0f;
+        stats.amuletLifesteal = 0f;
+        stats.amuletCritBonus = 0f;
+        stats.amuletDefBonus = 0f;
+        stats.hasSedDeSangre = false;
+        stats.hasGuardianArena = false;
+        stats.hasAmuletExplosion = false;
+        stats.hasAmuletEspectros = false;
+        stats.hasAmuletTiempo = false;
+        for (com.milwar.kaosuarina.items.AmuletType a : equippedAmulets) {
+            if (a == null) continue;
+            switch (a) {
+                case SED_DE_SANGRE:
+                    stats.hasSedDeSangre = true;
+                    break;
+                case GUARDIAN_DE_LA_ARENA:
+                    stats.hasGuardianArena = true;
+                    break;
+                case PIEL_DE_PIEDRA:
+                    stats.amuletHpBonus += 40;
+                    break;
+                case BOTAS_RAPIDAS:
+                    stats.amuletSpeedBonus += 70f;
+                    break;
+                case COLLAR_VAMPIRICO:
+                    stats.amuletLifesteal += 0.024f;
+                    break;
+                case TOTEM_REGEN:
+                    stats.amuletRegenBonus += 2f;
+                    break;
+                case TALISMAN_MANA:
+                    stats.amuletManaBonus += 25f;
+                    break;
+                case AMULETO_CRITICO:
+                    stats.amuletCritBonus += 8f;
+                    break;
+                case AMULETO_EXPLOSION:
+                    stats.hasAmuletExplosion = true;
+                    break;
+                case AMULETO_ESPECTROS:
+                    stats.hasAmuletEspectros = true;
+                    break;
+                case AMULETO_TIEMPO:
+                    stats.hasAmuletTiempo = true;
+                    break;
+                case AMULETO_ARMADURA:
+                    stats.amuletDefBonus += 15f;
+                    stats.amuletSpeedBonus -= 30f;
+                    break;
+            }
+        }
+    }
+
+    // ── Amulet slot API (MEC-01) ──────────────────────────────────────────────
+
+    public boolean isAmuletSlotsFull() {
+        for (com.milwar.kaosuarina.items.AmuletType a : equippedAmulets)
+            if (a == null) return false;
+        return true;
+    }
+
+    /**
+     * Equips the amulet in the first free slot. Returns true on success, false if slots full.
+     */
+    public boolean equipAmulet(com.milwar.kaosuarina.items.AmuletType type) {
+        for (int i = 0; i < AMULET_SLOTS; i++) {
+            if (equippedAmulets[i] == null) {
+                equippedAmulets[i] = type;
+                recalcStats();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Replaces the amulet in the given slot with a new one. Returns the removed type.
+     */
+    public com.milwar.kaosuarina.items.AmuletType swapAmulet(int slot,
+                                                             com.milwar.kaosuarina.items.AmuletType newType) {
+        com.milwar.kaosuarina.items.AmuletType old = equippedAmulets[slot];
+        equippedAmulets[slot] = newType;
+        recalcStats();
+        return old;
+    }
+
+    public com.milwar.kaosuarina.items.AmuletType getAmuletAtSlot(int slot) {
+        return equippedAmulets[slot];
+    }
+
+    /**
+     * Returns the armor stack count for CABALLERO's Fortaleza Reactiva, or 0 for other roles.
+     */
     public int getReliquiaStacks() {
         if (reliquia instanceof com.milwar.kaosuarina.reliquias.ReliquiaCaballero) {
             return ((com.milwar.kaosuarina.reliquias.ReliquiaCaballero) reliquia).getArmorStacks();
@@ -567,7 +719,9 @@ public class Player {
         return 0;
     }
 
-    /** Returns the combo count for TIRADOR's Momentum de Combate, or 0 for other roles. */
+    /**
+     * Returns the combo count for TIRADOR's Momentum de Combate, or 0 for other roles.
+     */
     public int getComboCount() {
         if (reliquia instanceof com.milwar.kaosuarina.reliquias.ReliquiaTirador) {
             return ((com.milwar.kaosuarina.reliquias.ReliquiaTirador) reliquia).getComboCount();

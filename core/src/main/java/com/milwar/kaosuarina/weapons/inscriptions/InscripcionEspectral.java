@@ -11,8 +11,12 @@ public class InscripcionEspectral implements Inscription {
     }
 
     @Override
-    public int extraPierce() { return 1; }
+    public int extraPierce() {
+        return 1;
+    }
 
     @Override
-    public String getName() { return "ESP"; }
+    public String getName() {
+        return "ESP";
+    }
 }

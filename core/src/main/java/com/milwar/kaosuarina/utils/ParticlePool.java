@@ -32,7 +32,12 @@ public class ParticlePool {
 
     public static void render(ShapeRenderer sr) {
         boolean anyActive = false;
-        for (Particle p : pool) { if (p.active) { anyActive = true; break; } }
+        for (Particle p : pool) {
+            if (p.active) {
+                anyActive = true;
+                break;
+            }
+        }
         if (!anyActive) return;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -46,35 +51,43 @@ public class ParticlePool {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    /** Spawn count particles at (x,y) with random direction and given speed/color. */
+    /**
+     * Spawn count particles at (x,y) with random direction and given speed/color.
+     */
     public static void spawn(float x, float y, int count, float speed, float life,
                              float r, float g, float b) {
         for (int i = 0; i < count; i++) {
             Particle p = nextFree();
-            float angle = (float)(Math.random() * Math.PI * 2);
-            float s = speed * (0.5f + (float)Math.random() * 0.5f);
-            p.activate(x, y, (float)Math.cos(angle) * s, (float)Math.sin(angle) * s,
-                       life * (0.6f + (float)Math.random() * 0.4f), r, g, b);
+            float angle = (float) (Math.random() * Math.PI * 2);
+            float s = speed * (0.5f + (float) Math.random() * 0.5f);
+            p.activate(x, y, (float) Math.cos(angle) * s, (float) Math.sin(angle) * s,
+                life * (0.6f + (float) Math.random() * 0.4f), r, g, b);
         }
     }
 
-    /** Convenience: spawn death particles with color matching enemy type. */
+    /**
+     * Convenience: spawn death particles with color matching enemy type.
+     */
     public static void spawnDeath(float x, float y, Enemy.Tipo tipo) {
         float[] c = colorForTipo(tipo);
         spawn(x, y, Constants.PARTICLE_COUNT_DEATH, Constants.PARTICLE_SPEED_DEATH,
-              Constants.PARTICLE_LIFE_DEATH, c[0], c[1], c[2]);
+            Constants.PARTICLE_LIFE_DEATH, c[0], c[1], c[2]);
     }
 
-    /** Convenience: spawn bullet impact sparks. */
+    /**
+     * Convenience: spawn bullet impact sparks.
+     */
     public static void spawnImpact(float x, float y) {
         spawn(x, y, Constants.PARTICLE_COUNT_IMPACT, Constants.PARTICLE_SPEED_IMPACT,
-              Constants.PARTICLE_LIFE_IMPACT, 1f, 0.9f, 0.3f);
+            Constants.PARTICLE_LIFE_IMPACT, 1f, 0.9f, 0.3f);
     }
 
-    /** Convenience: spawn MALDITO explosion burst. */
+    /**
+     * Convenience: spawn MALDITO explosion burst.
+     */
     public static void spawnExplosion(float x, float y) {
         spawn(x, y, Constants.PARTICLE_COUNT_EXPLOSION, 180f,
-              Constants.PARTICLE_LIFE_DEATH, 0.6f, 0f, 0.9f);
+            Constants.PARTICLE_LIFE_DEATH, 0.6f, 0f, 0.9f);
     }
 
     private static Particle nextFree() {
@@ -93,15 +106,24 @@ public class ParticlePool {
 
     private static float[] colorForTipo(Enemy.Tipo tipo) {
         switch (tipo) {
-            case RAPIDO:    return new float[]{1f, 0.9f, 0.1f};
-            case TANQUE:    return new float[]{0.5f, 0.3f, 0.1f};
-            case SHOOTER:   return new float[]{0.3f, 0.5f, 1f};
-            case MALDITO:   return new float[]{0.6f, 0f, 0.9f};
-            case ESPECTRAL: return new float[]{0.2f, 0.9f, 0.9f};
-            case GUARDIAN:  return new float[]{1f, 0.5f, 0.1f};
-            case ARQUERO:    return new float[]{0.3f, 0.5f, 1f};
-            case DEVASTADOR: return new float[]{0.4f, 0f, 0.6f};
-            default:         return new float[]{0.7f, 0.7f, 0.7f};
+            case RAPIDO:
+                return new float[]{1f, 0.9f, 0.1f};
+            case TANQUE:
+                return new float[]{0.5f, 0.3f, 0.1f};
+            case SHOOTER:
+                return new float[]{0.3f, 0.5f, 1f};
+            case MALDITO:
+                return new float[]{0.6f, 0f, 0.9f};
+            case ESPECTRAL:
+                return new float[]{0.2f, 0.9f, 0.9f};
+            case GUARDIAN:
+                return new float[]{1f, 0.5f, 0.1f};
+            case ARQUERO:
+                return new float[]{0.3f, 0.5f, 1f};
+            case DEVASTADOR:
+                return new float[]{0.4f, 0f, 0.6f};
+            default:
+                return new float[]{0.7f, 0.7f, 0.7f};
         }
     }
 }

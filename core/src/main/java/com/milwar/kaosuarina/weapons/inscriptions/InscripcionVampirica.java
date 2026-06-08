@@ -7,12 +7,16 @@ import com.milwar.kaosuarina.weapons.Inscription;
 public class InscripcionVampirica implements Inscription {
     @Override
     public void onHit(Player p, Enemy e, int rawDamage) {
-        p.curar(Math.max(1, rawDamage / 10));
+        p.heal(Math.max(1, rawDamage / 10));
     }
 
     @Override
-    public float damageMult() { return 0.9f; }
+    public float damageMult() {
+        return 0.9f;
+    }
 
     @Override
-    public String getName() { return "VAM"; }
+    public String getName() {
+        return "VAM";
+    }
 }

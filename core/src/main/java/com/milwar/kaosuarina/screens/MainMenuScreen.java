@@ -17,23 +17,24 @@ import com.milwar.kaosuarina.utils.Constants;
 
 public class MainMenuScreen implements Screen {
 
-    private final KaosuarinaGame  game;
-    private final SpriteBatch     batch;
-    private final ShapeRenderer   shapeRenderer;
+    private final KaosuarinaGame game;
+    private final SpriteBatch batch;
+    private final ShapeRenderer shapeRenderer;
     private final OrthographicCamera camera;
-    private final FitViewport     viewport;
+    private final FitViewport viewport;
 
     public MainMenuScreen(KaosuarinaGame game) {
-        this.game     = game;
-        batch         = new SpriteBatch();
+        this.game = game;
+        batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        camera        = new OrthographicCamera();
+        camera = new OrthographicCamera();
         camera.setToOrtho(false, Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
-        viewport      = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
+        viewport = new FitViewport(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, camera);
     }
 
     @Override
-    public void show() {}
+    public void show() {
+    }
 
     @Override
     public void render(float delta) {
@@ -76,9 +77,9 @@ public class MainMenuScreen implements Screen {
         float cx = Constants.SCREEN_WIDTH / 2f;
         float cy = Constants.SCREEN_HEIGHT / 2f;
 
-        BitmapFont fTitle   = FontManager.get().title;
+        BitmapFont fTitle = FontManager.get().title;
         BitmapFont fHeading = FontManager.get().heading;
-        BitmapFont fLarge   = FontManager.get().large;
+        BitmapFont fLarge = FontManager.get().large;
 
         batch.begin();
 
@@ -89,10 +90,10 @@ public class MainMenuScreen implements Screen {
         fHeading.draw(batch, "Un roguelite de supervivencia", cx - 250, cy + 140);
 
         fLarge.setColor(Color.WHITE);
-        fLarge.draw(batch, "[ENTER]   Jugar",     cx - 140, cy + 20);
-        fLarge.draw(batch, "[L]         Records",  cx - 140, cy - 26);
+        fLarge.draw(batch, "[ENTER]   Jugar", cx - 140, cy + 20);
+        fLarge.draw(batch, "[L]         Records", cx - 140, cy - 26);
         fLarge.draw(batch, "[C]         Creditos", cx - 140, cy - 72);
-        fLarge.draw(batch, "[ESC]      Salir",     cx - 140, cy - 118);
+        fLarge.draw(batch, "[ESC]      Salir", cx - 140, cy - 118);
 
         fLarge.setColor(Color.WHITE);
         fTitle.setColor(Color.WHITE);
@@ -100,10 +101,22 @@ public class MainMenuScreen implements Screen {
         batch.end();
     }
 
-    @Override public void resize(int w, int h) { viewport.update(w, h, true); }
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override
+    public void resize(int w, int h) {
+        viewport.update(w, h, true);
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
 
     @Override
     public void dispose() {
