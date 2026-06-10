@@ -141,14 +141,14 @@ public class GameOverScreen implements Screen {
                 cx - 200, cy - 18);
         }
 
-        renderLeaderboardCompact(cx, cy - 30);
+        renderLeaderboardCompact(cx, cy - 62);
 
         fLarge.setColor(new Color(0.4f, 0.95f, 0.4f, 1f));
-        fLarge.draw(batch, "[R]      Jugar de nuevo", cx - 200, cy - 210);
+        fLarge.draw(batch, "[R]      Jugar de nuevo", cx - 200, cy - 185);
         fLarge.setColor(new Color(1f, 0.85f, 0.2f, 1f));
-        fLarge.draw(batch, "[L]      Ver Records completos", cx - 200, cy - 248);
+        fLarge.draw(batch, "[L]      Ver Records completos", cx - 200, cy - 222);
         fLarge.setColor(new Color(0.6f, 0.6f, 0.6f, 1f));
-        fLarge.draw(batch, "[ESC]  Menu principal", cx - 200, cy - 286);
+        fLarge.draw(batch, "[ESC]  Menu principal", cx - 200, cy - 258);
 
         fLarge.setColor(Color.WHITE);
         fTitle.setColor(Color.WHITE);

@@ -278,6 +278,7 @@ public class Enemy {
                 break;
             case DEVASTADOR:
                 enemyId = "EN_BOSS_FINAL";
+                speed = com.milwar.kaosuarina.utils.Constants.DEVASTADOR_SPEED_P1;
                 size = 80f;
                 health = com.milwar.kaosuarina.utils.Constants.DEVASTADOR_HP;
                 maxHealth = com.milwar.kaosuarina.utils.Constants.DEVASTADOR_HP;

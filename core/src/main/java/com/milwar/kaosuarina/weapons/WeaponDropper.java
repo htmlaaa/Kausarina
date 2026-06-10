@@ -111,7 +111,10 @@ public class WeaponDropper {
                 default:        skillType = WeaponType.RIFLE_PRECISION; break;
             }
             Weapon sk = WeaponPool.get(skillType);
-            if (sk != null) return sk;
+            if (sk != null) {
+                sk.tierId = depthToTier(depth);
+                return sk;
+            }
         }
 
         String tierId = depthToTier(depth);

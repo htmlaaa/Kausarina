@@ -12,6 +12,6 @@ public class InscripcionDelEco implements Inscription {
 
     @Override
     public String getName() {
-        return "ECO";
+        return "Del Eco";
     }
 }

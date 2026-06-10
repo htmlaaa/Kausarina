@@ -58,7 +58,7 @@ public class CreditsScreen implements Screen {
         section(cx, y, "DESARROLLO");
         float ly = y - 40f;
         line(cx, ly, "Autor:      Milwar Chapi");
-        line(cx, ly - 32f, "Proyecto:   TFG — GS Desarrollo de Aplicaciones Multiplataforma");
+        line(cx, ly - 32f, "Proyecto:   TFG - GS Desarrollo de Aplicaciones Multiplataforma");
         line(cx, ly - 64f, "Curso:      2025 / 2026");
 
         y -= 180f;
@@ -66,7 +66,7 @@ public class CreditsScreen implements Screen {
         ly = y - 40f;
         line(cx, ly, "Motor:      LibGDX 1.14.0  /  Java 8  /  LWJGL3");
         line(cx, ly - 32f, "Graficos:   Procedural (Pixmap)  +  PixelLab MCP");
-        line(cx, ly - 64f, "Base datos: MySQL  (patron DAO + JDBC)");
+        line(cx, ly - 64f, "Base datos: SQLite  (patron DAO + JDBC)");
         line(cx, ly - 96f, "Build:      Gradle  /  gdx-liftoff");
 
         y -= 200f;

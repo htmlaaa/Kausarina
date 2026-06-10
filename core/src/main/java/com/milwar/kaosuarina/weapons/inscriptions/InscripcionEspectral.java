@@ -17,6 +17,6 @@ public class InscripcionEspectral implements Inscription {
 
     @Override
     public String getName() {
-        return "ESP";
+        return "Espectral";
     }
 }

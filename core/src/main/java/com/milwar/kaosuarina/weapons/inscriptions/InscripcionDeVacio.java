@@ -22,6 +22,6 @@ public class InscripcionDeVacio implements Inscription {
 
     @Override
     public String getName() {
-        return "VAC";
+        return "De Vacio";
     }
 }

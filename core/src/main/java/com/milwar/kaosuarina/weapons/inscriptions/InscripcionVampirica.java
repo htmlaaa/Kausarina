@@ -17,6 +17,6 @@ public class InscripcionVampirica implements Inscription {
 
     @Override
     public String getName() {
-        return "VAM";
+        return "Vampirica";
     }
 }

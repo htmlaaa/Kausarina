@@ -215,6 +215,11 @@ public class HUD implements Disposable {
         fLarge.setColor(Color.WHITE);
         fLarge.draw(batch, timeText, screenWidth / 2f - 36, screenHeight - 12);
 
+        // ── Oleada (debajo del timer) ─────────────────────────────────────
+        fSmall.setColor(new Color(0.85f, 0.85f, 0.85f, 1f));
+        fSmall.draw(batch, "Oleada " + waveNumber, screenWidth / 2f - 28, screenHeight - 40);
+        fSmall.setColor(Color.WHITE);
+
         // ── Left panel slot labels ────────────────────────────────────────
         float labelX = LSLOT_X + LSLOT_SIZE + 6f;
         for (int i = 0; i < 6; i++) {
@@ -391,10 +396,9 @@ public class HUD implements Disposable {
     }
 
     private void renderAmuletSlots() {
-        float slotW = 40f, slotH = 18f, gap = 4f;
-        float startX = LSLOT_X;
-        // Place amulet row below the storage group + a small margin
-        float rowY = lslotY(5) - slotH - 10f;
+        float slotW = 44f, slotH = 20f, gap = 6f;
+        float startX = screenWidth - 3 * (slotW + gap) + gap - 8f;
+        float rowY = 14f;
 
         BitmapFont fS = FontManager.get().small;
         for (int i = 0; i < 3; i++) {
@@ -427,9 +431,9 @@ public class HUD implements Disposable {
     }
 
     private void renderAmuletLabels(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        float slotW = 40f, slotH = 18f, gap = 4f;
-        float startX = LSLOT_X;
-        float rowY = lslotY(5) - slotH - 10f;
+        float slotW = 44f, slotH = 20f, gap = 6f;
+        float startX = screenWidth - 3 * (slotW + gap) + gap - 8f;
+        float rowY = 14f;
         BitmapFont fS = FontManager.get().small;
         for (int i = 0; i < 3; i++) {
             if (amuletSlotName[i].isEmpty()) continue;
@@ -718,7 +722,7 @@ public class HUD implements Disposable {
         for (int i = 0; i < 2; i++) {
             if (!slotName[i].equals("-")) {
                 if (any) sb.append("  |  ");
-                sb.append(slotName[i]);
+                sb.append(formatWeaponName(slotName[i]));
                 if (slotInscription[i] != null) sb.append(" [").append(slotInscription[i]).append("]");
                 any = true;
             }

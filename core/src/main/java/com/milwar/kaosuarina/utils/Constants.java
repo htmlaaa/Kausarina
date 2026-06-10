@@ -112,8 +112,8 @@ public class Constants {
     public static final float SCROLL_SWAP_TIMEOUT = 5f;
 
     // Amuletos (S6-03)
-    public static final int AMULET_SPAWN_INTERVAL_MIN = 6;
-    public static final int AMULET_SPAWN_INTERVAL_MAX = 8;
+    public static final int AMULET_SPAWN_INTERVAL_MIN = 4;
+    public static final int AMULET_SPAWN_INTERVAL_MAX = 6;
     public static final float AMULET_PICKUP_RADIUS = 40f;
     public static final float AMULET_SWAP_TIMEOUT = 5f;
     public static final int SED_DE_SANGRE_GAIN_AMULET = 5;
@@ -131,7 +131,7 @@ public class Constants {
     public static final float GUARDIAN_ATTACK_INTERVAL = 3f;
     public static final float GUARDIAN_SHOCKWAVE_RADIUS = 150f;
     public static final int GUARDIAN_SHOCKWAVE_DMG = 20;
-    public static final int MINIBOSS_WAVE_INTERVAL = 10;
+    public static final int MINIBOSS_GUARDIAN_WAVE = 10;
 
     // Minijefe Arquero (S7-03)
     public static final int ARQUERO_HP = 400;
@@ -140,7 +140,7 @@ public class Constants {
     public static final int ARQUERO_PROJECTILE_DMG = 18;
     public static final float ARQUERO_SHOOT_INTERVAL = 2f;
     public static final float ARQUERO_TELEPORT_INTERVAL = 4f;
-    public static final int ARQUERO_MINIBOSS_WAVE = 20;
+    public static final int ARQUERO_MINIBOSS_WAVE = 14;
 
     // Partículas (S7-02)
     public static final int PARTICLE_POOL_SIZE = 400;
@@ -186,7 +186,7 @@ public class Constants {
     public static final float FRAGMENTADO_SPEED_P3 = 140f;
     public static final int FRAGMENTADO_CONTACT_DMG = 22;
     public static final float FRAGMENTADO_ATTACK_INT = 2.5f;
-    public static final int FRAGMENTADO_WAVE = 30;
+    public static final int FRAGMENTADO_WAVE = 16;
     public static final float FRAGMENTADO_PHASE2_THR = 0.67f;
     public static final float FRAGMENTADO_PHASE3_THR = 0.33f;
 
@@ -202,7 +202,7 @@ public class Constants {
     public static final float DEVASTADOR_SPIRAL_P2 = 3f;
     public static final float DEVASTADOR_SHOCKWAVE_RADIUS = 350f;
     public static final int DEVASTADOR_SPIRAL_BULLETS = 8;
-    public static final int DEVASTADOR_FINAL_WAVE = 50;
+    public static final int DEVASTADOR_FINAL_WAVE = 20;
     public static final float DEVASTADOR_PHASE2_THRESHOLD = 0.5f;
     public static final int DEVASTADOR_PHASE2_SPAWNS = 3;
     public static final int DEVASTADOR_SHOCKWAVE_DMG = 30;

@@ -42,21 +42,6 @@ public class DBManager {
             "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('ARQUERO')",
             "INSERT OR IGNORE INTO tipo_enemigo (nombre) VALUES ('DEVASTADOR')",
 
-            // catalog: tipo_upgrade
-            "CREATE TABLE IF NOT EXISTS tipo_upgrade (" +
-                "  id     INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  nombre TEXT NOT NULL UNIQUE" +
-                ")",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('DANIO_UP')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('CADENCIA_UP')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('VELOCIDAD_UP')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('VIDA_MAXIMA_UP')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('PERFORACION')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('BALA_EXTRA')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('FILO_IGNEO')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('CUCHILLA_VENENO')",
-            "INSERT OR IGNORE INTO tipo_upgrade (nombre) VALUES ('VAMPIRISMO')",
-
             // main run table
             "CREATE TABLE IF NOT EXISTS run (" +
                 "  id                 INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -80,25 +65,7 @@ public class DBManager {
                 ")",
             "CREATE INDEX IF NOT EXISTS idx_run_kill ON run_kill (run_id)",
 
-            // upgrades chosen
-            "CREATE TABLE IF NOT EXISTS run_upgrade (" +
-                "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  run_id          INTEGER NOT NULL," +
-                "  tipo_upgrade_id INTEGER NOT NULL," +
-                "  nivel_tomado    INTEGER NOT NULL DEFAULT 1," +
-                "  orden           INTEGER NOT NULL" +
-                ")",
-            "CREATE INDEX IF NOT EXISTS idx_run_upg ON run_upgrade (run_id)",
-
-            // active relic
-            "CREATE TABLE IF NOT EXISTS run_reliquia (" +
-                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  run_id      INTEGER NOT NULL," +
-                "  reliquia_id INTEGER NOT NULL" +
-                ")",
-            "CREATE INDEX IF NOT EXISTS idx_run_rel ON run_reliquia (run_id)",
-
-            // equipped weapons + inscriptions
+            // equipped weapons
             "CREATE TABLE IF NOT EXISTS run_arma (" +
                 "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "  run_id      INTEGER NOT NULL," +
@@ -108,7 +75,7 @@ public class DBManager {
                 ")",
             "CREATE INDEX IF NOT EXISTS idx_run_arma ON run_arma (run_id)",
 
-            // meta-progresión: tokens acumulados entre runs (MEC-01 Plan A)
+            // meta-progresión
             "CREATE TABLE IF NOT EXISTS meta_tokens (" +
                 "  id    INTEGER PRIMARY KEY DEFAULT 1," +
                 "  total INTEGER NOT NULL DEFAULT 0" +
@@ -125,10 +92,7 @@ public class DBManager {
     }
 
     /**
-     * Guarda todos los datos de la run en la BD usando el patrón DAO.
-     * Envuelve la operación en una transacción: si algo falla, hace rollback.
-     * Si la BD no está disponible, el juego continúa — solo se loguea el error.
-     *
+     * Guarda run + kills + armas en una transacción.
      * @return ID de la run insertada, o -1 si falló.
      */
     public static int guardarRun(RunData data) {
@@ -142,28 +106,21 @@ public class DBManager {
 
             RunVO vo = new RunVO(data.personajeId, data.score,
                 data.tiempoSegundos, data.nivelAlcanzado, data.manaTotal);
+            vo.completada = data.completada;
             int runId = dao.guardar(vo);
             if (runId < 0) {
                 conn.rollback();
                 return -1;
             }
 
-            // kills por tipo (mismo orden que Enemy.Tipo.values())
             String[] tiposEnemigo = {
                 "BASICO", "RAPIDO", "TANQUE", "SHOOTER",
                 "MALDITO", "ESPECTRAL", "GUARDIAN", "ARQUERO", "DEVASTADOR"
             };
-            dao.guardarKills(runId, tiposEnemigo, data.killsPorTipo);
-
-            // upgrades elegidos
-            if (data.upgradesTipos != null && data.upgradesTipos.length > 0) {
-                dao.guardarUpgrades(runId, data.upgradesTipos, data.upgradesNiveles);
+            if (data.killsPorTipo != null) {
+                dao.guardarKills(runId, tiposEnemigo, data.killsPorTipo);
             }
 
-            // reliquia activa
-            dao.guardarReliquia(runId, data.reliquiaId);
-
-            // armas equipadas + inscripciones
             if (data.armasEquipadas != null && data.armasEquipadas.length > 0) {
                 dao.guardarArmas(runId, data.armasEquipadas, data.inscripcionesEquipadas);
             }
@@ -173,33 +130,19 @@ public class DBManager {
 
         } catch (SQLException e) {
             if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ignored) {
-                }
+                try { conn.rollback(); } catch (SQLException ignored) {}
             }
             Gdx.app.error("DBManager", "Error al guardar run: " + e.getMessage());
             return -1;
-        } catch (Exception e) {
-            Gdx.app.error("DBManager", "Error inesperado al guardar run: " + e.getMessage());
-            return -1;
         } finally {
             if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException ignored) {
-                }
+                try { conn.close(); } catch (SQLException ignored) {}
             }
         }
     }
 
-    // ── MEC-01 — Meta-progresión tokens ──────────────────────────────────────
+    // ── Meta-progresión tokens ────────────────────────────────────────────────
 
-    /**
-     * Adds tokens to the persistent total. Formula: score/200 + level*2 + waves.
-     *
-     * @return the new total, or -1 on error.
-     */
     public static int addTokens(int amount) {
         if (amount <= 0) return getTokensTotal();
         ensureInit();
@@ -215,9 +158,6 @@ public class DBManager {
         }
     }
 
-    /**
-     * Returns the current accumulated token total, or 0 on error.
-     */
     public static int getTokensTotal() {
         ensureInit();
         try (Connection conn = DBConnection.getConnection();
@@ -230,15 +170,12 @@ public class DBManager {
         }
     }
 
-    /**
-     * Calculates tokens earned for a run.
-     */
     public static int calcularTokens(int score, int level, int waves) {
         return Math.max(1, score / 200 + level * 2 + waves);
     }
 
     /**
-     * Top 10 runs por score. Devuelve lista vacía si la BD no está disponible.
+     * Top 10 runs por score (todas las runs, no solo completadas).
      */
     public static List<RunVO> getTop10() {
         ensureInit();
@@ -252,27 +189,22 @@ public class DBManager {
             return new ArrayList<>();
         } finally {
             if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException ignored) {
-                }
+                try { conn.close(); } catch (SQLException ignored) {}
             }
         }
     }
 
-    // ── DTO (transfer object entre el juego y la BD) ──────────────────────────
+    // ── DTO ──────────────────────────────────────────────────────────────────
 
     public static class RunData {
-        public int personajeId;            // 1=Caballero, 2=Mago, 3=Tirador
+        public int personajeId;
         public int score;
         public int tiempoSegundos;
         public int nivelAlcanzado;
         public int manaTotal;
-        public int[] killsPorTipo;            // indexado por Enemy.Tipo.ordinal()
-        public String[] upgradesTipos;          // nombres del enum Upgrade.Tipo
-        public int[] upgradesNiveles;         // nivel_tomado de cada upgrade
-        public int reliquiaId;             // 1=Caballero, 2=Mago, 3=Tirador
-        public String[] armasEquipadas;         // WeaponType.name() por slot; null = slot vacío
-        public String[] inscripcionesEquipadas; // Inscription.getName() por slot; null = sin inscripción
+        public boolean completada;
+        public int[] killsPorTipo;
+        public String[] armasEquipadas;
+        public String[] inscripcionesEquipadas;
     }
 }

@@ -2,7 +2,6 @@ package com.milwar.kaosuarina.utils;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.milwar.kaosuarina.data.DataManager;
 import com.milwar.kaosuarina.entities.Bullet;
 import com.milwar.kaosuarina.entities.BulletPool;
 import com.milwar.kaosuarina.entities.Enemy;
@@ -294,12 +293,8 @@ public class CollisionManager {
             case CAOS_PRIMORDIAL:
                 enemy.statusEffect.apply(StatusEffect.Tipo.BURN,
                     Constants.STATUS_BURN_DURATION * 1.5f, Constants.STATUS_BURN_DAMAGE + 4);
-                boolean slowImmune = enemy.enemyId != null &&
-                    DataManager.getInstance().isImmune(enemy.enemyId, "EFF_SLOW");
-                if (!slowImmune) {
-                    enemy.slowTimer = Constants.CAOS_PRIMORDIAL_SLOW_DURATION;
-                    enemy.slowMult = Constants.CAOS_PRIMORDIAL_SLOW_MULT;
-                }
+                enemy.slowTimer = Constants.CAOS_PRIMORDIAL_SLOW_DURATION;
+                enemy.slowMult = Constants.CAOS_PRIMORDIAL_SLOW_MULT;
                 break;
             default:
                 break;
@@ -357,16 +352,10 @@ public class CollisionManager {
             reduction *= (1f - enemy.defReductionPct);
         int damage = Math.max(1, Math.round(raw - reduction));
 
-        if (enemy.enemyId != null) {
-            String dmgId = damageTypeToId(type);
-            if (dmgId != null) {
-                int resistPct = DataManager.getInstance().getResistPct(enemy.enemyId, dmgId);
-                if (resistPct != 0) damage = Math.max(1, Math.round(damage * (1f - resistPct / 100f)));
-            }
-        }
         return damage;
     }
 
+    @SuppressWarnings("unused")
     private static String damageTypeToId(DamageType type) {
         switch (type) {
             case FISICO:      return "DMG_PHYSICAL";

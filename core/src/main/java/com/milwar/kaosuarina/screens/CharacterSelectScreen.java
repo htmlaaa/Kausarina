@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -13,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.milwar.kaosuarina.KaosuarinaGame;
 import com.milwar.kaosuarina.roles.Role;
 import com.milwar.kaosuarina.ui.FontManager;
+import com.milwar.kaosuarina.utils.AnimationSheets;
 import com.milwar.kaosuarina.utils.Constants;
 
 public class CharacterSelectScreen implements Screen {
@@ -38,6 +40,7 @@ public class CharacterSelectScreen implements Screen {
 
     private int selectedIndex = 0;
     private int selectedDifficulty = 0;
+    private float animTimer = 0f;
 
     public CharacterSelectScreen(KaosuarinaGame game) {
         this.game = game;
@@ -54,6 +57,7 @@ public class CharacterSelectScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        animTimer += delta;
         handleInput();
 
         Gdx.gl.glClearColor(0.05f, 0.02f, 0.1f, 1f);
@@ -84,10 +88,6 @@ public class CharacterSelectScreen implements Screen {
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) selectedIndex = 2;
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
             confirmar();
-        if (Gdx.input.isKeyJustPressed(Input.Keys.C)) {
-            dispose();
-            game.setScreen(new CreditsScreen(game));
-        }
     }
 
     private void confirmar() {
@@ -130,39 +130,51 @@ public class CharacterSelectScreen implements Screen {
             shapeRenderer.end();
             Gdx.gl.glLineWidth(1);
 
+            // Separador horizontal sobre la zona de reliquia
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(0.30f, 0.30f, 0.30f, 1f);
+            shapeRenderer.rect(cardX + 8, cardY + 155f, cardW - 16, 1f);
+            shapeRenderer.end();
+
             batch.begin();
 
-            // Key number badge
-            fHeading.setColor(Color.GOLD);
-            fHeading.draw(batch, String.valueOf(i + 1), cardX + 14, cardY + cardH - 10);
-
-            // Role name
+            // Nombre — sin numeración, top-left
             fLarge.setColor(accent);
-            fLarge.draw(batch, role.nombre, cardX + 14, cardY + cardH - 56);
+            fLarge.draw(batch, role.nombre, cardX + 12, cardY + cardH - 26);
 
-            // Stats
-            float sy = cardY + cardH - 104;
-            fMedium.setColor(Color.WHITE);
-            fMedium.draw(batch, "HP:      " + role.stats.maxHealth, cardX + 14, sy);
-            fMedium.draw(batch, "VEL:     " + (int) role.stats.baseSpeed, cardX + 14, sy - 28);
-            fMedium.draw(batch, "DMG:    " + role.stats.baseDamage + "x", cardX + 14, sy - 56);
-            fMedium.draw(batch, "BALAS: " + role.stats.baseBulletCount, cardX + 14, sy - 84);
+            // Stats — columna izquierda, fSmall compacto
+            fSmall.setColor(Color.WHITE);
+            fSmall.draw(batch, "HP:    " + role.stats.maxHealth,                cardX + 12, cardY + cardH - 62);
+            fSmall.draw(batch, "DEF:   " + (int) role.stats.physicalDefense,    cardX + 12, cardY + cardH - 80);
+            fSmall.draw(batch, "VEL:   " + (int) role.stats.baseSpeed,          cardX + 12, cardY + cardH - 98);
+            fSmall.draw(batch, "DMG:  " + role.stats.baseDamage + "x",          cardX + 12, cardY + cardH - 116);
+            fSmall.draw(batch, "MP:    " + (int) role.stats.maxMana,            cardX + 12, cardY + cardH - 134);
+            if (role.tipo != Role.Tipo.CABALLERO) {
+                fSmall.draw(batch, "BALAS: " + role.stats.baseBulletCount,      cardX + 12, cardY + cardH - 152);
+            }
 
-            // Relic section
-            float ry = sy - 130;
-            fMedium.setColor(Color.CYAN);
-            fMedium.draw(batch, "RELIQUIA:", cardX + 14, ry);
+            // Sprite — columna derecha, mismo tamaño y posición para todos
+            int fc = Math.max(1, AnimationSheets.frameCount(role.tipo, AnimationSheets.Anim.IDLE));
+            Texture sprite = AnimationSheets.getFrame(role.tipo, AnimationSheets.Anim.IDLE, 0,
+                (int)(animTimer * 4f) % fc);
+            if (sprite != null) {
+                float sw = 175f;
+                if (!sel) batch.setColor(0.6f, 0.6f, 0.6f, 0.8f);
+                batch.draw(sprite, cardX + 132f, cardY + cardH - 44 - sw, sw, sw);
+                batch.setColor(Color.WHITE);
+            }
 
+            // Reliquia — zona inferior, ancho completo de la card
+            fSmall.setColor(new Color(0.45f, 0.85f, 0.95f, 1f));
+            fSmall.draw(batch, "RELIQUIA:", cardX + 12, cardY + 140);
             fSmall.setColor(Color.LIGHT_GRAY);
             String[] lines = CORE_LINES[i];
             for (int l = 0; l < lines.length; l++) {
-                fSmall.draw(batch, lines[l], cardX + 14, ry - 24 - l * 20);
+                fSmall.draw(batch, lines[l], cardX + 12, cardY + 120 - l * 18);
             }
 
             fSmall.setColor(Color.WHITE);
-            fMedium.setColor(Color.WHITE);
             fLarge.setColor(Color.WHITE);
-            fHeading.setColor(Color.WHITE);
             batch.end();
         }
     }
@@ -220,7 +232,7 @@ public class CharacterSelectScreen implements Screen {
         batch.begin();
         fSmall.setColor(Color.GRAY);
         fSmall.draw(batch,
-            "A/D  Personaje   |   W/S  Dificultad   |   1/2/3  Elegir directo   |   ENTER  Confirmar   |   C  Creditos",
+            "A/D  Personaje   |   W/S  Dificultad   |   1/2/3  Elegir directo   |   ENTER  Confirmar",
             28, 26);
         fSmall.setColor(Color.WHITE);
         batch.end();

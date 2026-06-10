@@ -93,15 +93,15 @@ public class SpawnManager {
 
     private com.milwar.kaosuarina.entities.Enemy.Tipo eliteTipo(int wave) {
         float r = MathUtils.random(100f);
-        if (wave < 8) {
+        if (wave < 5) {
             return r < 55f ? com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE
                 : com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
-        } else if (wave < 15) {
+        } else if (wave < 10) {
             if (r < 30f) return com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE;
             if (r < 55f) return com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
             if (r < 75f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ESPECTRAL;
             return com.milwar.kaosuarina.entities.Enemy.Tipo.ELITE_CHARGE;
-        } else if (wave < 25) {
+        } else if (wave < 16) {
             if (r < 20f) return com.milwar.kaosuarina.entities.Enemy.Tipo.TANQUE;
             if (r < 38f) return com.milwar.kaosuarina.entities.Enemy.Tipo.MALDITO;
             if (r < 54f) return com.milwar.kaosuarina.entities.Enemy.Tipo.ESPECTRAL;
@@ -119,29 +119,30 @@ public class SpawnManager {
         }
     }
 
+    // Boss progression: wave 10 = Guardian, 14 = Arquero, 16 = Fragmentado, 20 = Devastador (WIN)
     private void spawnBossesForWave() {
-        if (waveCount % Constants.MINIBOSS_WAVE_INTERVAL == 0) {
+        if (waveCount == Constants.MINIBOSS_GUARDIAN_WAVE) {
             float angle = MathUtils.random(MathUtils.PI2);
             poolEnemigos.spawnGuardian(
                 player.position.x + MathUtils.cos(angle) * 600f,
                 player.position.y + MathUtils.sin(angle) * 600f);
             AudioManager.playBoss();
         }
-        if (waveCount % Constants.ARQUERO_MINIBOSS_WAVE == 0 && waveCount > 0) {
+        if (waveCount == Constants.ARQUERO_MINIBOSS_WAVE) {
             float angle = MathUtils.random(MathUtils.PI2);
             poolEnemigos.spawnArquero(
                 player.position.x + MathUtils.cos(angle) * 550f,
                 player.position.y + MathUtils.sin(angle) * 550f);
             AudioManager.playBoss();
         }
-        if (waveCount % Constants.FRAGMENTADO_WAVE == 0 && waveCount > 0) {
+        if (waveCount == Constants.FRAGMENTADO_WAVE) {
             float angle = MathUtils.random(MathUtils.PI2);
             poolEnemigos.spawnFragmentado(
                 player.position.x + MathUtils.cos(angle) * 650f,
                 player.position.y + MathUtils.sin(angle) * 650f);
             AudioManager.playBoss();
         }
-        if (waveCount % Constants.DEVASTADOR_FINAL_WAVE == 0 && waveCount > 0) {
+        if (waveCount == Constants.DEVASTADOR_FINAL_WAVE) {
             float angle = MathUtils.random(MathUtils.PI2);
             poolEnemigos.spawnDevastador(
                 player.position.x + MathUtils.cos(angle) * 700f,

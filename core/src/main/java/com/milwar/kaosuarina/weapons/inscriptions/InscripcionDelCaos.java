@@ -31,6 +31,6 @@ public class InscripcionDelCaos implements Inscription {
 
     @Override
     public String getName() {
-        return "CAO";
+        return "Del Caos";
     }
 }

@@ -5,23 +5,33 @@ import com.badlogic.gdx.graphics.Texture;
 import com.milwar.kaosuarina.entities.Enemy;
 
 /**
- * Animated sprites for BASICO, RAPIDO and TANQUE enemies.
- * All other enemy types continue using SharedTextures circles.
+ * Animated walking sprites for enemy types.
  * Null-safe: returns null if files are missing so render falls back gracefully.
  *
  * Asset paths: characters/enemies/{name}/walk/{dir}/frame_NNN.png
- *              characters/enemies/{name}/{dir}.png  (static rotation)
  */
-public class EnemySprites {
+public class    EnemySprites {
 
     public static final int DIR_SOUTH = 0;
     public static final int DIR_EAST  = 1;
     public static final int DIR_NORTH = 2;
     public static final int DIR_WEST  = 3;
 
-    private static final float FPS_BASICO = 8f;
-    private static final float FPS_RAPIDO = 14f;
-    private static final float FPS_TANQUE = 7f;
+    private static final float FPS_BASICO      = 8f;
+    private static final float FPS_RAPIDO      = 14f;
+    private static final float FPS_TANQUE      = 7f;
+    private static final float FPS_SHOOTER     = 8f;
+    private static final float FPS_MALDITO     = 8f;
+    private static final float FPS_BERSERKER   = 12f;
+    private static final float FPS_HEALER      = 7f;
+    private static final float FPS_SHIELDER    = 6f;
+    private static final float FPS_GUARDIAN    = 7f;
+    private static final float FPS_ARQUERO     = 10f;
+    private static final float FPS_ESPECTRAL   = 8f;
+    private static final float FPS_SPLITTER    = 7f;
+    private static final float FPS_ELITE_SUMMON= 8f;
+    private static final float FPS_ELITE_ZONE  = 9f;
+    private static final float FPS_ELITE_CHARGE= 7f;
 
     private static final String[] DIRS = {"south", "east", "north", "west"};
 
@@ -29,11 +39,35 @@ public class EnemySprites {
     private static Texture[][] basico;
     private static Texture[][] rapido;
     private static Texture[][] tanque;
+    private static Texture[][] shooter;
+    private static Texture[][] maldito;
+    private static Texture[][] berserker;
+    private static Texture[][] healer;
+    private static Texture[][] shielder;
+    private static Texture[][] guardian;
+    private static Texture[][] arquero;
+    private static Texture[][] espectral;
+    private static Texture[][] splitter;
+    private static Texture[][] eliteSummon;
+    private static Texture[][] eliteZone;
+    private static Texture[][] eliteCharge;
 
     public static void load() {
-        basico = loadEnemy("basico", 6);
-        rapido = loadEnemy("rapido", 4);
-        tanque = loadEnemy("tanque", 6);
+        basico      = loadEnemy("basico",       6);
+        rapido      = loadEnemy("rapido",       4);
+        tanque      = loadEnemy("tanque",       6);
+        shooter     = loadEnemy("shooter",      8);
+        maldito     = loadEnemy("maldito",      4);
+        berserker   = loadEnemy("berserker",    4);
+        healer      = loadEnemy("healer",       4);
+        shielder    = loadEnemy("shielder",     6);
+        guardian    = loadEnemy("guardian",     4);
+        arquero     = loadEnemy("arquero",      6);
+        espectral   = loadEnemy("espectral",    5);
+        splitter    = loadEnemy("splitter",     5);
+        eliteSummon = loadEnemy("elite_summon", 5);
+        eliteZone   = loadEnemy("elite_zone",   5);
+        eliteCharge = loadEnemy("elite_charge", 5);
     }
 
     private static Texture[][] loadEnemy(String name, int maxFrames) {
@@ -81,18 +115,42 @@ public class EnemySprites {
 
     private static Texture[][] sheetFor(Enemy.Tipo tipo) {
         switch (tipo) {
-            case BASICO: return basico;
-            case RAPIDO: return rapido;
-            case TANQUE: return tanque;
-            default:     return null;
+            case BASICO:       return basico;
+            case RAPIDO:       return rapido;
+            case TANQUE:       return tanque;
+            case SHOOTER:      return shooter;
+            case MALDITO:      return maldito;
+            case BERSERKER:    return berserker;
+            case HEALER:       return healer;
+            case SHIELDER:     return shielder;
+            case GUARDIAN:     return guardian;
+            case ARQUERO:      return arquero;
+            case ESPECTRAL:    return espectral;
+            case SPLITTER:     return splitter;
+            case ELITE_SUMMON: return eliteSummon;
+            case ELITE_ZONE:   return eliteZone;
+            case ELITE_CHARGE: return eliteCharge;
+            default:           return null;
         }
     }
 
     private static float fpsFor(Enemy.Tipo tipo) {
         switch (tipo) {
-            case RAPIDO: return FPS_RAPIDO;
-            case TANQUE: return FPS_TANQUE;
-            default:     return FPS_BASICO;
+            case RAPIDO:       return FPS_RAPIDO;
+            case TANQUE:       return FPS_TANQUE;
+            case SHOOTER:      return FPS_SHOOTER;
+            case MALDITO:      return FPS_MALDITO;
+            case BERSERKER:    return FPS_BERSERKER;
+            case HEALER:       return FPS_HEALER;
+            case SHIELDER:     return FPS_SHIELDER;
+            case GUARDIAN:     return FPS_GUARDIAN;
+            case ARQUERO:      return FPS_ARQUERO;
+            case ESPECTRAL:    return FPS_ESPECTRAL;
+            case SPLITTER:     return FPS_SPLITTER;
+            case ELITE_SUMMON: return FPS_ELITE_SUMMON;
+            case ELITE_ZONE:   return FPS_ELITE_ZONE;
+            case ELITE_CHARGE: return FPS_ELITE_CHARGE;
+            default:           return FPS_BASICO;
         }
     }
 
@@ -100,7 +158,21 @@ public class EnemySprites {
         disposeSheet(basico);
         disposeSheet(rapido);
         disposeSheet(tanque);
-        basico = rapido = tanque = null;
+        disposeSheet(shooter);
+        disposeSheet(maldito);
+        disposeSheet(berserker);
+        disposeSheet(healer);
+        disposeSheet(shielder);
+        disposeSheet(guardian);
+        disposeSheet(arquero);
+        disposeSheet(espectral);
+        disposeSheet(splitter);
+        disposeSheet(eliteSummon);
+        disposeSheet(eliteZone);
+        disposeSheet(eliteCharge);
+        basico = rapido = tanque = shooter = maldito = null;
+        berserker = healer = shielder = guardian = arquero = null;
+        espectral = splitter = eliteSummon = eliteZone = eliteCharge = null;
     }
 
     private static void disposeSheet(Texture[][] sheet) {

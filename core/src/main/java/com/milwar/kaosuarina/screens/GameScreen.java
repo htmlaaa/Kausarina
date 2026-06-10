@@ -23,7 +23,6 @@ import com.milwar.kaosuarina.utils.AudioManager;
 import com.milwar.kaosuarina.utils.CollisionManager;
 import com.milwar.kaosuarina.utils.Constants;
 import com.badlogic.gdx.graphics.Color;
-import com.milwar.kaosuarina.data.DataManager;
 import com.milwar.kaosuarina.weapons.Weapon;
 import com.milwar.kaosuarina.weapons.WeaponCategory;
 import com.milwar.kaosuarina.weapons.WeaponDropper;
@@ -112,11 +111,14 @@ public class GameScreen implements Screen {
     private int inventorySelected = -1;
 
     // Pool de drops de arma en mundo (enemy loot)
-    private static final int DROP_POOL = 8;
+    private static final int DROP_POOL = 20;
+    private static final float DROP_LIFETIME = 30f;
+    private static final float DROP_FADE_DIST = 1400f;
     private final float[] dropX = new float[DROP_POOL];
     private final float[] dropY = new float[DROP_POOL];
     private final Weapon[] dropWeapon = new Weapon[DROP_POOL];
     private final boolean[] dropActive = new boolean[DROP_POOL];
+    private final float[] dropTimer = new float[DROP_POOL];
 
     // S6-02 — Scroll de Inscripción
     private int nextScrollWave;
@@ -540,6 +542,7 @@ public class GameScreen implements Screen {
 
         checkChestProximity();
         procesarLootDrops();
+        updateDropTimers(delta);
         checkPlayerDropCollision();
         updateSwapMenu(delta);
         checkPlayerScrollCollision();
@@ -643,15 +646,21 @@ public class GameScreen implements Screen {
         camera.position.set(player.position.x, player.position.y, 0);
         camera.update();
 
-        ScreenUtils.clear(0.1f, 0.05f, 0.15f, 1f);
+        ScreenUtils.clear(0.10f, 0.08f, 0.06f, 1f);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.setProjectionMatrix(camera.combined);
 
-        // Arena boundary
+        // Arena floor — suelo rocoso/terreno ligeramente mas claro
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0.18f, 0.14f, 0.10f, 1f);
+        shapeRenderer.circle(0, 0, Constants.ARENA_RADIUS, 128);
+        shapeRenderer.end();
+
+        // Arena boundary ring
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(0.4f, 0.25f, 0.6f, 0.7f);
+        shapeRenderer.setColor(0.55f, 0.42f, 0.28f, 0.85f);
         shapeRenderer.circle(0, 0, Constants.ARENA_RADIUS, 128);
         shapeRenderer.end();
 
@@ -773,10 +782,10 @@ public class GameScreen implements Screen {
     private void renderGameOver() {
         if (runGuardada) return;
         runGuardada = true;
-        DBManager.guardarRun(construirRunData());
         int scoreVal = hud.getScore();
         int levelVal = hud.getLevel();
         int waves = spawnManager.getWaveCount();
+        DBManager.guardarRun(construirRunData(false));
         int tokens = DBManager.calcularTokens(scoreVal, levelVal, waves);
         int tokensTotal = DBManager.addTokens(tokens);
         String[] lb = buildLeaderboard(DBManager.getTop10());
@@ -791,14 +800,14 @@ public class GameScreen implements Screen {
     private void renderVictoria() {
         if (runGuardada) return;
         runGuardada = true;
-        DBManager.guardarRun(construirRunData());
-        String[] lb = buildLeaderboard(DBManager.getTop10());
         int scoreVal = hud.getScore();
         int tiempo = (int) tiempoSupervivencia;
         int levelVal = hud.getLevel();
+        int waves = spawnManager.getWaveCount();
+        DBManager.guardarRun(construirRunData(true));
+        String[] lb = buildLeaderboard(DBManager.getTop10());
         int pid = personajeIdDe(player.getRole().tipo);
         String armas = hud.getArmasText();
-        int waves = spawnManager.getWaveCount();
         liberarRecursos();
         game.setScreen(new WinScreen(game, scoreVal, tiempo, levelVal, waves, pid, armas, lb));
     }
@@ -829,24 +838,15 @@ public class GameScreen implements Screen {
         }
     }
 
-    private DBManager.RunData construirRunData() {
+    private DBManager.RunData construirRunData(boolean completada) {
         DBManager.RunData d = new DBManager.RunData();
         d.personajeId = personajeIdDe(player.getRole().tipo);
         d.score = hud.getScore();
         d.tiempoSegundos = (int) tiempoSupervivencia;
         d.nivelAlcanzado = hud.getLevel();
         d.manaTotal = (int) player.getStats().totalManaSpent;
+        d.completada = completada;
         d.killsPorTipo = poolEnemigos.getKillsByType();
-        d.reliquiaId = personajeIdDe(player.getRole().tipo);
-
-        List<Upgrade> aplicados = upgradeManager.getAppliedUpgrades();
-        d.upgradesTipos = new String[aplicados.size()];
-        d.upgradesNiveles = new int[aplicados.size()];
-        for (int i = 0; i < aplicados.size(); i++) {
-            d.upgradesTipos[i] = aplicados.get(i).tipo.name();
-            d.upgradesNiveles[i] = aplicados.get(i).nivel;
-        }
-
         d.armasEquipadas = new String[Constants.WEAPON_SLOTS];
         d.inscripcionesEquipadas = new String[Constants.WEAPON_SLOTS];
         for (int i = 0; i < Constants.WEAPON_SLOTS; i++) {
@@ -856,7 +856,6 @@ public class GameScreen implements Screen {
                 d.inscripcionesEquipadas[i] = (w.inscription != null) ? w.inscription.getName() : null;
             }
         }
-
         return d;
     }
 
@@ -953,10 +952,27 @@ public class GameScreen implements Screen {
     private void renderDrops(SpriteBatch b) {
         for (int i = 0; i < DROP_POOL; i++) {
             if (!dropActive[i]) continue;
+            float alpha = dropTimer[i] < 6f ? Math.max(0.15f, dropTimer[i] / 6f) : 1f;
             Color c = tierColor(dropWeapon[i]);
-            b.setColor(c);
+            b.setColor(c.r, c.g, c.b, alpha);
             b.draw(SharedTextures.getWeaponDrop(), dropX[i] - 12, dropY[i] - 12, 24, 24);
             b.setColor(Color.WHITE);
+        }
+    }
+
+    private void updateDropTimers(float delta) {
+        for (int i = 0; i < DROP_POOL; i++) {
+            if (!dropActive[i]) continue;
+            dropTimer[i] -= delta;
+            if (dropTimer[i] <= 0f) {
+                dropActive[i] = false;
+                continue;
+            }
+            float dx = player.position.x - dropX[i];
+            float dy = player.position.y - dropY[i];
+            if (dx * dx + dy * dy > DROP_FADE_DIST * DROP_FADE_DIST) {
+                dropActive[i] = false;
+            }
         }
     }
 
@@ -1051,6 +1067,7 @@ public class GameScreen implements Screen {
                     dropY[i] = e.position.y;
                     dropWeapon[i] = WeaponDropper.generate(currentDepthForDrops, player.getRole().tipo);
                     dropActive[i] = true;
+                    dropTimer[i] = DROP_LIFETIME;
                     break;
                 }
             }

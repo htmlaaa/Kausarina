@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.milwar.kaosuarina.KaosuarinaGame;
 import com.milwar.kaosuarina.ui.FontManager;
+import com.milwar.kaosuarina.utils.AudioManager;
 import com.milwar.kaosuarina.utils.Constants;
 
 public class MainMenuScreen implements Screen {
@@ -34,6 +35,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void show() {
+        AudioManager.startMusic();
     }
 
     @Override
@@ -64,18 +66,33 @@ public class MainMenuScreen implements Screen {
         batch.setProjectionMatrix(camera.combined);
         shapeRenderer.setProjectionMatrix(camera.combined);
 
-        // Subtle background accent lines
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        // Subtle horizontal accent lines
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0.35f, 0.1f, 0.6f, 0.18f);
         shapeRenderer.rect(0, 0, Constants.SCREEN_WIDTH, 4f);
         shapeRenderer.rect(0, Constants.SCREEN_HEIGHT - 4f, Constants.SCREEN_WIDTH, 4f);
         shapeRenderer.end();
+
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         float cx = Constants.SCREEN_WIDTH / 2f;
         float cy = Constants.SCREEN_HEIGHT / 2f;
+
+        // Decorative arena rings as background motif
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(0.4f, 0.15f, 0.7f, 0.14f);
+        shapeRenderer.circle(cx, cy - 40, 320, 80);
+        shapeRenderer.setColor(0.4f, 0.15f, 0.7f, 0.08f);
+        shapeRenderer.circle(cx, cy - 40, 440, 80);
+        shapeRenderer.setColor(0.4f, 0.15f, 0.7f, 0.05f);
+        shapeRenderer.circle(cx, cy - 40, 560, 80);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
 
         BitmapFont fTitle = FontManager.get().title;
         BitmapFont fHeading = FontManager.get().heading;
